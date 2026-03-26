@@ -1,0 +1,217 @@
+{
+  "id": "uber",
+  "title": "Uber Ride Sharing Architecture",
+  "company": "Uber",
+  "description": "How Uber matches millions of riders and drivers in real-time using geospatial indexing, event-driven architecture, and surge pricing algorithms.",
+  "difficulty": "advanced",
+  "tags": ["real-time", "geospatial", "event-driven", "matching", "microservices"],
+  "architecture": {
+    "components": [
+      {
+        "id": "rider_app",
+        "name": "Rider App",
+        "type": "client",
+        "technology": "iOS / Android",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Rider facing mobile app for booking rides",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Request rides", "Track driver", "Process payment"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "driver_app",
+        "name": "Driver App",
+        "type": "client",
+        "technology": "iOS / Android",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Driver facing app for accepting trips and navigation",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Send location updates", "Accept trips", "Navigate"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "api_gateway",
+        "name": "API Gateway",
+        "type": "gateway",
+        "technology": "NGINX / Envoy",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Routes all client requests to appropriate microservices",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "high",
+          "responsibilities": ["Request routing", "Authentication", "Rate limiting"],
+          "suggestions": ["Deploy across multiple regions"]
+        }
+      },
+      {
+        "id": "dispatch_service",
+        "name": "Dispatch Service (DISCO)",
+        "type": "service",
+        "technology": "Go",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Core matching engine — matches riders to nearest available drivers",
+          "bottleneck_risk": "high",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["Match rider to driver", "Calculate ETA", "Handle surge pricing"],
+          "suggestions": ["Most critical service — must have redundancy and low latency"]
+        }
+      },
+      {
+        "id": "location_service",
+        "name": "Location Service",
+        "type": "service",
+        "technology": "Go / Redis",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Tracks real-time GPS location of all active drivers",
+          "bottleneck_risk": "high",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["Store driver locations", "Geospatial queries", "Update every 4 seconds"],
+          "suggestions": ["Uses geohashing for efficient proximity queries"]
+        }
+      },
+      {
+        "id": "trip_service",
+        "name": "Trip Service",
+        "type": "service",
+        "technology": "Python / Java",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Manages the full lifecycle of a trip from request to completion",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Create trips", "Track trip state", "Calculate fare"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "payment_service",
+        "name": "Payment Service",
+        "type": "service",
+        "technology": "Java",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Handles all payment processing and driver payouts",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "high",
+          "responsibilities": ["Charge riders", "Pay drivers", "Handle refunds"],
+          "suggestions": ["Must be ACID compliant — use PostgreSQL not Cassandra"]
+        }
+      },
+      {
+        "id": "notification_service",
+        "name": "Notification Service",
+        "type": "service",
+        "technology": "Node.js",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Sends push notifications to riders and drivers",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["Push notifications", "SMS", "Email"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "location_db",
+        "name": "Location Store",
+        "type": "cache",
+        "technology": "Redis (Geospatial)",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "In-memory geospatial store for real-time driver locations",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["Store GPS coordinates", "Proximity queries", "Fast updates"],
+          "suggestions": ["Redis GEOADD/GEORADIUS commands enable O(N+log M) proximity search"]
+        }
+      },
+      {
+        "id": "trip_db",
+        "name": "Trip Database",
+        "type": "database",
+        "technology": "PostgreSQL",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Persistent storage for all trip records and payment data",
+          "bottleneck_risk": "medium",
+          "scalability": "vertical",
+          "security_surface": "high",
+          "responsibilities": ["Store trip history", "Payment records", "ACID transactions"],
+          "suggestions": ["Shard by city/region for horizontal scaling"]
+        }
+      },
+      {
+        "id": "kafka",
+        "name": "Event Stream (Kafka)",
+        "type": "queue",
+        "technology": "Apache Kafka",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Event streaming backbone for location updates and trip events",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["Stream location updates", "Trip lifecycle events", "Analytics"],
+          "suggestions": ["Processes millions of location events per minute"]
+        }
+      }
+    ],
+    "connections": [
+      {"id": "e1", "source": "rider_app", "target": "api_gateway", "label": "HTTPS", "direction": "bidirectional", "protocol": "HTTPS", "data_type": "JSON"},
+      {"id": "e2", "source": "driver_app", "target": "api_gateway", "label": "HTTPS", "direction": "bidirectional", "protocol": "HTTPS", "data_type": "JSON"},
+      {"id": "e3", "source": "api_gateway", "target": "dispatch_service", "label": "gRPC", "direction": "bidirectional", "protocol": "gRPC", "data_type": "protobuf"},
+      {"id": "e4", "source": "api_gateway", "target": "trip_service", "label": "REST", "direction": "bidirectional", "protocol": "HTTP", "data_type": "JSON"},
+      {"id": "e5", "source": "api_gateway", "target": "payment_service", "label": "REST", "direction": "bidirectional", "protocol": "HTTP", "data_type": "JSON"},
+      {"id": "e6", "source": "dispatch_service", "target": "location_service", "label": "gRPC", "direction": "bidirectional", "protocol": "gRPC", "data_type": "protobuf"},
+      {"id": "e7", "source": "location_service", "target": "location_db", "label": "GEOADD", "direction": "bidirectional", "protocol": "TCP", "data_type": "binary"},
+      {"id": "e8", "source": "driver_app", "target": "kafka", "label": "Location events", "direction": "unidirectional", "protocol": "TCP", "data_type": "binary"},
+      {"id": "e9", "source": "kafka", "target": "location_service", "label": "Consume", "direction": "unidirectional", "protocol": "TCP", "data_type": "binary"},
+      {"id": "e10", "source": "trip_service", "target": "trip_db", "label": "SQL", "direction": "bidirectional", "protocol": "TCP", "data_type": "SQL"},
+      {"id": "e11", "source": "trip_service", "target": "notification_service", "label": "Events", "direction": "unidirectional", "protocol": "HTTP", "data_type": "JSON"},
+      {"id": "e12", "source": "payment_service", "target": "trip_db", "label": "SQL", "direction": "bidirectional", "protocol": "TCP", "data_type": "SQL"}
+    ],
+    "arch_type": "event_driven",
+    "confidence_score": 1.0
+  },
+  "hld_content": "## Uber High Level Design\n\n### Scale Requirements\n- 25M trips per day globally\n- Millions of concurrent drivers sending GPS every 4 seconds\n- Sub-second matching latency\n- Operations in 700+ cities\n\n### Key Design Decisions\n\n**1. Geohashing for Driver Proximity**\nUber divides the world into a grid using geohashes. Each driver location is stored under a geohash key in Redis. Finding nearby drivers means querying just the surrounding grid cells — O(log N) instead of scanning all drivers.\n\n**2. Event-Driven Location Updates**\nDriver apps send GPS coordinates every 4 seconds. This generates millions of events per minute. Kafka absorbs these events and Location Service consumes them asynchronously — preventing any single service from being overwhelmed.\n\n**3. DISCO — The Matching Engine**\nUbers Dispatch Service (DISCO) is the most critical component. It runs a continuous loop: find available drivers near rider, calculate ETA for each, apply surge pricing, select best match, send trip offer to driver.\n\n**4. Surge Pricing Algorithm**\nWhen demand exceeds supply in a geohash cell, surge multiplier increases automatically. This incentivises more drivers to move to high-demand areas — a self-balancing market mechanism.\n\n### Data Flow — Booking a Ride\n1. Rider requests trip → API Gateway → Dispatch Service\n2. Dispatch queries Location Service for nearby drivers\n3. Location Service queries Redis with GEORADIUS command\n4. Dispatch calculates ETAs and selects best driver\n5. Push notification sent to driver via Notification Service\n6. Driver accepts → Trip Service creates trip record\n7. Both apps receive real-time updates via WebSocket",
+  "lld_content": "## Uber Low Level Design\n\n### Location Service Deep Dive\n\n**Geohash Implementation:**\n```\nDriver at lat:40.7128, lng:-74.0060\nGeohash: dr5ru\nRedis: GEOADD drivers 40.7128 -74.0060 driver_123\nQuery: GEORADIUS drivers -74.0060 40.7128 2 km\n```\n\n**Update Frequency:**\n- Driver sends location every 4 seconds\n- Redis TTL: 30 seconds (removes inactive drivers)\n- Processes 1M+ location updates per minute\n\n### Trip State Machine\n```\nREQUESTED → DRIVER_ASSIGNED → DRIVER_ARRIVING\n         → TRIP_STARTED → TRIP_COMPLETED\n         → CANCELLED\n```\n\n### Surge Pricing Algorithm\n```\nsurge_multiplier = max(1.0, demand / supply)\nwhere:\n  demand = trip requests in geohash cell (last 5 min)\n  supply = available drivers in geohash cell\n```",
+  "flashcards": [
+    {
+      "question": "How does Uber find nearby drivers efficiently?",
+      "answer": "Uber uses geohashing — dividing the world into a grid. Driver locations are stored in Redis using GEOADD. When a rider requests a trip, Redis GEORADIUS queries just the nearby grid cells instead of scanning all drivers globally. This gives O(log N) lookup time regardless of how many total drivers exist.",
+      "category": "Algorithms"
+    },
+    {
+      "question": "Why does Uber use Kafka for location updates?",
+      "answer": "Millions of drivers send GPS coordinates every 4 seconds — that's potentially 10M+ events per minute. Kafka acts as a buffer so Location Service can process these events at its own pace without being overwhelmed. It also decouples producers (driver apps) from consumers (location service), enabling independent scaling.",
+      "category": "Architecture"
+    },
+    {
+      "question": "What database does Uber use for trips and why not Cassandra?",
+      "answer": "PostgreSQL for trip and payment data because these require ACID transactions. When a trip completes and payment is charged, both records must update atomically — either both succeed or both fail. Cassandra's eventual consistency model cannot guarantee this. For non-transactional data like driver profiles, Uber uses Cassandra.",
+      "category": "Database"
+    },
+    {
+      "question": "How does Uber handle the thundering herd problem when a big event ends?",
+      "answer": "When a concert ends, thousands of riders request rides simultaneously in one area. Uber's surge pricing automatically increases multiplier, incentivising nearby drivers to move in. The geohash-based location system handles the concentrated query load. Dispatch Service horizontally scales to handle increased matching requests.",
+      "category": "Scalability"
+    }
+  ]
+}

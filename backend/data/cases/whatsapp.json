@@ -1,0 +1,162 @@
+{
+  "id": "whatsapp",
+  "title": "WhatsApp Messaging Architecture",
+  "company": "WhatsApp",
+  "description": "How WhatsApp handles 100B+ messages per day with just 50 engineers using Erlang, end-to-end encryption, and extreme engineering simplicity.",
+  "difficulty": "intermediate",
+  "tags": ["messaging", "websocket", "erlang", "e2e-encryption", "simplicity"],
+  "architecture": {
+    "components": [
+      {
+        "id": "client",
+        "name": "WhatsApp Client",
+        "type": "client",
+        "technology": "iOS / Android",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Mobile app handling messaging, media, and calls",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "high",
+          "responsibilities": ["Send/receive messages", "E2E encryption", "Media upload", "Store keys"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "load_balancer",
+        "name": "Load Balancer",
+        "type": "load_balancer",
+        "technology": "HAProxy",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Distributes incoming connections across chat servers",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Distribute connections", "SSL termination", "Health checks"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "chat_server",
+        "name": "Chat Server (Ejabberd)",
+        "type": "service",
+        "technology": "Erlang / Ejabberd",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Core messaging server — maintains persistent WebSocket connections with clients",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Maintain connections", "Route messages", "Handle presence", "Queue offline messages"],
+          "suggestions": ["Erlang handles 2M+ concurrent connections per server — key architectural choice"]
+        }
+      },
+      {
+        "id": "media_service",
+        "name": "Media Service",
+        "type": "service",
+        "technology": "Python",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Handles upload and download of images, videos, and documents",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Upload media", "Generate thumbnails", "Serve media files"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "message_db",
+        "name": "Message Store",
+        "type": "database",
+        "technology": "Mnesia / Cassandra",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Stores message queue for offline users — deleted after delivery",
+          "bottleneck_risk": "medium",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["Queue undelivered messages", "Store delivery receipts", "Message ordering"],
+          "suggestions": ["Messages deleted server-side after delivery — privacy by design"]
+        }
+      },
+      {
+        "id": "user_db",
+        "name": "User Database",
+        "type": "database",
+        "technology": "MySQL",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Stores user accounts, contacts, and group metadata",
+          "bottleneck_risk": "low",
+          "scalability": "vertical",
+          "security_surface": "high",
+          "responsibilities": ["User profiles", "Contact lists", "Group membership"],
+          "suggestions": []
+        }
+      },
+      {
+        "id": "media_storage",
+        "name": "Media Storage",
+        "type": "storage",
+        "technology": "BLOB Storage / S3",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Stores encrypted media files",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "medium",
+          "responsibilities": ["Store media blobs", "CDN distribution", "Lifecycle policies"],
+          "suggestions": ["Media is client-side encrypted before upload"]
+        }
+      },
+      {
+        "id": "push_service",
+        "name": "Push Notification Service",
+        "type": "service",
+        "technology": "Node.js",
+        "position": {"x": 0, "y": 0},
+        "metadata": {
+          "role": "Sends push notifications when user is offline",
+          "bottleneck_risk": "low",
+          "scalability": "horizontal",
+          "security_surface": "low",
+          "responsibilities": ["APNs for iOS", "FCM for Android", "Offline alerts"],
+          "suggestions": []
+        }
+      }
+    ],
+    "connections": [
+      {"id": "e1", "source": "client", "target": "load_balancer", "label": "WebSocket", "direction": "bidirectional", "protocol": "WSS", "data_type": "binary"},
+      {"id": "e2", "source": "load_balancer", "target": "chat_server", "label": "Route", "direction": "bidirectional", "protocol": "TCP", "data_type": "binary"},
+      {"id": "e3", "source": "chat_server", "target": "message_db", "label": "Queue", "direction": "bidirectional", "protocol": "TCP", "data_type": "binary"},
+      {"id": "e4", "source": "chat_server", "target": "user_db", "label": "Read", "direction": "unidirectional", "protocol": "TCP", "data_type": "SQL"},
+      {"id": "e5", "source": "chat_server", "target": "push_service", "label": "Notify", "direction": "unidirectional", "protocol": "HTTP", "data_type": "JSON"},
+      {"id": "e6", "source": "client", "target": "media_service", "label": "Upload", "direction": "bidirectional", "protocol": "HTTPS", "data_type": "binary"},
+      {"id": "e7", "source": "media_service", "target": "media_storage", "label": "Store", "direction": "bidirectional", "protocol": "HTTPS", "data_type": "binary"}
+    ],
+    "arch_type": "microservices",
+    "confidence_score": 1.0
+  },
+  "hld_content": "## WhatsApp High Level Design\n\n### Scale Requirements\n- 2B+ users\n- 100B+ messages per day\n- Built by only 50 engineers (acquired for $19B)\n- 99.9% uptime\n\n### Key Design Decisions\n\n**1. Erlang for Concurrency**\nWhatsApp chose Erlang (via Ejabberd) because Erlang was designed for telecom systems requiring millions of concurrent connections. A single Erlang node handles 2M+ WebSocket connections. This is the single biggest architectural decision — it allowed WhatsApp to scale with very few servers.\n\n**2. End-to-End Encryption (Signal Protocol)**\nMessages are encrypted on the sender device before leaving the phone. WhatsApp servers only see encrypted blobs — they cannot read message content. Keys are stored only on devices, never on servers.\n\n**3. Minimal Server-Side Storage**\nMessages are stored server-side only when recipient is offline. Once delivered, they are deleted from servers. This is both a privacy feature and a cost saving — WhatsApp does not need to store 100B messages per day long term.\n\n**4. Simplicity Over Complexity**\nWhatsApp famously avoided unnecessary complexity. No microservices sprawl — a small number of well-engineered services. This is why 50 engineers could support 2B users.",
+  "lld_content": "## WhatsApp Low Level Design\n\n### Message Delivery Flow\n```\nSender encrypts message with recipient public key\n         ↓\nSends to Chat Server via WebSocket\n         ↓\nIs recipient online?\n  YES → Route directly to recipient connection\n  NO  → Store in Message DB + send push notification\n         ↓\nRecipient comes online → pulls queued messages\n         ↓\nDelivery confirmed → messages deleted from server\n```\n\n### Delivery Receipts\n- Single tick: sent to server\n- Double tick: delivered to device\n- Blue tick: read by recipient\n\n### Group Message Fan-out\n```\nSender sends 1 message\nServer fans out to N group members\nEach member gets individual encrypted copy\nFor 256 member group = 256 delivery operations\n```",
+  "flashcards": [
+    {
+      "question": "Why did WhatsApp choose Erlang over Java or Go?",
+      "answer": "Erlang was built for telecom systems requiring millions of concurrent connections with fault tolerance. The actor model in Erlang means each connection is a lightweight process (not a thread) — a single node handles 2M+ connections with low memory. Java threads would require far more memory at that scale. This choice was fundamental to WhatsApp scaling with minimal infrastructure.",
+      "category": "Technology Choice"
+    },
+    {
+      "question": "How does WhatsApp's end-to-end encryption work at a high level?",
+      "answer": "WhatsApp uses the Signal Protocol. Each device generates a public/private key pair. When you send a message, your app encrypts it with the recipient's public key. Only the recipient's private key (stored only on their device) can decrypt it. WhatsApp servers only ever see encrypted ciphertext — even WhatsApp cannot read your messages.",
+      "category": "Security"
+    },
+    {
+      "question": "How does WhatsApp handle offline message delivery?",
+      "answer": "If recipient is offline, the message is stored encrypted in Cassandra on WhatsApp servers and a push notification is sent via APNs/FCM. When recipient comes online, their client pulls queued messages, acknowledges delivery, and the server deletes them. This store-and-forward pattern with immediate deletion is key to their privacy model.",
+      "category": "Architecture"
+    }
+  ]
+}

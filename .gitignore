@@ -1,0 +1,69 @@
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Uploads - don't commit user images
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Next.js
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+
+# Test files
+backend/test_gemini.py
+backend/test_analyze.py
+backend/test_models.py
+backend/test_image.png
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.cursor/
+.idea/
+*.swp
+```
+
+---
+
+## ✅ Final Checklist
+```
+archexplain\
+├── docker-compose.yml     ✅
+├── .env.example           ✅ (paste above)
+├── .gitignore             ✅ (paste above)
+│
+├── backend\
+│   ├── main.py            ✅
+│   ├── config.py          ✅
+│   ├── requirements.txt   ✅
+│   ├── Dockerfile         ✅
+│   ├── .env               ✅ (paste above + add real Gemini key)
+│   ├── uploads\
+│   │   └── .gitkeep       ✅
+│   ├── routers\
+│   │   └── __init__.py    ✅
+│   ├── services\
+│   │   ├── __init__.py    ✅
+│   │   └── llm\
+│   │       └── __init__.py ✅
+│   ├── models\
+│   │   └── __init__.py    ✅
+│   └── db\
+│       └── __init__.py    ✅
+│
+└── frontend\              ✅ (all folders created)

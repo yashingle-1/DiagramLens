@@ -1,0 +1,96 @@
+services:
+  # ── PostgreSQL Database ──────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: archexplain_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: archexplain
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - archexplain-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d archexplain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis Cache ──────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: archexplain_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - archexplain-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend ──────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: archexplain_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://admin:password@postgres:5432/archexplain
+      - REDIS_URL=redis://redis:6379
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - UPLOAD_DIR=/app/uploads
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend:/app          # live reload in development
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - archexplain-network
+
+  # ── Next.js Frontend ─────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: archexplain_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app         # live reload in development
+      - /app/node_modules       # preserve node_modules inside container
+    depends_on:
+      - backend
+    networks:
+      - archexplain-network
+
+# ── Named Volumes ────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+
+# ── Network ──────────────────────────────────────────────
+networks:
+  archexplain-network:
+    driver: bridge

@@ -1,0 +1,31 @@
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+ 
+# Settings & validation
+pydantic==2.7.1
+pydantic-settings==2.3.1
+ 
+# Database
+sqlalchemy==2.0.30
+asyncpg==0.29.0          # async PostgreSQL driver
+alembic==1.13.1          # database migrations
+ 
+# Redis
+redis==5.0.4
+hiredis==2.3.2           # faster redis parsing
+ 
+# LLM Providers
+google-generativeai==0.7.2    # Gemini
+anthropic==0.28.0             # Claude (optional, benchmarking)
+openai==1.30.1                # GPT-4V (optional, benchmarking)
+ 
+# File handling
+python-multipart==0.0.9  # for file uploads
+pillow==10.3.0           # image validation
+ 
+# Utilities
+python-dotenv==1.0.1
+httpx==0.27.0
+tenacity==8.3.0          # retry logic
+ 
