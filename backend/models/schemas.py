@@ -5,16 +5,18 @@ from enum import Enum
 
 # ── Enums ─────────────────────────────────────────────────
 class ComponentType(str, Enum):
-    SERVICE     = "service"
-    DATABASE    = "database"
-    GATEWAY     = "gateway"
-    QUEUE       = "queue"
-    CACHE       = "cache"
-    CDN         = "cdn"
+    SERVICE       = "service"
+    DATABASE      = "database"
+    GATEWAY       = "gateway"
+    QUEUE         = "queue"
+    CACHE         = "cache"
+    CDN           = "cdn"
     LOAD_BALANCER = "load_balancer"
-    CLIENT      = "client"
-    STORAGE     = "storage"
-    OTHER       = "other"
+    CLIENT        = "client"
+    STORAGE       = "storage"
+    MONITORING    = "monitoring"
+    NOTIFICATION  = "notification"
+    OTHER         = "other"
 
 class RiskLevel(str, Enum):
     LOW     = "low"

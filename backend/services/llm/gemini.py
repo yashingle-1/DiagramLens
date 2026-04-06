@@ -19,15 +19,15 @@ class GeminiProvider(LLMProvider):
         # Configure Gemini with API key from settings
         genai.configure(api_key=settings.gemini_api_key)
 
-        # gemini-1.5-flash is free tier and fast
+        # gemini-2.5-flash — latest model, available for new API keys
         # good balance of speed and accuracy for extraction
-        self.model = genai.GenerativeModel("gemini-2.0-flash-lite")
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
 
         # Generation config — low temperature means more consistent
         # structured output (less creative, more reliable JSON)
         self.generation_config = genai.types.GenerationConfig(
             temperature=0.1,        # low = more consistent output
-            max_output_tokens=4096, # enough for complex architectures
+            max_output_tokens=16384, # enough for complex architectures
         )
 
     def get_provider_name(self) -> str:
@@ -176,30 +176,31 @@ COMPONENT TO ANALYZE:
         if not text:
             return None
 
-        # Remove markdown code blocks if present
-        # e.g. ```json ... ``` or ``` ... ```
-        cleaned = re.sub(r"```(?:json)?\s*", "", text)
-        cleaned = cleaned.replace("```", "").strip()
+        cleaned = text.strip()
 
-        # Try to find JSON object in the response
-        # Sometimes LLMs add text before or after the JSON
-        json_match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-        if json_match:
-            cleaned = json_match.group()
+        # Remove markdown fences
+        if cleaned.startswith("```json"):
+            cleaned = cleaned[7:]
+        elif cleaned.startswith("```"):
+            cleaned = cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+    
+        cleaned = cleaned.strip()
 
+        # Try direct parse
         try:
             return json.loads(cleaned)
         except json.JSONDecodeError:
-            return None
+            pass
 
-    # ── History Formatter ─────────────────────────────────
-    # Formats conversation history for the prompt context
-    def _format_history(self, history: list) -> str:
-        if not history:
-            return "No previous messages."
-        formatted = []
-        for msg in history[-10:]:  # last 10 messages only
-            role = msg.get("role", "user").upper()
-            content = msg.get("content", "")
-            formatted.append(f"{role}: {content}")
-        return "\n".join(formatted)
+        # Find outermost braces
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(cleaned[start:end+1])
+            except json.JSONDecodeError:
+                pass
+
+        return None

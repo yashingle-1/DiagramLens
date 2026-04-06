@@ -1,0 +1,377 @@
+{
+  "components": [
+    {
+      "id": "comp_1",
+      "name": "yourApp.com",
+      "type": "client",
+      "technology": "Web Browser",
+      "position": {"x": 150, "y": 50},
+      "metadata": {
+        "role": "User access point for the main application",
+        "bottleneck_risk": "low",
+        "scalability": "N/A",
+        "security_surface": "low",
+        "responsibilities": ["Initiate application requests"],
+        "suggestions": ["Use HTTPS for all traffic"]
+      }
+    },
+    {
+      "id": "comp_2",
+      "name": "Hosted Zone",
+      "type": "gateway",
+      "technology": "Amazon Route 53",
+      "position": {"x": 150, "y": 120},
+      "metadata": {
+        "role": "DNS resolution for yourApp.com",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Route incoming traffic"],
+        "suggestions": ["Implement DNSSEC"]
+      }
+    },
+    {
+      "id": "comp_3",
+      "name": "Elastic Load Balancing",
+      "type": "load_balancer",
+      "technology": "AWS ELB",
+      "position": {"x": 150, "y": 220},
+      "metadata": {
+        "role": "Distribute incoming traffic to web servers",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Distribute requests", "Perform health checks"],
+        "suggestions": ["Enable WAF integration"]
+      }
+    },
+    {
+      "id": "comp_4",
+      "name": "Web Server ASG",
+      "type": "service",
+      "technology": "EC2, Apache/Nginx",
+      "position": {"x": 150, "y": 320},
+      "metadata": {
+        "role": "Serve web content and handle user requests",
+        "bottleneck_risk": "medium",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Serve web content", "Process user input"],
+        "suggestions": ["Implement auto-scaling policies"]
+      }
+    },
+    {
+      "id": "comp_5",
+      "name": "App Server ASG",
+      "type": "service",
+      "technology": "EC2, Node.js/Java",
+      "position": {"x": 150, "y": 450},
+      "metadata": {
+        "role": "Execute business logic and interact with data stores",
+        "bottleneck_risk": "medium",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Execute business logic", "Manage data access"],
+        "suggestions": ["Optimize database queries"]
+      }
+    },
+    {
+      "id": "comp_6",
+      "name": "Amazon ElastiCache",
+      "type": "cache",
+      "technology": "Redis/Memcached",
+      "position": {"x": 100, "y": 580},
+      "metadata": {
+        "role": "In-memory data store for caching frequently accessed data",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Cache data", "Reduce DB load"],
+        "suggestions": ["Monitor cache hit ratio"]
+      }
+    },
+    {
+      "id": "comp_7",
+      "name": "RDS DB Instance",
+      "type": "database",
+      "technology": "MySQL/PostgreSQL",
+      "position": {"x": 200, "y": 580},
+      "metadata": {
+        "role": "Primary relational database for application data",
+        "bottleneck_risk": "medium",
+        "scalability": "vertical",
+        "security_surface": "high",
+        "responsibilities": ["Store application data", "Process SQL queries"],
+        "suggestions": ["Enable automated backups"]
+      }
+    },
+    {
+      "id": "comp_8",
+      "name": "RDS DB Standby",
+      "type": "database",
+      "technology": "MySQL/PostgreSQL",
+      "position": {"x": 350, "y": 580},
+      "metadata": {
+        "role": "Multi-AZ standby for high availability and disaster recovery",
+        "bottleneck_risk": "low",
+        "scalability": "N/A",
+        "security_surface": "high",
+        "responsibilities": ["Provide failover", "Data replication"],
+        "suggestions": ["Regularly test failover procedures"]
+      }
+    },
+    {
+      "id": "comp_9",
+      "name": "Bucket",
+      "type": "storage",
+      "technology": "Amazon S3",
+      "position": {"x": 450, "y": 400},
+      "metadata": {
+        "role": "Object storage for static assets and media files",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Store static files", "Host media content"],
+        "suggestions": ["Implement lifecycle policies"]
+      }
+    },
+    {
+      "id": "comp_10",
+      "name": "media.yourApp.com",
+      "type": "client",
+      "technology": "Web Browser",
+      "position": {"x": 550, "y": 50},
+      "metadata": {
+        "role": "User access point for static media content",
+        "bottleneck_risk": "low",
+        "scalability": "N/A",
+        "security_surface": "low",
+        "responsibilities": ["Access static content"],
+        "suggestions": ["Ensure secure content delivery"]
+      }
+    },
+    {
+      "id": "comp_11",
+      "name": "Amazon CloudFront",
+      "type": "cdn",
+      "technology": "AWS CloudFront",
+      "position": {"x": 550, "y": 120},
+      "metadata": {
+        "role": "Content Delivery Network for static assets",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Cache static content", "Deliver content globally"],
+        "suggestions": ["Configure WAF for edge protection"]
+      }
+    },
+    {
+      "id": "comp_12",
+      "name": "Instance with CloudWatch",
+      "type": "other",
+      "technology": "EC2, CloudWatch Agent",
+      "position": {"x": 0, "y": 300},
+      "metadata": {
+        "role": "Collects metrics/logs and triggers alerts",
+        "bottleneck_risk": "medium",
+        "scalability": "vertical",
+        "security_surface": "medium",
+        "responsibilities": ["Aggregate monitoring data", "Trigger alerts"],
+        "suggestions": ["Use managed monitoring services"]
+      }
+    },
+    {
+      "id": "comp_13",
+      "name": "Email Notification",
+      "type": "other",
+      "technology": "Amazon SNS",
+      "position": {"x": 0, "y": 400},
+      "metadata": {
+        "role": "Sends email alerts for critical events",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "low",
+        "responsibilities": ["Send alerts"],
+        "suggestions": ["Integrate with incident management"]
+      }
+    },
+    {
+      "id": "comp_14",
+      "name": "Amazon DynamoDB",
+      "type": "database",
+      "technology": "AWS DynamoDB",
+      "position": {"x": 0, "y": 500},
+      "metadata": {
+        "role": "NoSQL database for flexible data storage",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "high",
+        "responsibilities": ["Store flexible data", "High-performance access"],
+        "suggestions": ["Optimize read/write capacity"]
+      }
+    },
+    {
+      "id": "comp_15",
+      "name": "Amazon SES",
+      "type": "other",
+      "technology": "AWS SES",
+      "position": {"x": 0, "y": 600},
+      "metadata": {
+        "role": "Email sending service for transactional emails",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Send transactional emails", "Manage email delivery"],
+        "suggestions": ["Monitor bounce rates"]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "source": "comp_1",
+      "target": "comp_2",
+      "label": "DNS Lookup",
+      "direction": "unidirectional",
+      "protocol": "DNS",
+      "data_type": "N/A"
+    },
+    {
+      "id": "conn_2",
+      "source": "comp_2",
+      "target": "comp_3",
+      "label": "HTTP/S Traffic",
+      "direction": "unidirectional",
+      "protocol": "HTTPS",
+      "data_type": "N/A"
+    },
+    {
+      "id": "conn_3",
+      "source": "comp_3",
+      "target": "comp_4",
+      "label": "HTTP/S Requests",
+      "direction": "unidirectional",
+      "protocol": "HTTPS",
+      "data_type": "N/A"
+    },
+    {
+      "id": "conn_4",
+      "source": "comp_4",
+      "target": "comp_9",
+      "label": "Static Asset Access",
+      "direction": "unidirectional",
+      "protocol": "HTTP/S",
+      "data_type": "binary/files"
+    },
+    {
+      "id": "conn_5",
+      "source": "comp_4",
+      "target": "comp_5",
+      "label": "API Calls",
+      "direction": "unidirectional",
+      "protocol": "HTTP/S",
+      "data_type": "JSON"
+    },
+    {
+      "id": "conn_6",
+      "source": "comp_5",
+      "target": "comp_6",
+      "label": "Cache Operations",
+      "direction": "unidirectional",
+      "protocol": "TCP",
+      "data_type": "binary"
+    },
+    {
+      "id": "conn_7",
+      "source": "comp_5",
+      "target": "comp_7",
+      "label": "Database Queries",
+      "direction": "unidirectional",
+      "protocol": "TCP",
+      "data_type": "SQL"
+    },
+    {
+      "id": "conn_8",
+      "source": "comp_7",
+      "target": "comp_8",
+      "label": "Database Replication",
+      "direction": "unidirectional",
+      "protocol": "TCP",
+      "data_type": "binary"
+    },
+    {
+      "id": "conn_9",
+      "source": "comp_9",
+      "target": "comp_11",
+      "label": "Origin Pull",
+      "direction": "unidirectional",
+      "protocol": "HTTP/S",
+      "data_type": "binary/files"
+    },
+    {
+      "id": "conn_10",
+      "source": "comp_11",
+      "target": "comp_10",
+      "label": "Static Content Delivery",
+      "direction": "unidirectional",
+      "protocol": "HTTPS",
+      "data_type": "binary/files"
+    },
+    {
+      "id": "conn_11",
+      "source": "comp_4",
+      "target": "comp_12",
+      "label": "Metrics/Logs",
+      "direction": "unidirectional",
+      "protocol": "TCP/UDP",
+      "data_type": "text/JSON"
+    },
+    {
+      "id": "conn_12",
+      "source": "comp_5",
+      "target": "comp_12",
+      "label": "Metrics/Logs",
+      "direction": "unidirectional",
+      "protocol": "TCP/UDP",
+      "data_type": "text/JSON"
+    },
+    {
+      "id": "conn_13",
+      "source": "comp_7",
+      "target": "comp_12",
+      "label": "Metrics/Logs",
+      "direction": "unidirectional",
+      "protocol": "TCP/UDP",
+      "data_type": "text/JSON"
+    },
+    {
+      "id": "conn_14",
+      "source": "comp_12",
+      "target": "comp_13",
+      "label": "Alerts",
+      "direction": "unidirectional",
+      "protocol": "SMTP/API",
+      "data_type": "text"
+    },
+    {
+      "id": "conn_15",
+      "source": "comp_5",
+      "target": "comp_14",
+      "label": "NoSQL Operations",
+      "direction": "unidirectional",
+      "protocol": "HTTPS",
+      "data_type": "JSON"
+    },
+    {
+      "id": "conn_16",
+      "source": "comp_5",
+      "target": "comp_15",
+      "label": "Email Sending",
+      "direction": "unidirectional",
+      "protocol": "HTTPS",
+      "data_type": "JSON/text"
+    }
+  ],
+  "arch_type": "layered",
+  "confidence_score": 0.95
+}

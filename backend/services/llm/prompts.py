@@ -44,6 +44,8 @@ Return ONLY a valid JSON object with exactly this structure:
   "arch_type": "microservices|monolith|serverless|event_driven|layered|other",
   "confidence_score": 0.95
 }
+Important: Be concise. Max 2 responsibilities and 1 suggestion per component.
+Keep all text values under 80 characters.
 
 Return ONLY the JSON. No explanation. No markdown. No code blocks.
 """,
