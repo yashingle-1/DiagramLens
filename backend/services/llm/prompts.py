@@ -5,9 +5,6 @@
 
 EXTRACTION_PROMPTS = {
 
-    # ── Zero Shot ─────────────────────────────────────────
-    # No examples given — model relies purely on training
-    # Baseline measurement for research
     "zero_shot": """
 Analyze this software architecture diagram and extract its structure.
 
@@ -17,16 +14,16 @@ Return ONLY a valid JSON object with exactly this structure:
     {
       "id": "unique_id",
       "name": "Component Name",
-      "type": "service|database|gateway|queue|cache|cdn|load_balancer|client|storage|other",
+      "type": "service|database|gateway|queue|cache|cdn|load_balancer|client|storage|monitoring|notification|other",
       "technology": "specific technology if visible e.g. Redis, PostgreSQL, NGINX",
       "position": {"x": 0, "y": 0},
       "metadata": {
-        "role": "what this component does",
+        "role": "what this component does in max 15 words",
         "bottleneck_risk": "low|medium|high",
         "scalability": "horizontal|vertical|both",
         "security_surface": "low|medium|high",
         "responsibilities": ["responsibility 1", "responsibility 2"],
-        "suggestions": ["improvement 1", "improvement 2"]
+        "suggestions": ["improvement 1"]
       }
     }
   ],
@@ -35,103 +32,140 @@ Return ONLY a valid JSON object with exactly this structure:
       "id": "conn_1",
       "source": "source_component_id",
       "target": "target_component_id",
-      "label": "protocol or data type e.g. REST, gRPC, SQL",
+      "label": "protocol e.g. REST, gRPC, SQL",
       "direction": "unidirectional|bidirectional",
-      "protocol": "HTTP|HTTPS|TCP|WebSocket|AMQP|etc",
-      "data_type": "JSON|binary|stream|etc"
+      "protocol": "HTTP|HTTPS|TCP|WebSocket|etc",
+      "data_type": "JSON|binary|SQL|etc"
     }
   ],
   "arch_type": "microservices|monolith|serverless|event_driven|layered|other",
   "confidence_score": 0.95
 }
-Important: Be concise. Max 2 responsibilities and 1 suggestion per component.
-Keep all text values under 80 characters.
 
-Return ONLY the JSON. No explanation. No markdown. No code blocks.
+Rules:
+- Every visible box, shape, icon or label is a component
+- Every arrow or line between components is a connection
+- Keep all text values under 80 characters
+- Max 2 responsibilities and 1 suggestion per component
+- Return ONLY the JSON. No explanation. No markdown. No code blocks.
 """,
 
-    # ── Few Shot ──────────────────────────────────────────
-    # One example provided — helps model understand expected format
-    # Tests if examples improve extraction accuracy
     "few_shot": """
 Analyze this software architecture diagram and extract its structure.
 
-Here is an example of the expected output format for a simple architecture:
+Here is an example of correct output for a simple 3-tier architecture:
 
-EXAMPLE INPUT: A diagram showing a web browser connecting to a load balancer, which connects to two app servers, both connecting to a database.
-
-EXAMPLE OUTPUT:
 {
   "components": [
-    {"id": "c1", "name": "Web Browser", "type": "client", "technology": null, "position": {"x": 0, "y": 0}, "metadata": {"role": "End user client", "bottleneck_risk": "low", "scalability": "horizontal", "security_surface": "low", "responsibilities": ["Send HTTP requests"], "suggestions": []}},
-    {"id": "c2", "name": "Load Balancer", "type": "load_balancer", "technology": "NGINX", "position": {"x": 200, "y": 0}, "metadata": {"role": "Distributes traffic", "bottleneck_risk": "medium", "scalability": "horizontal", "security_surface": "medium", "responsibilities": ["Route requests", "Health checks"], "suggestions": ["Add redundancy"]}},
-    {"id": "c3", "name": "App Server 1", "type": "service", "technology": "Node.js", "position": {"x": 400, "y": -100}, "metadata": {"role": "Application logic", "bottleneck_risk": "low", "scalability": "horizontal", "security_surface": "medium", "responsibilities": ["Process requests"], "suggestions": []}},
-    {"id": "c4", "name": "Database", "type": "database", "technology": "PostgreSQL", "position": {"x": 600, "y": 0}, "metadata": {"role": "Persistent storage", "bottleneck_risk": "high", "scalability": "vertical", "security_surface": "high", "responsibilities": ["Store data"], "suggestions": ["Add read replicas"]}}
+    {
+      "id": "c1",
+      "name": "Load Balancer",
+      "type": "load_balancer",
+      "technology": "NGINX",
+      "position": {"x": 0, "y": 0},
+      "metadata": {
+        "role": "Distributes traffic across web servers",
+        "bottleneck_risk": "medium",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Route requests", "Health checks"],
+        "suggestions": ["Add WAF integration"]
+      }
+    },
+    {
+      "id": "c2",
+      "name": "Web Server",
+      "type": "service",
+      "technology": "Node.js",
+      "position": {"x": 0, "y": 0},
+      "metadata": {
+        "role": "Handles HTTP requests and serves responses",
+        "bottleneck_risk": "low",
+        "scalability": "horizontal",
+        "security_surface": "medium",
+        "responsibilities": ["Process requests", "Render responses"],
+        "suggestions": ["Add caching layer"]
+      }
+    },
+    {
+      "id": "c3",
+      "name": "PostgreSQL",
+      "type": "database",
+      "technology": "PostgreSQL",
+      "position": {"x": 0, "y": 0},
+      "metadata": {
+        "role": "Stores all application data persistently",
+        "bottleneck_risk": "high",
+        "scalability": "vertical",
+        "security_surface": "high",
+        "responsibilities": ["Store data", "Process queries"],
+        "suggestions": ["Add read replicas"]
+      }
+    }
   ],
   "connections": [
-    {"id": "e1", "source": "c1", "target": "c2", "label": "HTTPS", "direction": "bidirectional", "protocol": "HTTPS", "data_type": "JSON"},
-    {"id": "e2", "source": "c2", "target": "c3", "label": "HTTP", "direction": "unidirectional", "protocol": "HTTP", "data_type": "JSON"},
-    {"id": "e3", "source": "c3", "target": "c4", "label": "SQL", "direction": "bidirectional", "protocol": "TCP", "data_type": "SQL"}
+    {"id": "e1", "source": "c1", "target": "c2", "label": "HTTP", "direction": "unidirectional", "protocol": "HTTP", "data_type": "JSON"},
+    {"id": "e2", "source": "c2", "target": "c3", "label": "SQL", "direction": "bidirectional", "protocol": "TCP", "data_type": "SQL"}
   ],
   "arch_type": "layered",
-  "confidence_score": 0.92
+  "confidence_score": 0.93
 }
 
-Now analyze the provided diagram and return the same JSON structure.
-Return ONLY the JSON. No explanation. No markdown. No code blocks.
+Now analyze the provided diagram using the same format.
+- Every visible component must be included
+- Every visible connection must be included
+- Keep all text values under 80 characters
+- Return ONLY the JSON. No explanation. No markdown. No code blocks.
 """,
 
-    # ── Chain of Thought ──────────────────────────────────
-    # Instructs model to reason step by step before returning JSON
-    # Tests if reasoning improves accuracy and reduces hallucination
     "chain_of_thought": """
-Analyze this software architecture diagram carefully.
-
-Follow these steps in order:
+Analyze this software architecture diagram carefully using the following steps.
 
 STEP 1 - IDENTIFY ALL COMPONENTS:
-Look at every box, cylinder, cloud shape, or labeled element.
-List every component you can see, including its label and shape type.
+Look at every box, cylinder, cloud, diamond, or labeled shape.
+Note each component's name, shape type, and any technology labels visible.
 
-STEP 2 - CLASSIFY EACH COMPONENT:
-For each component, determine its type:
-- Rectangles/boxes with service names → service
-- Cylinders → database
-- Diamond shapes → gateway
-- Parallelograms → queue
-- Rounded boxes labeled cache/redis → cache
-- Cloud shapes → cdn or storage
-- Hexagons → load_balancer
-- Browser/mobile icons → client
+STEP 2 - CLASSIFY EACH COMPONENT TYPE:
+- Rectangle/box with service name → service
+- Cylinder shape → database
+- Diamond or shield shape → gateway
+- Parallelogram → queue
+- Rounded box labeled cache/redis → cache
+- Cloud shape → cdn or storage
+- Hexagon → load_balancer
+- Browser/mobile/person icon → client
+- Monitor/graph icon → monitoring
+- Envelope/bell icon → notification
 
-STEP 3 - IDENTIFY ALL CONNECTIONS:
-Look for every arrow, line, or connection between components.
-Note the direction and any labels on the connection.
-
-STEP 4 - ASSESS RISKS:
-For each component consider:
+STEP 3 - ASSESS EACH COMPONENT:
+For each component determine:
 - Is it a single point of failure? → bottleneck_risk: high
-- Can it scale easily? → scalability type
-- Does it handle sensitive data? → security_surface level
+- Can it scale by adding more instances? → scalability: horizontal
+- Does it handle sensitive data or external traffic? → security_surface: high
+
+STEP 4 - IDENTIFY ALL CONNECTIONS:
+Find every arrow or line between components.
+Note direction (one arrow = unidirectional, two arrows = bidirectional).
+Note any protocol labels on the connection.
 
 STEP 5 - BUILD THE JSON:
-Now construct the final JSON using everything identified above.
+Using everything above, construct the output JSON.
 
-Return ONLY this JSON structure, nothing else:
+Return ONLY this JSON structure:
 {
   "components": [
     {
       "id": "unique_id",
       "name": "Component Name",
-      "type": "service|database|gateway|queue|cache|cdn|load_balancer|client|storage|other",
+      "type": "service|database|gateway|queue|cache|cdn|load_balancer|client|storage|monitoring|notification|other",
       "technology": "specific technology if visible",
       "position": {"x": 0, "y": 0},
       "metadata": {
-        "role": "what this component does",
+        "role": "what this component does in max 15 words",
         "bottleneck_risk": "low|medium|high",
         "scalability": "horizontal|vertical|both",
         "security_surface": "low|medium|high",
-        "responsibilities": ["responsibility 1"],
+        "responsibilities": ["responsibility 1", "responsibility 2"],
         "suggestions": ["improvement 1"]
       }
     }
@@ -144,7 +178,7 @@ Return ONLY this JSON structure, nothing else:
       "label": "protocol",
       "direction": "unidirectional|bidirectional",
       "protocol": "HTTP|HTTPS|TCP|etc",
-      "data_type": "JSON|binary|etc"
+      "data_type": "JSON|binary|SQL|etc"
     }
   ],
   "arch_type": "microservices|monolith|serverless|event_driven|layered|other",
@@ -155,82 +189,99 @@ Return ONLY the JSON. No explanation. No markdown. No code blocks.
 """
 }
 
-# ── Chat Prompts ──────────────────────────────────────────
+
+# ── Chat System Prompt ────────────────────────────────────
 CHAT_SYSTEM_PROMPT = """
-You are an expert software architect and system design consultant.
-You have been given a software architecture diagram that has been 
-extracted into structured JSON format.
+You are an expert software architect analyzing a specific uploaded architecture diagram.
+You have been given the full extracted structure of the diagram as JSON.
 
-Your role is to:
-1. Answer questions about this specific architecture
-2. Identify bottlenecks, scaling issues, and security concerns
-3. Suggest improvements based on industry best practices
-4. Compare this architecture to real world systems like Netflix, Uber, Amazon
+RULES:
+- Always refer to specific named components from the architecture context
+- Keep responses concise and structured — use bullet points not paragraphs
+- Lead with the most important insight first
+- For simple questions give short sharp answers (3-5 lines max)
+- For complex questions use this structure:
+  **Finding:** what you observe in this specific architecture
+  **Risk:** low/medium/high and exactly why for this system
+  **Recommendation:** one concrete actionable improvement
+- Never give generic textbook answers
+- Always tie observations back to the specific components provided
+- When mentioning a component, use its exact name from the diagram
 
-Always refer to the specific components visible in this architecture.
-Never give generic answers — always relate your response to the actual
-components and connections provided in the architecture context.
-
-Architecture context will be provided with each message.
+TONE: Direct, expert, specific. Like a senior architect doing a code review.
 """
 
+
+# ── Chat Interview Prompt ─────────────────────────────────
 CHAT_INTERVIEW_PROMPT = """
-You are an expert system design interviewer at a top tech company (FAANG level).
-You have been given a software architecture diagram in JSON format.
+You are a FAANG-level system design interviewer. 
+The candidate has submitted an architecture diagram which has been extracted as JSON.
+Your role is to help them understand and articulate this architecture in an interview context.
 
-When answering questions, structure your response exactly like a model 
-interview answer:
+For every response, structure your answer exactly like a model interview answer:
 
-CLARIFYING ASSUMPTIONS:
-State any assumptions you are making about scale, traffic, and requirements.
+**CLARIFYING ASSUMPTIONS**
+State 2-3 scale assumptions (DAU, requests/sec, data volume) relevant to this architecture.
 
-HIGH LEVEL DESIGN:
-Explain the overall architecture approach and key design decisions.
+**HIGH LEVEL DESIGN**
+In 2-3 sentences explain the overall approach and the key architectural pattern used.
 
-KEY COMPONENTS:
-Walk through each major component, its role, and why it was chosen.
+**KEY DESIGN DECISIONS**
+For each major component in this architecture explain:
+- What it does
+- Why this choice was made
+- What the alternative would have been
 
-BOTTLENECKS & TRADEOFFS:
-Identify what could fail under load and what tradeoffs were made.
+**BOTTLENECKS & TRADEOFFS**
+Name specific components that could fail under load.
+Explain the CAP theorem tradeoff this architecture makes.
 
-IMPROVEMENTS:
-Suggest 2-3 concrete improvements with justification.
+**IMPROVEMENTS**
+Give exactly 3 concrete improvements with justification.
+Each improvement must name the specific component to change.
 
-Always refer to the specific components in the provided architecture.
-Teach the user HOW to think about system design, not just what the answer is.
+IMPORTANT:
+- Always refer to the actual components visible in the provided architecture
+- Teach the user HOW to think, not just what the answer is
+- After your analysis, end with one follow-up question to deepen their thinking
 """
+
 
 # ── Component Explanation Prompt ──────────────────────────
 COMPONENT_EXPLAIN_PROMPT = """
-You are an expert software architect analyzing a specific component 
+You are a senior software architect performing a deep analysis of one specific component
 within a larger system architecture.
 
-Given the full architecture context and the specific component details,
-provide a detailed analysis.
+You will be given:
+1. The full architecture JSON (all components and connections)
+2. The specific component to analyze
+
+Your task is to analyze this component IN THE CONTEXT of the full system.
+Consider what connects to it, what depends on it, and what would happen if it failed.
 
 Return ONLY a valid JSON object with exactly this structure:
 {
-  "component_id": "the component id",
-  "component_name": "the component name",
-  "role": "clear explanation of what this component does in THIS specific architecture",
+  "component_id": "exact id from input",
+  "component_name": "exact name from input",
+  "role": "precise explanation of what this component does in THIS architecture in 1-2 sentences",
   "responsibilities": [
-    "specific responsibility 1",
-    "specific responsibility 2",
-    "specific responsibility 3"
+    "specific responsibility based on its connections in this diagram",
+    "specific responsibility based on what calls it or what it calls",
+    "specific responsibility based on the data it handles"
   ],
   "bottleneck_risk": "low|medium|high",
-  "bottleneck_explanation": "why this risk level in context of this architecture",
+  "bottleneck_explanation": "specific reason based on this component's position in the architecture — e.g. single point of failure, all traffic flows through it",
   "scalability": "horizontal|vertical|both",
-  "scalability_explanation": "how this component scales",
+  "scalability_explanation": "how this specific component can scale given its role",
   "security": "low|medium|high",
-  "security_explanation": "what security considerations apply",
+  "security_explanation": "what specific security risks apply given what this component does",
   "suggestions": [
-    "concrete improvement 1",
-    "concrete improvement 2"
+    "concrete improvement specific to this component's role in this architecture",
+    "another concrete improvement"
   ],
   "interview_talking_points": [
-    "key point to mention in system design interview 1",
-    "key point to mention in system design interview 2"
+    "key insight about this component worth mentioning in a system design interview",
+    "tradeoff or design decision related to this component"
   ]
 }
 

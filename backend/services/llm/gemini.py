@@ -204,3 +204,13 @@ COMPONENT TO ANALYZE:
                 pass
 
         return None
+    
+    def _format_history(self, history: list) -> str:
+        if not history:
+            return "No previous messages."
+        formatted = []
+        for msg in history[-10:]:
+            role = msg.get("role", "user").upper()
+            content = msg.get("content", "")
+            formatted.append(f"{role}: {content}")
+        return "\n".join(formatted)
