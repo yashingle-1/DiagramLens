@@ -5,113 +5,95 @@ from db.connection import Base
 
 
 # ── Session Table ─────────────────────────────────────────
-# Created every time a user uploads a diagram
-# This is the root record everything else links to
 class Session(Base):
     __tablename__ = "sessions"
 
-    id              = Column(String, primary_key=True)          # UUID
-    image_path      = Column(String, nullable=False)            # local file path
-    image_url       = Column(String, nullable=False)            # URL to serve image
-    image_hash      = Column(String, nullable=True, index=True) # for Redis cache lookup
-    original_filename = Column(String, nullable=True)           # original upload name
-    status          = Column(String, default="processing")      # processing | done | failed
-    created_at      = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at      = Column(DateTime(timezone=True), onupdate=func.now())
+    id                = Column(String, primary_key=True)
+    image_path        = Column(String, nullable=False)
+    image_url         = Column(String, nullable=False)
+    image_hash        = Column(String, nullable=True, index=True)
+    original_filename = Column(String, nullable=True)
+    status            = Column(String, default="processing")   # processing | done | failed
+    created_at        = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at        = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # Relationships — one session has one architecture, many chat messages
-    architecture    = relationship("Architecture", back_populates="session", uselist=False)
-    chat_messages   = relationship("ChatMessage", back_populates="session")
+    # One session → two architectures (classical + gemini)
+    architectures = relationship("Architecture", back_populates="session")
+    chat_messages = relationship("ChatMessage", back_populates="session")
 
 
 # ── Architecture Table ────────────────────────────────────
-# Stores the extracted JSON from Gemini Vision
-# One architecture per session
+# One row per pipeline per session (so two rows per upload)
 class Architecture(Base):
     __tablename__ = "architectures"
 
-    id              = Column(String, primary_key=True)          # UUID
-    session_id      = Column(String, ForeignKey("sessions.id"), nullable=False)
-    raw_json        = Column(JSON, nullable=False)              # full extracted JSON
-    component_count = Column(Integer, default=0)                # how many components found
-    connection_count = Column(Integer, default=0)               # how many connections found
-    arch_type       = Column(String, nullable=True)             # microservices | monolith | etc
-    confidence_score = Column(Float, nullable=True)             # 0.0 - 1.0 extraction confidence
-    llm_provider    = Column(String, nullable=True)             # which model extracted this
-    prompt_variant  = Column(String, nullable=True)             # which prompt was used
-    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    id               = Column(String, primary_key=True)
+    session_id       = Column(String, ForeignKey("sessions.id"), nullable=False)
+    raw_json         = Column(JSON, nullable=False)
+    component_count  = Column(Integer, default=0)
+    connection_count = Column(Integer, default=0)
+    arch_type        = Column(String, nullable=True)
+    confidence_score = Column(Float, nullable=True)
+    llm_provider     = Column(String, nullable=True)
+    prompt_variant   = Column(String, nullable=True)
+    # DiagramLens research fields
+    pipeline         = Column(String, nullable=True)   # "classical" | "gemini"
+    diagram_standard = Column(String, nullable=True)   # "aws" | "c4" | "uml" | "informal"
+    complexity       = Column(String, nullable=True)   # "low" | "medium" | "high"
+    response_time_ms = Column(Integer, nullable=True)
+    created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationship back to session
-    session         = relationship("Session", back_populates="architecture")
+    session = relationship("Session", back_populates="architectures")
 
 
 # ── ChatMessage Table ─────────────────────────────────────
-# Stores every message in the AI chat panel
-# Keeps full conversation history per session
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
-    id              = Column(String, primary_key=True)          # UUID
-    session_id      = Column(String, ForeignKey("sessions.id"), nullable=False)
-    role            = Column(String, nullable=False)            # user | assistant
-    content         = Column(Text, nullable=False)              # message text
-    interview_mode  = Column(Boolean, default=False)            # was interview mode on?
-    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    id             = Column(String, primary_key=True)
+    session_id     = Column(String, ForeignKey("sessions.id"), nullable=False)
+    role           = Column(String, nullable=False)   # user | assistant
+    content        = Column(Text, nullable=False)
+    interview_mode = Column(Boolean, default=False)
+    created_at     = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationship back to session
-    session         = relationship("Session", back_populates="chat_messages")
-
-
-# ── CaseStudy Table ───────────────────────────────────────
-# Pre-loaded industry architectures (Netflix, Uber, etc)
-# These are seeded once and never change
-class CaseStudy(Base):
-    __tablename__ = "case_studies"
-
-    id              = Column(String, primary_key=True)          # e.g. "netflix"
-    title           = Column(String, nullable=False)            # "Netflix Streaming"
-    company         = Column(String, nullable=False)            # "Netflix"
-    description     = Column(Text, nullable=True)               # short description
-    difficulty      = Column(String, default="intermediate")    # beginner | intermediate | advanced
-    tags            = Column(JSON, default=list)                # ["microservices", "cdn", "scale"]
-    architecture_json = Column(JSON, nullable=False)            # nodes and edges
-    hld_content     = Column(Text, nullable=True)               # High Level Design markdown
-    lld_content     = Column(Text, nullable=True)               # Low Level Design markdown
-    flashcards      = Column(JSON, default=list)                # interview Q&A cards
-    is_active       = Column(Boolean, default=True)
-    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    session = relationship("Session", back_populates="chat_messages")
 
 
 # ── Benchmark Table ───────────────────────────────────────
-# MSc Research — stores results of LLM comparison experiments
-# Every time you run a benchmark test, one row is created
+# One row per pipeline per benchmark run
 class Benchmark(Base):
     __tablename__ = "benchmarks"
 
-    id                  = Column(String, primary_key=True)      # UUID
-    session_id          = Column(String, ForeignKey("sessions.id"), nullable=True)
-    llm_provider        = Column(String, nullable=False)        # gemini | claude | openai
-    prompt_variant      = Column(String, nullable=False)        # zero_shot | few_shot | cot
-    diagram_type        = Column(String, nullable=True)         # professional | handdrawn | uml
-    
-    # Accuracy metrics — compared against ground truth labels
-    component_precision = Column(Float, nullable=True)          # correctly found / total found
-    component_recall    = Column(Float, nullable=True)          # correctly found / total actual
-    component_f1        = Column(Float, nullable=True)          # balance of precision and recall
+    id                   = Column(String, primary_key=True)
+    session_id           = Column(String, ForeignKey("sessions.id"), nullable=True)
+    llm_provider         = Column(String, nullable=False)    # "gemini" | "classical"
+    prompt_variant       = Column(String, nullable=False)
+    diagram_type         = Column(String, nullable=True)
+
+    # Accuracy metrics
+    component_precision  = Column(Float, nullable=True)
+    component_recall     = Column(Float, nullable=True)
+    component_f1         = Column(Float, nullable=True)
     connection_precision = Column(Float, nullable=True)
-    connection_recall   = Column(Float, nullable=True)
-    connection_f1       = Column(Float, nullable=True)
-    
-    # Hallucination tracking
-    hallucinated_components = Column(Integer, default=0)        # components that don't exist
-    missed_components   = Column(Integer, default=0)            # components that were missed
-    
+    connection_recall    = Column(Float, nullable=True)
+    connection_f1        = Column(Float, nullable=True)
+
+    # Hallucination tracking — stored as JSON lists of names, not counts
+    hallucinated_components = Column(JSON, default=list)
+    missed_components       = Column(JSON, default=list)
+
     # Performance
-    response_time_ms    = Column(Integer, nullable=True)        # how long it took
-    tokens_used         = Column(Integer, nullable=True)        # token consumption
-    
-    # Raw data for analysis
-    extracted_json      = Column(JSON, nullable=True)           # what the LLM returned
-    ground_truth_json   = Column(JSON, nullable=True)           # what was actually there
-    
-    created_at          = Column(DateTime(timezone=True), server_default=func.now())
+    response_time_ms = Column(Integer, nullable=True)
+    tokens_used      = Column(Integer, nullable=True)
+
+    # DiagramLens research fields
+    diagram_id       = Column(String, nullable=True)   # links to ground truth filename
+    diagram_standard = Column(String, nullable=True)
+    complexity       = Column(String, nullable=True)
+
+    # Raw data
+    extracted_json   = Column(JSON, nullable=True)
+    ground_truth_json = Column(JSON, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

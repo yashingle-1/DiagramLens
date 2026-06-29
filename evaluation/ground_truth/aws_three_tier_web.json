@@ -1,0 +1,30 @@
+{
+  "diagram_id": "aws_three_tier_web",
+  "source_image": "aws_three_tier_web.png",
+  "source_url": "https://docs.aws.amazon.com/whitepapers/latest/web-application-hosting-best-practices/an-aws-cloud-architecture-for-web-hosting.html",
+  "diagram_standard": "aws",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "Route 53", "type": "gateway"},
+    {"name": "CloudFront", "type": "cdn"},
+    {"name": "Application Load Balancer", "type": "load_balancer"},
+    {"name": "Web Server", "type": "service"},
+    {"name": "Auto Scaling Group", "type": "service"},
+    {"name": "Internal Load Balancer", "type": "load_balancer"},
+    {"name": "App Server", "type": "service"},
+    {"name": "Amazon RDS", "type": "database"},
+    {"name": "RDS Read Replica", "type": "database"},
+    {"name": "ElastiCache", "type": "cache"}
+  ],
+  "connections": [
+    {"source": "Route 53", "target": "CloudFront"},
+    {"source": "CloudFront", "target": "Application Load Balancer"},
+    {"source": "Application Load Balancer", "target": "Web Server"},
+    {"source": "Web Server", "target": "Internal Load Balancer"},
+    {"source": "Internal Load Balancer", "target": "App Server"},
+    {"source": "App Server", "target": "ElastiCache"},
+    {"source": "App Server", "target": "Amazon RDS"},
+    {"source": "Amazon RDS", "target": "RDS Read Replica"}
+  ]
+}

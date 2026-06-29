@@ -1,0 +1,28 @@
+{
+  "diagram_id": "c4_internet_banking_container",
+  "source_image": "c4_internet_banking_container.png",
+  "source_url": "https://c4model.com/#examples",
+  "diagram_standard": "c4",
+  "complexity": "medium",
+  "arch_type": "other",
+  "components": [
+    {"name": "Personal Banking Customer", "type": "client"},
+    {"name": "Web Application", "type": "service"},
+    {"name": "Single-Page Application", "type": "client"},
+    {"name": "Mobile App", "type": "client"},
+    {"name": "API Application", "type": "gateway"},
+    {"name": "Database", "type": "database"},
+    {"name": "Mainframe Banking System", "type": "service"},
+    {"name": "Email System", "type": "service"}
+  ],
+  "connections": [
+    {"source": "Personal Banking Customer", "target": "Web Application"},
+    {"source": "Personal Banking Customer", "target": "Mobile App"},
+    {"source": "Web Application", "target": "Single-Page Application"},
+    {"source": "Single-Page Application", "target": "API Application"},
+    {"source": "Mobile App", "target": "API Application"},
+    {"source": "API Application", "target": "Database"},
+    {"source": "API Application", "target": "Mainframe Banking System"},
+    {"source": "API Application", "target": "Email System"}
+  ]
+}

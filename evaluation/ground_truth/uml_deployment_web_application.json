@@ -1,0 +1,32 @@
+{
+  "diagram_id": "uml_deployment_web_application",
+  "source_image": "uml_deployment_web_application.png",
+  "source_url": "https://www.uml-diagrams.org/deployment-diagrams-examples.html",
+  "diagram_standard": "uml",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "Application Server", "type": "service"},
+    {"name": "Tomcat 5.5", "type": "service"},
+    {"name": "Catalina Servlet 2.4 / JSP 2.0 Container", "type": "service"},
+    {"name": "web.xml", "type": "other"},
+    {"name": "book_club_app.war", "type": "other"},
+    {"name": "user_services.jar", "type": "other"},
+    {"name": "web-tools-lib.jar", "type": "other"},
+    {"name": "UserServices", "type": "service"},
+    {"name": "OnlineOrders", "type": "service"},
+    {"name": "Database Server", "type": "service"},
+    {"name": "Oracle 10g", "type": "database"},
+    {"name": "Users", "type": "database"},
+    {"name": "Orders", "type": "database"},
+    {"name": "Inventory", "type": "database"}
+  ],
+  "connections": [
+    {"source": "book_club_app.war", "target": "web.xml", "label": "deployment spec"},
+    {"source": "book_club_app.war", "target": "user_services.jar"},
+    {"source": "book_club_app.war", "target": "web-tools-lib.jar"},
+    {"source": "book_club_app.war", "target": "OnlineOrders", "label": "manifest"},
+    {"source": "user_services.jar", "target": "UserServices", "label": "manifest"},
+    {"source": "Application Server", "target": "Database Server", "label": "TCP/IP"}
+  ]
+}

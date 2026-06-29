@@ -1,0 +1,36 @@
+{
+  "diagram_id": "c4_internet_banking_system_component",
+  "source_image": "c4_internet_banking_system_component.png",
+  "source_url": "https://c4model.com/diagrams/component",
+  "diagram_standard": "c4",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "UI", "type": "client"},
+    {"name": "Statement API", "type": "service"},
+    {"name": "Sign In API", "type": "service"},
+    {"name": "Accounts Summary API", "type": "service"},
+    {"name": "Email Component", "type": "service"},
+    {"name": "Statement Component", "type": "service"},
+    {"name": "Core Banking System Adapter", "type": "service"},
+    {"name": "Security Component", "type": "service"},
+    {"name": "Statement Store", "type": "database"},
+    {"name": "Database", "type": "database"},
+    {"name": "Amazon Web Services Simple Email Service", "type": "service"},
+    {"name": "Core Banking System", "type": "service"}
+  ],
+  "connections": [
+    {"source": "UI", "target": "Statement API", "label": "requests statements from"},
+    {"source": "UI", "target": "Sign In API", "label": "makes sign-in requests to"},
+    {"source": "UI", "target": "Accounts Summary API", "label": "requests list of bank accounts from"},
+    {"source": "Statement API", "target": "Statement Component"},
+    {"source": "Statement API", "target": "Security Component", "label": "validates authentication token using"},
+    {"source": "Sign In API", "target": "Security Component", "label": "validates credentials using"},
+    {"source": "Accounts Summary API", "target": "Security Component", "label": "validates authentication token using"},
+    {"source": "Accounts Summary API", "target": "Core Banking System Adapter", "label": "requests list of bank accounts from"},
+    {"source": "Email Component", "target": "Amazon Web Services Simple Email Service", "label": "sends e-mail using"},
+    {"source": "Statement Component", "target": "Statement Store", "label": "reads from and writes to"},
+    {"source": "Security Component", "target": "Database", "label": "reads from and writes to"},
+    {"source": "Core Banking System Adapter", "target": "Core Banking System", "label": "makes API requests to"}
+  ]
+}

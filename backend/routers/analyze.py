@@ -2,33 +2,28 @@ from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.connection import get_db
 from services.storage import storage_service
-from services.extraction import extraction_service
-from services.llm.factory import get_llm_provider
-from models.schemas import AnalyzeResponse
+from services.extraction_orchestrator import run_extraction
+from models.schemas import DualAnalyzeResponse
 
 router = APIRouter()
 
 
-@router.post("/analyze", response_model=AnalyzeResponse)
+@router.post("/analyze", response_model=DualAnalyzeResponse)
 async def analyze_diagram(
     file: UploadFile = File(...),
-    prompt_variant: str = Form(default="zero_shot"),
+    prompt_variant: str = Form(default="chain_of_thought"),
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Main endpoint — receives image, returns extracted architecture JSON.
+    Receives an architecture diagram image and runs three pipelines in parallel:
+    - Classical CV (OpenCV + Tesseract, zero AI)
+    - Hybrid ML (SAM + CLIP + TrOCR, specialized models, no LLM)
+    - Gemini 2.5 Flash (VLM)
 
-    Flow:
-    1. Validate and save image to local filesystem
-    2. Check Redis cache (same image uploaded before?)
-    3. If cache miss → call Gemini Vision API
-    4. Validate JSON with Pydantic
-    5. Save session to PostgreSQL
-    6. Cache result in Redis
-    7. Return architecture JSON + session_id to frontend
+    Returns all extracted architectures for side-by-side comparison.
     """
 
-    # ── Step 1: Save uploaded image ───────────────────────
+    # ── Save uploaded image ───────────────────────────────
     try:
         image_path, image_url, image_bytes = await storage_service.save_upload(file)
     except HTTPException:
@@ -36,11 +31,9 @@ async def analyze_diagram(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save image: {str(e)}")
 
-    # ── Step 2-6: Run full extraction pipeline ────────────
-    import traceback
-    print(f"DEBUG: File received: {file.filename}, size: {file.size}")
+    # ── Run both pipelines ────────────────────────────────
     try:
-        session_id, architecture, cached = await extraction_service.extract(
+        result = await run_extraction(
             image_bytes=image_bytes,
             image_path=image_path,
             image_url=image_url,
@@ -49,23 +42,16 @@ async def analyze_diagram(
             prompt_variant=prompt_variant,
         )
     except ValueError as e:
-        # Pydantic validation failed — LLM returned bad JSON
         raise HTTPException(status_code=422, detail=str(e))
-    
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    # except Exception as e:
-    #     # Gemini API failed or other error
-    #     raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
 
-    # ── Step 7: Return response ───────────────────────────
-    provider = get_llm_provider()
-    return AnalyzeResponse(
-        session_id=session_id,
-        architecture=architecture,
+    return DualAnalyzeResponse(
+        session_id=result["session_id"],
+        classical=result["classical"],
+        hybrid=result["hybrid"],
+        gemini=result["gemini"],
         image_url=image_url,
-        cached=cached,
-        llm_provider=provider.get_provider_name(),
     )

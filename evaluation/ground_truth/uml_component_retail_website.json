@@ -1,0 +1,29 @@
+{
+  "diagram_id": "uml_component_retail_website",
+  "source_image": "uml_component_retail_website.png",
+  "source_url": "https://www.uml-diagrams.org/component-diagrams-examples.html",
+  "diagram_standard": "uml",
+  "complexity": "medium",
+  "arch_type": "modular_monolith",
+  "components": [
+    {"name": "WebStore", "type": "service"},
+    {"name": "SearchEngine", "type": "service"},
+    {"name": "Shopping Cart", "type": "service"},
+    {"name": "Authentication", "type": "service"},
+    {"name": "Warehouses", "type": "service"},
+    {"name": "Inventory", "type": "service"},
+    {"name": "Accounting", "type": "service"},
+    {"name": "Orders", "type": "service"},
+    {"name": "Customers", "type": "service"},
+    {"name": "Accounts", "type": "service"}
+  ],
+  "connections": [
+    {"source": "SearchEngine", "target": "Inventory", "label": "Search Inventory"},
+    {"source": "Shopping Cart", "target": "Orders", "label": "Manage Orders"},
+    {"source": "Shopping Cart", "target": "Authentication", "label": "UserSession"},
+    {"source": "Authentication", "target": "Customers", "label": "Manage Customers"},
+    {"source": "Orders", "target": "Customers", "label": "Manage Customers"},
+    {"source": "Orders", "target": "Inventory", "label": "Manage Inventory"},
+    {"source": "Customers", "target": "Accounts", "label": "Manage Accounts"}
+  ]
+}

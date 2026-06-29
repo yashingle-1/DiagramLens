@@ -1,31 +1,45 @@
 # Web framework
-fastapi==0.111.0
-uvicorn[standard]==0.30.1
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.1
  
 # Settings & validation
-pydantic==2.7.1
-pydantic-settings==2.3.1
- 
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
 # Database
-sqlalchemy==2.0.30
-asyncpg==0.29.0          # async PostgreSQL driver
-alembic==1.13.1          # database migrations
- 
+sqlalchemy>=2.0.36
+asyncpg>=0.30.0          # async PostgreSQL driver
+alembic>=1.13.1          # database migrations
+
 # Redis
-redis==5.0.4
-hiredis==2.3.2           # faster redis parsing
+redis>=5.0.4
+hiredis>=2.3.2           # faster redis parsing
  
 # LLM Providers
-google-generativeai==0.7.2    # Gemini
-anthropic==0.28.0             # Claude (optional, benchmarking)
-openai==1.30.1                # GPT-4V (optional, benchmarking)
+google-generativeai>=0.8.0    # Gemini
+anthropic>=0.40.0             # Claude (optional, benchmarking)
+openai>=1.109.1               # GPT-4V (optional, benchmarking)
  
 # File handling
-python-multipart==0.0.9  # for file uploads
-pillow==10.3.0           # image validation
+python-multipart>=0.0.18  # for file uploads
+pillow>=10.4.0           # image validation
  
+# Classical CV pipeline (DiagramLens research contribution)
+opencv-python>=4.10.0
+pytesseract==0.3.13
+
+# Hybrid ML pipeline — SAM + CLIP + TrOCR (DiagramLens research contribution)
+# torch CPU build: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+torchvision
+transformers>=4.35.0
+segment-anything
+# SAM checkpoint (375MB, not in pip): download sam_vit_b_01ec64.pth from
+# https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+# into backend/models/sam/ (path configurable via SAM_CHECKPOINT env var)
+
 # Utilities
-python-dotenv==1.0.1
-httpx==0.27.0
-tenacity==8.3.0          # retry logic
+python-dotenv>=1.0.1
+httpx>=0.27.0
+tenacity>=8.3.0          # retry logic
  

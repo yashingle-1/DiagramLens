@@ -2,11 +2,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from config import settings
 
-# Convert standard postgres:// URL to async postgresql+asyncpg:// URL
-# asyncpg is the async driver that lets FastAPI talk to PostgreSQL without blocking
-DATABASE_URL = settings.database_url.replace(
-    "postgresql://", "postgresql+asyncpg://"
-)
+# Ensure URL uses the asyncpg driver
+_url = settings.database_url
+if _url.startswith("postgresql://"):
+    _url = _url.replace("postgresql://", "postgresql+asyncpg://", 1)
+DATABASE_URL = _url
 
 # Create the async engine — this is the core connection to PostgreSQL
 # pool_pre_ping checks if connection is alive before using it
@@ -34,7 +34,7 @@ class Base(DeclarativeBase):
 # Creates all tables on startup if they don't exist
 async def create_tables():
     async with engine.begin() as conn:
-        from models.database import Session, Architecture, ChatMessage, CaseStudy, Benchmark
+        from models.database import Session, Architecture, ChatMessage, Benchmark
         await conn.run_sync(Base.metadata.create_all)
 
 

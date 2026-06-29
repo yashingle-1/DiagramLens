@@ -1,0 +1,23 @@
+{
+  "diagram_id": "aws_serverless_web_app",
+  "source_image": "aws_serverless_web_app.png",
+  "source_url": "https://aws.amazon.com/lambda/resources/refarch/refarch-webapp",
+  "diagram_standard": "aws",
+  "complexity": "low",
+  "arch_type": "serverless",
+  "components": [
+    {"name": "Browser", "type": "client"},
+    {"name": "Amazon S3", "type": "storage"},
+    {"name": "Amazon Cognito", "type": "service"},
+    {"name": "API Gateway", "type": "gateway"},
+    {"name": "AWS Lambda", "type": "service"},
+    {"name": "Amazon DynamoDB", "type": "database"}
+  ],
+  "connections": [
+    {"source": "Browser", "target": "Amazon S3"},
+    {"source": "Browser", "target": "Amazon Cognito"},
+    {"source": "Browser", "target": "API Gateway"},
+    {"source": "API Gateway", "target": "AWS Lambda"},
+    {"source": "AWS Lambda", "target": "Amazon DynamoDB"}
+  ]
+}

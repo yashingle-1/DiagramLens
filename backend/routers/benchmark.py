@@ -1,15 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+"""
+Benchmark router — scores all three pipelines against a ground truth JSON file.
+
+Uses fuzzy matching (SequenceMatcher >= 0.75) — never exact string matching.
+Stores one Benchmark row per pipeline: classical, hybrid, gemini.
+"""
+
+import json
 import uuid
-import time
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from db.connection import get_db
 from models.database import Architecture, Benchmark
 from models.schemas import BenchmarkRequest
-from services.cache import cache_service
-from services.storage import storage_service
+from services.metrics import score_components, score_connections
 
 router = APIRouter()
+
+GROUND_TRUTH_DIR = Path(__file__).resolve().parent.parent.parent / "evaluation" / "ground_truth"
+
+
+def _load_ground_truth(diagram_id: str) -> dict:
+    path = GROUND_TRUTH_DIR / f"{diagram_id}.json"
+    if not path.exists():
+        raise FileNotFoundError(f"Ground truth file not found: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 @router.post("/benchmark")
@@ -18,107 +36,115 @@ async def run_benchmark(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    MSc Research endpoint — runs same diagram through
-    multiple providers and prompt variants.
+    Scores all three pipelines for a session against the specified ground truth file.
 
-    Measures:
-    - Component detection accuracy vs ground truth
-    - Connection detection accuracy
-    - Hallucination rate
-    - Response time per provider
-    - Token usage per provider
-
-    Results stored in PostgreSQL benchmarks table
-    for dissertation analysis.
+    Body: { session_id: str, diagram_id: str }
+    Returns: { classical: BenchmarkResult, hybrid: BenchmarkResult, gemini: BenchmarkResult }
     """
 
-    # Load original architecture session
+    # ── Load ground truth ──────────────────────────────────
+    try:
+        gt = _load_ground_truth(request.diagram_id)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    gt_component_names = [c["name"] for c in gt.get("components", [])]
+    gt_connections     = gt.get("connections", [])
+    gt_standard        = gt.get("diagram_standard", "informal")
+    gt_complexity      = gt.get("complexity", "low")
+
+    # ── Load both pipeline architectures from DB ───────────
     arch_result = await db.execute(
         select(Architecture).where(Architecture.session_id == request.session_id)
     )
-    architecture = arch_result.scalar_one_or_none()
+    architectures = arch_result.scalars().all()
 
-    if not architecture:
-        raise HTTPException(status_code=404, detail="Session not found")
+    if not architectures:
+        raise HTTPException(status_code=404, detail=f"Session {request.session_id} not found")
 
-    # Load original image from filesystem
-    session_result = await db.execute(
-        select(Architecture).where(Architecture.session_id == request.session_id)
-    )
+    # Index by pipeline
+    by_pipeline: dict[str, Architecture] = {}
+    for arch in architectures:
+        if arch.pipeline:
+            by_pipeline[arch.pipeline] = arch
+        elif arch.llm_provider:
+            by_pipeline[arch.llm_provider] = arch
 
-    results = []
+    results: dict[str, dict] = {}
 
-    # Run each provider + prompt variant combination
-    for provider_name in request.providers:
-        for variant in request.prompt_variants:
-            try:
-                # Dynamically load the correct provider
-                if provider_name == "gemini":
-                    from services.llm.gemini import GeminiProvider
-                    provider = GeminiProvider()
-                elif provider_name == "claude":
-                    from services.llm.claude import ClaudeProvider
-                    provider = ClaudeProvider()
-                else:
-                    continue
+    for pipeline_name in ("classical", "hybrid", "gemini"):
+        arch = by_pipeline.get(pipeline_name)
+        if not arch:
+            results[pipeline_name] = {"error": f"No {pipeline_name} result for this session"}
+            continue
 
-                # Load image bytes for re-analysis
-                image_path = architecture.session.image_path if hasattr(architecture, 'session') else None
+        raw = arch.raw_json or {}
+        extracted_names = [c["name"] for c in raw.get("components", [])]
+        extracted_conns = [
+            {"source": c.get("source", ""), "target": c.get("target", "")}
+            for c in raw.get("connections", [])
+        ]
 
-                # Calculate accuracy metrics if ground truth provided
-                metrics = _calculate_metrics(
-                    extracted=architecture.raw_json,
-                    ground_truth=request.ground_truth,
-                ) if request.ground_truth else {}
+        comp_metrics = score_components(extracted_names, gt_component_names)
+        conn_metrics = score_connections(
+            extracted_conns, gt_connections,
+            extracted_names, gt_component_names,
+        )
 
-                # Save benchmark result to PostgreSQL
-                benchmark = Benchmark(
-                    id=str(uuid.uuid4()),
-                    session_id=request.session_id,
-                    llm_provider=provider_name,
-                    prompt_variant=variant.value,
-                    component_precision=metrics.get("component_precision"),
-                    component_recall=metrics.get("component_recall"),
-                    component_f1=metrics.get("component_f1"),
-                    connection_precision=metrics.get("connection_precision"),
-                    connection_recall=metrics.get("connection_recall"),
-                    connection_f1=metrics.get("connection_f1"),
-                    hallucinated_components=metrics.get("hallucinated", 0),
-                    missed_components=metrics.get("missed", 0),
-                    extracted_json=architecture.raw_json,
-                    ground_truth_json=request.ground_truth,
-                )
-                db.add(benchmark)
+        # Save to DB
+        bench = Benchmark(
+            id=str(uuid.uuid4()),
+            session_id=request.session_id,
+            llm_provider=pipeline_name,
+            prompt_variant=arch.prompt_variant or "n/a",
+            diagram_type=gt_standard,
+            component_precision=comp_metrics["precision"],
+            component_recall=comp_metrics["recall"],
+            component_f1=comp_metrics["f1"],
+            connection_precision=conn_metrics["precision"],
+            connection_recall=conn_metrics["recall"],
+            connection_f1=conn_metrics["f1"],
+            hallucinated_components=comp_metrics.get("hallucinated_names", []),
+            missed_components=comp_metrics.get("missed_names", []),
+            response_time_ms=arch.response_time_ms,
+            diagram_id=request.diagram_id,
+            diagram_standard=gt_standard,
+            complexity=gt_complexity,
+            extracted_json=raw,
+            ground_truth_json=gt,
+        )
+        db.add(bench)
 
-                results.append({
-                    "provider": provider_name,
-                    "prompt_variant": variant.value,
-                    "metrics": metrics,
-                    "status": "completed",
-                })
-
-            except NotImplementedError:
-                results.append({
-                    "provider": provider_name,
-                    "prompt_variant": variant.value,
-                    "status": "not_implemented",
-                    "message": f"{provider_name} provider not yet implemented",
-                })
-            except Exception as e:
-                results.append({
-                    "provider": provider_name,
-                    "prompt_variant": variant.value,
-                    "status": "failed",
-                    "error": str(e),
-                })
+        results[pipeline_name] = {
+            "pipeline":           pipeline_name,
+            "diagram_id":         request.diagram_id,
+            "diagram_standard":   gt_standard,
+            "complexity":         gt_complexity,
+            "component_precision": comp_metrics["precision"],
+            "component_recall":    comp_metrics["recall"],
+            "component_f1":        comp_metrics["f1"],
+            "connection_precision": conn_metrics["precision"],
+            "connection_recall":    conn_metrics["recall"],
+            "connection_f1":        conn_metrics["f1"],
+            "hallucinated_components": comp_metrics.get("hallucinated_names", []),
+            "missed_components":       comp_metrics.get("missed_names", []),
+            "response_time_ms":        arch.response_time_ms,
+        }
 
     await db.commit()
-    return {"session_id": request.session_id, "results": results}
+
+    return {
+        "session_id": request.session_id,
+        "diagram_id": request.diagram_id,
+        "classical":  results.get("classical", {}),
+        "hybrid":     results.get("hybrid", {}),
+        "gemini":     results.get("gemini", {}),
+    }
 
 
 @router.get("/benchmark/results")
 async def get_benchmark_results(db: AsyncSession = Depends(get_db)):
-    """Returns all benchmark results for dissertation analysis"""
+    """Returns all stored benchmark results ordered by recency."""
     result = await db.execute(
         select(Benchmark).order_by(Benchmark.created_at.desc())
     )
@@ -126,78 +152,17 @@ async def get_benchmark_results(db: AsyncSession = Depends(get_db)):
 
     return [
         {
-            "id": b.id,
-            "provider": b.llm_provider,
-            "prompt_variant": b.prompt_variant,
-            "component_f1": b.component_f1,
-            "connection_f1": b.connection_f1,
-            "hallucinated": b.hallucinated_components,
-            "missed": b.missed_components,
-            "response_time_ms": b.response_time_ms,
-            "created_at": str(b.created_at),
+            "id":                b.id,
+            "pipeline":          b.llm_provider,
+            "diagram_id":        b.diagram_id,
+            "diagram_standard":  b.diagram_standard,
+            "complexity":        b.complexity,
+            "component_f1":      b.component_f1,
+            "connection_f1":     b.connection_f1,
+            "hallucinated":      b.hallucinated_components,
+            "missed":            b.missed_components,
+            "response_time_ms":  b.response_time_ms,
+            "created_at":        str(b.created_at),
         }
         for b in benchmarks
     ]
-
-
-def _calculate_metrics(extracted: dict, ground_truth: dict) -> dict:
-    """
-    Calculates precision, recall, F1 score.
-    Compares extracted components against manually labeled ground truth.
-
-    Precision = correctly found / total found by LLM
-    Recall    = correctly found / total in ground truth
-    F1        = 2 * (precision * recall) / (precision + recall)
-    """
-    if not ground_truth:
-        return {}
-
-    # Component metrics
-    extracted_names = {
-        c["name"].lower().strip()
-        for c in extracted.get("components", [])
-    }
-    truth_names = {
-        c["name"].lower().strip()
-        for c in ground_truth.get("components", [])
-    }
-
-    true_positives = len(extracted_names & truth_names)
-    hallucinated = len(extracted_names - truth_names)
-    missed = len(truth_names - extracted_names)
-
-    comp_precision = true_positives / len(extracted_names) if extracted_names else 0
-    comp_recall = true_positives / len(truth_names) if truth_names else 0
-    comp_f1 = (
-        2 * comp_precision * comp_recall / (comp_precision + comp_recall)
-        if (comp_precision + comp_recall) > 0 else 0
-    )
-
-    # Connection metrics
-    extracted_conns = {
-        (c["source"], c["target"])
-        for c in extracted.get("connections", [])
-    }
-    truth_conns = {
-        (c["source"], c["target"])
-        for c in ground_truth.get("connections", [])
-    }
-
-    conn_tp = len(extracted_conns & truth_conns)
-    conn_precision = conn_tp / len(extracted_conns) if extracted_conns else 0
-    conn_recall = conn_tp / len(truth_conns) if truth_conns else 0
-    conn_f1 = (
-        2 * conn_precision * conn_recall / (conn_precision + conn_recall)
-        if (conn_precision + conn_recall) > 0 else 0
-    )
-
-    return {
-        "component_precision": round(comp_precision, 3),
-        "component_recall": round(comp_recall, 3),
-        "component_f1": round(comp_f1, 3),
-        "connection_precision": round(conn_precision, 3),
-        "connection_recall": round(conn_recall, 3),
-        "connection_f1": round(conn_f1, 3),
-        "hallucinated": hallucinated,
-        "missed": missed,
-    }

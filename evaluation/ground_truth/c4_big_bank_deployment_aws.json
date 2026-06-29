@@ -1,0 +1,25 @@
+{
+  "diagram_id": "c4_big_bank_deployment_aws",
+  "source_image": "c4_big_bank_deployment_aws.png",
+  "source_url": "https://c4model.com/diagrams/deployment",
+  "diagram_standard": "c4",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "Amazon Web Services", "type": "other"},
+    {"name": "US-East-1", "type": "other"},
+    {"name": "DNS router", "type": "gateway"},
+    {"name": "Load Balancer", "type": "load_balancer"},
+    {"name": "Autoscaling group", "type": "other"},
+    {"name": "Amazon EC2 - Ubuntu server", "type": "service"},
+    {"name": "Web Application", "type": "service"},
+    {"name": "Amazon RDS", "type": "other"},
+    {"name": "MySQL", "type": "database"},
+    {"name": "Database Schema", "type": "database"}
+  ],
+  "connections": [
+    {"source": "DNS router", "target": "Load Balancer", "label": "forwards requests to [HTTPS]"},
+    {"source": "Load Balancer", "target": "Web Application", "label": "forwards requests to [HTTPS]"},
+    {"source": "Web Application", "target": "Database Schema", "label": "reads from and writes to [MySQL Protocol/SSL]"}
+  ]
+}

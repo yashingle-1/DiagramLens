@@ -1,0 +1,24 @@
+{
+  "diagram_id": "c4_ecommerce_context",
+  "source_image": "c4_ecommerce_context.png",
+  "source_url": "https://c4model.com/diagrams/system-context",
+  "diagram_standard": "c4",
+  "complexity": "low",
+  "arch_type": "other",
+  "components": [
+    {"name": "Customer", "type": "client"},
+    {"name": "E-Commerce System", "type": "service"},
+    {"name": "Payment Gateway", "type": "gateway"},
+    {"name": "Warehouse System", "type": "service"},
+    {"name": "Email System", "type": "service"},
+    {"name": "Fraud Detection System", "type": "service"}
+  ],
+  "connections": [
+    {"source": "Customer", "target": "E-Commerce System"},
+    {"source": "E-Commerce System", "target": "Payment Gateway"},
+    {"source": "E-Commerce System", "target": "Warehouse System"},
+    {"source": "E-Commerce System", "target": "Email System"},
+    {"source": "E-Commerce System", "target": "Fraud Detection System"},
+    {"source": "Email System", "target": "Customer"}
+  ]
+}

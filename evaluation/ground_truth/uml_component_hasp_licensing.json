@@ -1,0 +1,29 @@
+{
+  "diagram_id": "uml_component_hasp_licensing",
+  "source_image": "uml_component_hasp_licensing.png",
+  "source_url": "https://www.uml-diagrams.org/component-diagrams-examples.html",
+  "diagram_standard": "uml",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "License Status", "type": "service"},
+    {"name": "License Services Net", "type": "service"},
+    {"name": "HASP .Net Runtime", "type": "service"},
+    {"name": "License Services Java", "type": "service"},
+    {"name": "HASP Java Native Interface Proxy", "type": "service"},
+    {"name": "HASP Java Native Interface", "type": "service"},
+    {"name": "Vendor HASP Licensing Windows Runtime", "type": "service"},
+    {"name": "Sentinel HASP Local License Manager", "type": "service"},
+    {"name": "TCP/IP Protocol Driver", "type": "other"}
+  ],
+  "connections": [
+    {"source": "License Status", "target": "License Services Net", "label": "LicenseService"},
+    {"source": "License Services Net", "target": "HASP .Net Runtime", "label": "API HASP .Net"},
+    {"source": "License Services Java", "target": "HASP Java Native Interface Proxy", "label": "API HASP Java"},
+    {"source": "HASP Java Native Interface Proxy", "target": "HASP Java Native Interface", "label": "API HASP Java JNI"},
+    {"source": "HASP .Net Runtime", "target": "Vendor HASP Licensing Windows Runtime", "label": "API HASP Vendor"},
+    {"source": "HASP Java Native Interface", "target": "Vendor HASP Licensing Windows Runtime", "label": "API HASP Vendor"},
+    {"source": "Vendor HASP Licensing Windows Runtime", "target": "Sentinel HASP Local License Manager"},
+    {"source": "Sentinel HASP Local License Manager", "target": "TCP/IP Protocol Driver"}
+  ]
+}

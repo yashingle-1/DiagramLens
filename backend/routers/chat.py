@@ -19,11 +19,20 @@ async def chat(
 ):
     print(f"DEBUG chat: session_id={request.session_id}, message={request.message[:50]}")
 
-    # Load architecture from PostgreSQL
+    # Load architecture from PostgreSQL — prefer Gemini result for chat context
     arch_result = await db.execute(
-        select(Architecture).where(Architecture.session_id == request.session_id)
+        select(Architecture)
+        .where(Architecture.session_id == request.session_id)
+        .where(Architecture.pipeline == "gemini")
     )
     architecture = arch_result.scalar_one_or_none()
+
+    # Fall back to any architecture if no Gemini result saved yet
+    if not architecture:
+        arch_result = await db.execute(
+            select(Architecture).where(Architecture.session_id == request.session_id)
+        )
+        architecture = arch_result.scalars().first()
 
     if not architecture:
         # Try loading from sessions table directly

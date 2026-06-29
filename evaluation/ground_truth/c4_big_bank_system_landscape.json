@@ -1,0 +1,28 @@
+{
+  "diagram_id": "c4_big_bank_system_landscape",
+  "source_image": "c4_big_bank_system_landscape.png",
+  "source_url": "https://c4model.com/diagrams/system-landscape",
+  "diagram_standard": "c4",
+  "complexity": "low",
+  "arch_type": "other",
+  "components": [
+    {"name": "Personal Banking Customer", "type": "client"},
+    {"name": "Customer Service Staff", "type": "client"},
+    {"name": "Back Office Staff", "type": "client"},
+    {"name": "ATM", "type": "service"},
+    {"name": "Internet Banking System", "type": "service"},
+    {"name": "Amazon Web Services Simple Email Service", "type": "service"},
+    {"name": "Core Banking System", "type": "service"}
+  ],
+  "connections": [
+    {"source": "Personal Banking Customer", "target": "Customer Service Staff", "label": "asks questions to"},
+    {"source": "Personal Banking Customer", "target": "ATM", "label": "withdraws cash using"},
+    {"source": "Personal Banking Customer", "target": "Internet Banking System", "label": "views account balances and makes payments using"},
+    {"source": "Internet Banking System", "target": "Amazon Web Services Simple Email Service", "label": "sends e-mail using"},
+    {"source": "Amazon Web Services Simple Email Service", "target": "Personal Banking Customer", "label": "sends e-mails to"},
+    {"source": "ATM", "target": "Core Banking System", "label": "makes transactions using"},
+    {"source": "Internet Banking System", "target": "Core Banking System", "label": "gets account information from and makes payments using"},
+    {"source": "Customer Service Staff", "target": "Core Banking System", "label": "supports customers using"},
+    {"source": "Back Office Staff", "target": "Core Banking System", "label": "investigates and troubleshoots problems using"}
+  ]
+}

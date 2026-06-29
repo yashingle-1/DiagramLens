@@ -1,7 +1,8 @@
-# Environment files - NEVER commit these
+# Environment — NEVER commit
 .env
 .env.local
 .env.production
+*.env
 
 # Python
 __pycache__/
@@ -9,8 +10,17 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+backend/venv/
 
-# Uploads - don't commit user images
+# SAM checkpoint — 375MB, too large for git
+backend/models/sam/*.pth
+
+# HuggingFace model cache
+backend/.cache/
+*.bin
+*.safetensors
+
+# Uploads — user images
 backend/uploads/*
 !backend/uploads/.gitkeep
 
@@ -19,11 +29,17 @@ frontend/.next/
 frontend/node_modules/
 frontend/out/
 
-# Test files
+# Python test/scratch files
 backend/test_gemini.py
 backend/test_analyze.py
 backend/test_models.py
 backend/test_image.png
+backend/test_image1.png
+backend/test_image3.png
+
+# Dissertation docs — large Office files
+*.docx
+*.pdf
 
 # Docker
 .docker/
@@ -36,34 +52,14 @@ Thumbs.db
 .cursor/
 .idea/
 *.swp
-```
+.vscode/
 
----
+# Jupyter checkpoints
+.ipynb_checkpoints/
 
-## ✅ Final Checklist
-```
-archexplain\
-├── docker-compose.yml     ✅
-├── .env.example           ✅ (paste above)
-├── .gitignore             ✅ (paste above)
-│
-├── backend\
-│   ├── main.py            ✅
-│   ├── config.py          ✅
-│   ├── requirements.txt   ✅
-│   ├── Dockerfile         ✅
-│   ├── .env               ✅ (paste above + add real Gemini key)
-│   ├── uploads\
-│   │   └── .gitkeep       ✅
-│   ├── routers\
-│   │   └── __init__.py    ✅
-│   ├── services\
-│   │   ├── __init__.py    ✅
-│   │   └── llm\
-│   │       └── __init__.py ✅
-│   ├── models\
-│   │   └── __init__.py    ✅
-│   └── db\
-│       └── __init__.py    ✅
-│
-└── frontend\              ✅ (all folders created)
+# Claude Code context files (personal)
+CLAUDE.md
+AI_SUPPORT_RADAR.md
+HANDOFF.md
+SUPERVISOR_BRIEF.md
+.claude/

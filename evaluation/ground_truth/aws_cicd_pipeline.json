@@ -1,0 +1,29 @@
+{
+  "diagram_id": "aws_cicd_pipeline",
+  "source_image": "aws_cicd_pipeline.png",
+  "source_url": "https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html",
+  "diagram_standard": "aws",
+  "complexity": "medium",
+  "arch_type": "other",
+  "components": [
+    {"name": "Developer", "type": "client"},
+    {"name": "AWS CodeCommit", "type": "storage"},
+    {"name": "AWS CodePipeline", "type": "service"},
+    {"name": "AWS CodeBuild", "type": "service"},
+    {"name": "Amazon ECR", "type": "storage"},
+    {"name": "AWS CodeDeploy", "type": "service"},
+    {"name": "Amazon ECS", "type": "service"},
+    {"name": "Amazon S3 Artifacts", "type": "storage"},
+    {"name": "CloudWatch Alarms", "type": "monitoring"}
+  ],
+  "connections": [
+    {"source": "Developer", "target": "AWS CodeCommit"},
+    {"source": "AWS CodeCommit", "target": "AWS CodePipeline"},
+    {"source": "AWS CodePipeline", "target": "AWS CodeBuild"},
+    {"source": "AWS CodeBuild", "target": "Amazon ECR"},
+    {"source": "AWS CodeBuild", "target": "Amazon S3 Artifacts"},
+    {"source": "AWS CodePipeline", "target": "AWS CodeDeploy"},
+    {"source": "AWS CodeDeploy", "target": "Amazon ECS"},
+    {"source": "Amazon ECS", "target": "CloudWatch Alarms"}
+  ]
+}
