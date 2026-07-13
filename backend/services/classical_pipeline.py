@@ -427,8 +427,9 @@ async def run_classical_pipeline(image_bytes: bytes, session_id: str) -> Archite
         return ArchitectureSchema(
             session_id=session_id, pipeline="classical",
             diagram_standard="informal", complexity="low", arch_type="other",
-            components=[ComponentSchema(id="c1", name="Unknown", type="other", confidence=None)],
+            components=[],   # empty = honest zero, not a fake "Unknown"
             connections=[], response_time_ms=_elapsed(), confidence_score=None,
+            extraction_error=reason[:500],
         )
 
     try:

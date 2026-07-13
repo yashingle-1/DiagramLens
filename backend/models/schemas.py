@@ -92,13 +92,10 @@ class ArchitectureSchema(BaseModel):
     # Hallucination filter results (gemini pipeline only) — OCR cross-validation
     hallucinated_components: Optional[List[str]] = None
     hallucination_rate:      Optional[float]     = None
-
-    @field_validator("components")
-    @classmethod
-    def must_have_components(cls, v: list) -> list:
-        if len(v) == 0:
-            raise ValueError("Architecture must have at least one component")
-        return v
+    # Set when the pipeline failed and returned an empty result. An empty
+    # component list is honest data (recall 0) — a fake "Unknown" placeholder
+    # would pollute precision scores in the benchmark.
+    extraction_error: Optional[str] = None
 
 # Backward-compat aliases used by chat.py and cases-related code
 Component  = ComponentSchema

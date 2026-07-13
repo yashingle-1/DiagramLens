@@ -166,45 +166,30 @@ async def run_extraction(
         return_exceptions=True,
     )
 
-    # Handle pipeline failures gracefully
+    # Handle pipeline failures gracefully. An empty component list is honest
+    # data for the benchmark (recall 0); a fake "Unknown" node would count as
+    # a false positive and pollute precision. extraction_error carries the
+    # reason to the DB and frontend.
+    def _failed(pipeline: str, error: Exception) -> ArchitectureSchema:
+        print(f"[orchestrator] {pipeline} pipeline failed: {error}")
+        return ArchitectureSchema(
+            session_id=session_id,
+            pipeline=pipeline,
+            diagram_standard="informal",
+            complexity="low",
+            arch_type="other",
+            components=[],
+            connections=[],
+            response_time_ms=0,
+            extraction_error=str(error)[:500],
+        )
+
     if isinstance(classical_result, Exception):
-        print(f"[orchestrator] classical pipeline failed: {classical_result}")
-        classical_result = ArchitectureSchema(
-            session_id=session_id,
-            pipeline="classical",
-            diagram_standard="informal",
-            complexity="low",
-            arch_type="other",
-            components=[ComponentSchema(id="c1", name="Unknown", type="other", confidence=None)],
-            connections=[],
-            response_time_ms=0,
-        )
-
+        classical_result = _failed("classical", classical_result)
     if isinstance(hybrid_result, Exception):
-        print(f"[orchestrator] hybrid pipeline failed: {hybrid_result}")
-        hybrid_result = ArchitectureSchema(
-            session_id=session_id,
-            pipeline="hybrid",
-            diagram_standard="informal",
-            complexity="low",
-            arch_type="other",
-            components=[ComponentSchema(id="h1", name="Unknown", type="other", confidence=None)],
-            connections=[],
-            response_time_ms=0,
-        )
-
+        hybrid_result = _failed("hybrid", hybrid_result)
     if isinstance(gemini_result, Exception):
-        print(f"[orchestrator] gemini pipeline failed: {gemini_result}")
-        gemini_result = ArchitectureSchema(
-            session_id=session_id,
-            pipeline="gemini",
-            diagram_standard="informal",
-            complexity="low",
-            arch_type="other",
-            components=[ComponentSchema(id="g1", name="Unknown", type="other", confidence=None)],
-            connections=[],
-            response_time_ms=0,
-        )
+        gemini_result = _failed("gemini", gemini_result)
 
     # ── Run hallucination filter on Gemini output ─────────
     hallucination_info = run_hallucination_filter(gemini_result, image_bytes)

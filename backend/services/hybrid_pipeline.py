@@ -19,6 +19,7 @@ import io
 import os
 import threading
 import time
+import torch
 
 import cv2
 import numpy as np
@@ -42,8 +43,11 @@ MAX_REGION_FRACTION  = 0.30    # regions larger than this = container/background
 MAX_REGIONS          = 40      # cap candidate regions (smallest kept first)
 DUPLICATE_IOU        = 0.80    # two boxes this similar = same region, keep one
 CONTAINMENT_RATIO    = 0.80    # kept box lying this much inside a candidate = "contained"
-MAX_NAME_CHARS       = 60      # OCR text longer than this = container noise, not a label
-MAX_NAME_WORDS       = 8
+MAX_NAME_CHARS       = 80      # OCR text longer than this = container noise, not a label
+MAX_NAME_WORDS       = 12
+TEXT_SKIP_MIN_PROB   = 0.5     # CLIP "text annotation" verdict only trusted above this
+DEDUPE_NAME_RATIO    = 0.90    # near-identical names on overlapping boxes = same component
+DEDUPE_BOX_IOU       = 0.30
 CLIP_MODEL_ID        = "openai/clip-vit-base-patch32"
 TROCR_MODEL_ID       = "microsoft/trocr-base-printed"
 
@@ -200,7 +204,15 @@ def _classify_regions(img_rgb: np.ndarray,
     results: list[tuple[str, float]] = []
     for row in probs:
         idx = int(row.argmax())
-        results.append((CLIP_PROMPTS[idx][1], float(row[idx])))
+        comp_type, prob = CLIP_PROMPTS[idx][1], float(row[idx])
+        # Only trust the "text annotation" (skip) verdict when CLIP is
+        # confident. A weak win for it on a real component crop would
+        # silently drop the component — fall back to the runner-up type.
+        if comp_type == "" and prob < TEXT_SKIP_MIN_PROB:
+            order = row.argsort(descending=True)
+            runner_up = int(order[1])
+            comp_type, prob = CLIP_PROMPTS[runner_up][1], float(row[runner_up])
+        results.append((comp_type, prob))
     return results
 
 
@@ -219,13 +231,49 @@ def _page_ocr_words(img_rgb: np.ndarray) -> set[str]:
         return set()
 
 
+OCR_UPSCALE_MIN_H  = 64    # crops shorter than this get upscaled before OCR
+OCR_UPSCALE_FACTOR = 3
+
+
+def _clean_ocr_tokens(text: str) -> str:
+    """Strips OCR junk: edge tokens that are truncated fragments ('ce', 'co:')
+    or pure punctuation ('/', '\\'). Short tokens survive only if they look
+    like real identifiers (uppercase acronyms or containing a digit: S3, DB, EC2)."""
+    def is_junk(tok: str) -> bool:
+        core = tok.strip(".,:;|/\\()[]{}<>-_'\"")
+        if not core or not any(ch.isalnum() for ch in core):
+            return True   # pure punctuation
+        if len(core) <= 2 and not (core.isupper() or any(ch.isdigit() for ch in core)):
+            return True   # truncated lowercase fragment like 'ce'
+        return False
+
+    tokens = text.split()
+    while tokens and is_junk(tokens[0]):
+        tokens.pop(0)
+    while tokens and is_junk(tokens[-1]):
+        tokens.pop()
+    # Interior pure-punctuation tokens are noise too
+    tokens = [t for t in tokens if any(ch.isalnum() for ch in t)]
+    return " ".join(t.strip(".,:;|") for t in tokens).strip()
+
+
+def _tesseract_words(pil: Image.Image, min_conf: float) -> str:
+    import pytesseract
+    data = pytesseract.image_to_data(
+        pil, config="--psm 6", output_type=pytesseract.Output.DICT
+    )
+    words = [t.strip() for t, c in zip(data["text"], data["conf"])
+             if t.strip() and float(c) > min_conf]
+    return " ".join(words)
+
+
 def _read_region_text(img_rgb: np.ndarray, box: tuple[int, int, int, int],
                       page_words: set[str]) -> str:
     """OCR the region. The crop is expanded down/sideways because diagram labels
-    typically sit outside the segmented shape. pytesseract handles multi-line
-    labels; TrOCR is the fallback for low-contrast single-line text, but its
-    output is cross-validated against the full-page OCR because a generative
-    decoder will invent words when shown pure iconography."""
+    typically sit outside the segmented shape, and upscaled because tesseract
+    misreads small text (root cause of garbled names like 'ce Web Server').
+    Fallback order: tesseract conf>40 → TrOCR (validated against full-page OCR,
+    a generative decoder invents words on pure iconography) → tesseract conf>20."""
     import torch
 
     h, w = img_rgb.shape[:2]
@@ -237,15 +285,16 @@ def _read_region_text(img_rgb: np.ndarray, box: tuple[int, int, int, int],
     crop = img_rgb[ey:ey2, ex:ex2]
     if crop.size == 0:
         return ""
+
+    # Upscale small crops — tesseract accuracy drops sharply below ~30px text
+    if crop.shape[0] < OCR_UPSCALE_MIN_H:
+        crop = cv2.resize(crop, None, fx=OCR_UPSCALE_FACTOR, fy=OCR_UPSCALE_FACTOR,
+                          interpolation=cv2.INTER_CUBIC)
     pil = Image.fromarray(crop)
 
     # Primary: tesseract with per-word confidence filter
     try:
-        import pytesseract
-        data = pytesseract.image_to_data(pil, output_type=pytesseract.Output.DICT)
-        words = [t.strip() for t, c in zip(data["text"], data["conf"])
-                 if t.strip() and float(c) > 40]
-        text = " ".join(words)
+        text = _clean_ocr_tokens(_tesseract_words(pil, min_conf=40))
         if text:
             return text
     except Exception:
@@ -254,25 +303,75 @@ def _read_region_text(img_rgb: np.ndarray, box: tuple[int, int, int, int],
     # Fallback: TrOCR on the original (unexpanded) crop, hallucination-guarded
     models = _load_models()
     tight = img_rgb[max(0, y):y + bh, max(0, x):x + bw]
-    if tight.size == 0:
-        return ""
+    if tight.size > 0:
+        try:
+            pixel_values = models["trocr_processor"](
+                images=Image.fromarray(tight), return_tensors="pt"
+            ).pixel_values
+            with torch.no_grad():
+                ids = models["trocr_model"].generate(pixel_values, max_new_tokens=32)
+            raw = models["trocr_processor"].batch_decode(ids, skip_special_tokens=True)[0].strip()
+
+            from difflib import SequenceMatcher
+            validated = [
+                word for word in raw.split()
+                if any(SequenceMatcher(None, word.lower(), pw).ratio() >= TROCR_VALIDATE_RATIO
+                       for pw in page_words)
+            ]
+            text = _clean_ocr_tokens(" ".join(validated))
+            if text:
+                return text
+        except Exception:
+            pass
+
+    # Last resort: low-confidence tesseract on the expanded crop. Better to
+    # keep the region with a noisy label than to drop a real component.
     try:
-        pixel_values = models["trocr_processor"](
-            images=Image.fromarray(tight), return_tensors="pt"
-        ).pixel_values
-        with torch.no_grad():
-            ids = models["trocr_model"].generate(pixel_values, max_new_tokens=32)
-        raw = models["trocr_processor"].batch_decode(ids, skip_special_tokens=True)[0].strip()
+        return _clean_ocr_tokens(_tesseract_words(pil, min_conf=20))
     except Exception:
         return ""
 
+
+def _dedupe_components(
+    components: list[ComponentSchema],
+    boxes: list[tuple[int, int, int, int]],
+) -> tuple[list[ComponentSchema], list[tuple[int, int, int, int]]]:
+    """Merges components whose names are near-identical AND whose boxes overlap
+    (same physical shape segmented twice). Keeps the higher-confidence one."""
     from difflib import SequenceMatcher
-    validated = [
-        word for word in raw.split()
-        if any(SequenceMatcher(None, word.lower(), pw).ratio() >= TROCR_VALIDATE_RATIO
-               for pw in page_words)
-    ]
-    return " ".join(validated)
+
+    def iou(a, b) -> float:
+        ax, ay, aw, ah = a
+        bx, by, bw_, bh_ = b
+        ix = max(0, min(ax + aw, bx + bw_) - max(ax, bx))
+        iy = max(0, min(ay + ah, by + bh_) - max(ay, by))
+        inter = ix * iy
+        union = aw * ah + bw_ * bh_ - inter
+        return inter / union if union > 0 else 0.0
+
+    keep: list[int] = []
+    for i, (comp, box) in enumerate(zip(components, boxes)):
+        merged = False
+        for j in keep:
+            same_name = SequenceMatcher(
+                None, comp.name.lower(), components[j].name.lower()
+            ).ratio() >= DEDUPE_NAME_RATIO
+            if same_name and iou(box, boxes[j]) >= DEDUPE_BOX_IOU:
+                # Duplicate — keep whichever has higher CLIP confidence
+                if (comp.confidence or 0) > (components[j].confidence or 0):
+                    components[j] = comp.model_copy(update={"id": components[j].id})
+                    boxes[j] = box
+                merged = True
+                break
+        if not merged:
+            keep.append(i)
+
+    kept_components = [components[i] for i in keep]
+    kept_boxes = [boxes[i] for i in keep]
+    # Re-sequence ids so downstream connection mapping stays consistent
+    for n, c in enumerate(kept_components):
+        c.id = f"h{n + 1}"
+    return kept_components, kept_boxes
 
 
 # ── Sync core (runs in a worker thread) ───────────────────────────────────────
@@ -291,7 +390,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
     components: list[ComponentSchema] = []
     kept_boxes: list[tuple[int, int, int, int]] = []
     for box, (comp_type, clip_conf) in zip(boxes, classifications):
-        if comp_type == "":          # CLIP says: text annotation, not a component
+        if comp_type == "":          # CLIP confident: text annotation, not a component
             continue
         text = _read_region_text(img_rgb, box, page_words)
         if not text or _is_noise(text):
@@ -310,6 +409,11 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
         ))
         kept_boxes.append(box)
 
+    # Dedupe: near-identical names on overlapping boxes = SAM segmented the
+    # same shape twice. Distant boxes with the same name are kept — replicated
+    # components (multi-AZ web servers) are genuine.
+    components, kept_boxes = _dedupe_components(components, kept_boxes)
+
     centroids = [(x + bw / 2, y + bh / 2) for (x, y, bw, bh) in kept_boxes]
     component_ids = [c.id for c in components]
     connections = _detect_connections(gray, kept_boxes, centroids, component_ids)
@@ -321,7 +425,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
         diagram_standard=_infer_diagram_standard(names),
         complexity=_complexity(len(components)),
         arch_type=_infer_arch_type([c.type for c in components]),
-        components=components or [ComponentSchema(id="h1", name="Unknown", type="other")],
+        components=components,   # empty = honest zero, not a fake "Unknown"
         connections=connections,
         response_time_ms=int((time.time() - start) * 1000),
     )
@@ -341,7 +445,8 @@ async def run_hybrid_pipeline(image_bytes: bytes, session_id: str) -> Architectu
             diagram_standard="informal",
             complexity="low",
             arch_type="other",
-            components=[ComponentSchema(id="h1", name="Unknown", type="other", confidence=None)],
+            components=[],
             connections=[],
             response_time_ms=int((time.time() - start) * 1000),
+            extraction_error=str(e)[:500],
         )
