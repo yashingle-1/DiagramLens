@@ -1,0 +1,5198 @@
+{
+  "amazon-opensearch-service": {
+    "name": "amazon opensearch",
+    "type": "service"
+  },
+  "analytics": {
+    "name": "analytics",
+    "type": "service"
+  },
+  "athena": {
+    "name": "athena",
+    "type": "service"
+  },
+  "cloudsearch-search-documents": {
+    "name": "cloudsearch search documents",
+    "type": "service"
+  },
+  "cloudsearch": {
+    "name": "cloudsearch",
+    "type": "service"
+  },
+  "data-lake-resource": {
+    "name": "data lake",
+    "type": "service"
+  },
+  "data-pipeline": {
+    "name": "data pipeline",
+    "type": "service"
+  },
+  "elasticsearch-service": {
+    "name": "elasticsearch",
+    "type": "service"
+  },
+  "emr-cluster": {
+    "name": "emr cluster",
+    "type": "service"
+  },
+  "emr-engine-mapr-m3": {
+    "name": "emr engine mapr m3",
+    "type": "service"
+  },
+  "emr-engine-mapr-m5": {
+    "name": "emr engine mapr m5",
+    "type": "service"
+  },
+  "emr-engine-mapr-m7": {
+    "name": "emr engine mapr m7",
+    "type": "service"
+  },
+  "emr-engine": {
+    "name": "emr engine",
+    "type": "service"
+  },
+  "emr-hdfs-cluster": {
+    "name": "emr hdfs cluster",
+    "type": "service"
+  },
+  "emr": {
+    "name": "emr",
+    "type": "service"
+  },
+  "glue-crawlers": {
+    "name": "glue crawlers",
+    "type": "service"
+  },
+  "glue-data-catalog": {
+    "name": "glue data catalog",
+    "type": "service"
+  },
+  "glue": {
+    "name": "glue",
+    "type": "service"
+  },
+  "kinesis-data-analytics": {
+    "name": "kinesis data analytics",
+    "type": "queue"
+  },
+  "kinesis-data-firehose": {
+    "name": "kinesis data firehose",
+    "type": "queue"
+  },
+  "kinesis-data-streams": {
+    "name": "kinesis data streams",
+    "type": "queue"
+  },
+  "kinesis-video-streams": {
+    "name": "kinesis video streams",
+    "type": "queue"
+  },
+  "kinesis": {
+    "name": "kinesis",
+    "type": "queue"
+  },
+  "lake-formation": {
+    "name": "lake formation",
+    "type": "service"
+  },
+  "managed-streaming-for-kafka": {
+    "name": "managed streaming for kafka",
+    "type": "queue"
+  },
+  "quicksight": {
+    "name": "quicksight",
+    "type": "service"
+  },
+  "redshift-dense-compute-node": {
+    "name": "redshift dense compute node",
+    "type": "database"
+  },
+  "redshift-dense-storage-node": {
+    "name": "redshift dense storage node",
+    "type": "database"
+  },
+  "redshift": {
+    "name": "redshift",
+    "type": "database"
+  },
+  "ar-vr": {
+    "name": "ar vr",
+    "type": "service"
+  },
+  "sumerian": {
+    "name": "sumerian",
+    "type": "service"
+  },
+  "aws": {
+    "name": "aws",
+    "type": "service"
+  },
+  "blockchain-resource": {
+    "name": "blockchain",
+    "type": "service"
+  },
+  "blockchain": {
+    "name": "blockchain",
+    "type": "service"
+  },
+  "managed-blockchain": {
+    "name": "managed blockchain",
+    "type": "service"
+  },
+  "quantum-ledger-database-qldb": {
+    "name": "quantum ledger database qldb",
+    "type": "database"
+  },
+  "alexa-for-business": {
+    "name": "alexa for business",
+    "type": "service"
+  },
+  "business-applications": {
+    "name": "business applications",
+    "type": "service"
+  },
+  "chime": {
+    "name": "chime",
+    "type": "service"
+  },
+  "workmail": {
+    "name": "workmail",
+    "type": "service"
+  },
+  "app-runner": {
+    "name": "app runner",
+    "type": "service"
+  },
+  "application-auto-scaling-rounded": {
+    "name": "application auto scaling rounded",
+    "type": "service"
+  },
+  "application-auto-scaling": {
+    "name": "application auto scaling",
+    "type": "service"
+  },
+  "batch-rounded": {
+    "name": "batch rounded",
+    "type": "service"
+  },
+  "batch": {
+    "name": "batch",
+    "type": "service"
+  },
+  "compute-optimizer": {
+    "name": "compute optimizer",
+    "type": "service"
+  },
+  "compute-rounded": {
+    "name": "compute rounded",
+    "type": "service"
+  },
+  "compute": {
+    "name": "compute",
+    "type": "service"
+  },
+  "ec2-ami": {
+    "name": "ec2 ami",
+    "type": "service"
+  },
+  "ec2-auto-scaling": {
+    "name": "ec2 auto scaling",
+    "type": "service"
+  },
+  "ec2-container-registry-image": {
+    "name": "ec2 container registry image",
+    "type": "service"
+  },
+  "ec2-container-registry-registry": {
+    "name": "ec2 container registry registry",
+    "type": "service"
+  },
+  "ec2-container-registry-rounded": {
+    "name": "ec2 container registry rounded",
+    "type": "service"
+  },
+  "ec2-container-registry": {
+    "name": "ec2 container registry",
+    "type": "service"
+  },
+  "ec2-elastic-ip-address": {
+    "name": "ec2 elastic ip address",
+    "type": "service"
+  },
+  "ec2-image-builder": {
+    "name": "ec2 image builder",
+    "type": "service"
+  },
+  "ec2-instance": {
+    "name": "ec2 instance",
+    "type": "service"
+  },
+  "ec2-instances": {
+    "name": "ec2 instances",
+    "type": "service"
+  },
+  "ec2-rescue": {
+    "name": "ec2 rescue",
+    "type": "service"
+  },
+  "ec2-rounded": {
+    "name": "ec2 rounded",
+    "type": "service"
+  },
+  "ec2-spot-instance": {
+    "name": "ec2 spot instance",
+    "type": "service"
+  },
+  "ec2": {
+    "name": "ec2",
+    "type": "service"
+  },
+  "elastic-beanstalk-application": {
+    "name": "elastic beanstalk application",
+    "type": "service"
+  },
+  "elastic-beanstalk-deployment": {
+    "name": "elastic beanstalk deployment",
+    "type": "service"
+  },
+  "elastic-beanstalk-rounded": {
+    "name": "elastic beanstalk rounded",
+    "type": "service"
+  },
+  "elastic-beanstalk": {
+    "name": "elastic beanstalk",
+    "type": "service"
+  },
+  "elastic-container-service-container": {
+    "name": "elastic container service container",
+    "type": "service"
+  },
+  "elastic-container-service-rounded": {
+    "name": "elastic container service rounded",
+    "type": "service"
+  },
+  "elastic-container-service-service-connect": {
+    "name": "elastic container service service connect",
+    "type": "service"
+  },
+  "elastic-container-service-service": {
+    "name": "elastic container",
+    "type": "service"
+  },
+  "elastic-container-service-task": {
+    "name": "elastic container service task",
+    "type": "service"
+  },
+  "elastic-container-service": {
+    "name": "elastic container",
+    "type": "service"
+  },
+  "elastic-kubernetes-service-rounded": {
+    "name": "elastic kubernetes service rounded",
+    "type": "service"
+  },
+  "elastic-kubernetes-service": {
+    "name": "elastic kubernetes",
+    "type": "service"
+  },
+  "fargate-rounded": {
+    "name": "fargate rounded",
+    "type": "service"
+  },
+  "fargate": {
+    "name": "fargate",
+    "type": "service"
+  },
+  "lambda-function": {
+    "name": "lambda function",
+    "type": "service"
+  },
+  "lambda-rounded": {
+    "name": "lambda rounded",
+    "type": "service"
+  },
+  "lambda": {
+    "name": "lambda",
+    "type": "service"
+  },
+  "lightsail-rounded": {
+    "name": "lightsail rounded",
+    "type": "service"
+  },
+  "lightsail": {
+    "name": "lightsail",
+    "type": "service"
+  },
+  "local-zones": {
+    "name": "local zones",
+    "type": "service"
+  },
+  "outposts-rounded": {
+    "name": "outposts rounded",
+    "type": "service"
+  },
+  "outposts": {
+    "name": "outposts",
+    "type": "service"
+  },
+  "serverless-application-repository-rounded": {
+    "name": "serverless application repository rounded",
+    "type": "service"
+  },
+  "serverless-application-repository": {
+    "name": "serverless application repository",
+    "type": "service"
+  },
+  "thinkbox-deadline-rounded": {
+    "name": "thinkbox deadline rounded",
+    "type": "service"
+  },
+  "thinkbox-deadline": {
+    "name": "thinkbox deadline",
+    "type": "service"
+  },
+  "thinkbox-draft-rounded": {
+    "name": "thinkbox draft rounded",
+    "type": "service"
+  },
+  "thinkbox-draft": {
+    "name": "thinkbox draft",
+    "type": "service"
+  },
+  "thinkbox-frost-rounded": {
+    "name": "thinkbox frost rounded",
+    "type": "service"
+  },
+  "thinkbox-frost": {
+    "name": "thinkbox frost",
+    "type": "service"
+  },
+  "thinkbox-krakatoa-rounded": {
+    "name": "thinkbox krakatoa rounded",
+    "type": "service"
+  },
+  "thinkbox-krakatoa": {
+    "name": "thinkbox krakatoa",
+    "type": "service"
+  },
+  "thinkbox-sequoia-rounded": {
+    "name": "thinkbox sequoia rounded",
+    "type": "service"
+  },
+  "thinkbox-sequoia": {
+    "name": "thinkbox sequoia",
+    "type": "service"
+  },
+  "thinkbox-stoke-rounded": {
+    "name": "thinkbox stoke rounded",
+    "type": "service"
+  },
+  "thinkbox-stoke": {
+    "name": "thinkbox stoke",
+    "type": "service"
+  },
+  "thinkbox-xmesh-rounded": {
+    "name": "thinkbox xmesh rounded",
+    "type": "service"
+  },
+  "thinkbox-xmesh": {
+    "name": "thinkbox xmesh",
+    "type": "service"
+  },
+  "vmware-cloud-on-aws-rounded": {
+    "name": "vmware cloud on aws rounded",
+    "type": "service"
+  },
+  "vmware-cloud-on-aws": {
+    "name": "vmware cloud on aws",
+    "type": "service"
+  },
+  "wavelength": {
+    "name": "wavelength",
+    "type": "service"
+  },
+  "budgets": {
+    "name": "budgets",
+    "type": "service"
+  },
+  "cost-and-usage-report": {
+    "name": "cost and usage report",
+    "type": "service"
+  },
+  "cost-explorer": {
+    "name": "cost explorer",
+    "type": "service"
+  },
+  "cost-management": {
+    "name": "cost management",
+    "type": "service"
+  },
+  "reserved-instance-reporting": {
+    "name": "reserved instance reporting",
+    "type": "service"
+  },
+  "savings-plans": {
+    "name": "savings plans",
+    "type": "service"
+  },
+  "aurora-instance": {
+    "name": "aurora instance",
+    "type": "database"
+  },
+  "aurora": {
+    "name": "aurora",
+    "type": "database"
+  },
+  "database-migration-service-database-migration-workflow": {
+    "name": "database migration service database migration workflow",
+    "type": "database"
+  },
+  "database-migration-service": {
+    "name": "database migration",
+    "type": "database"
+  },
+  "database": {
+    "name": "database",
+    "type": "database"
+  },
+  "documentdb-mongodb-compatibility": {
+    "name": "documentdb mongodb compatibility",
+    "type": "database"
+  },
+  "dynamodb-attribute": {
+    "name": "dynamodb attribute",
+    "type": "database"
+  },
+  "dynamodb-attributes": {
+    "name": "dynamodb attributes",
+    "type": "database"
+  },
+  "dynamodb-dax": {
+    "name": "dynamodb dax",
+    "type": "database"
+  },
+  "dynamodb-global-secondary-index": {
+    "name": "dynamodb global secondary index",
+    "type": "database"
+  },
+  "dynamodb-item": {
+    "name": "dynamodb item",
+    "type": "database"
+  },
+  "dynamodb-items": {
+    "name": "dynamodb items",
+    "type": "database"
+  },
+  "dynamodb-streams": {
+    "name": "dynamodb streams",
+    "type": "database"
+  },
+  "dynamodb-table": {
+    "name": "dynamodb table",
+    "type": "database"
+  },
+  "dynamodb": {
+    "name": "dynamodb",
+    "type": "database"
+  },
+  "elasticache-cache-node": {
+    "name": "elasticache cache node",
+    "type": "cache"
+  },
+  "elasticache-for-memcached": {
+    "name": "elasticache for memcached",
+    "type": "cache"
+  },
+  "elasticache-for-redis": {
+    "name": "elasticache for redis",
+    "type": "cache"
+  },
+  "elasticache": {
+    "name": "elasticache",
+    "type": "cache"
+  },
+  "keyspaces-managed-apache-cassandra-service": {
+    "name": "keyspaces managed apache cassandra",
+    "type": "database"
+  },
+  "neptune": {
+    "name": "neptune",
+    "type": "service"
+  },
+  "rds-instance": {
+    "name": "rds instance",
+    "type": "database"
+  },
+  "rds-mariadb-instance": {
+    "name": "rds mariadb instance",
+    "type": "database"
+  },
+  "rds-mysql-instance": {
+    "name": "rds mysql instance",
+    "type": "database"
+  },
+  "rds-on-vmware": {
+    "name": "rds on vmware",
+    "type": "database"
+  },
+  "rds-oracle-instance": {
+    "name": "rds oracle instance",
+    "type": "database"
+  },
+  "rds-postgresql-instance": {
+    "name": "rds postgresql instance",
+    "type": "database"
+  },
+  "rds-sql-server-instance": {
+    "name": "rds sql server instance",
+    "type": "database"
+  },
+  "rds": {
+    "name": "rds",
+    "type": "database"
+  },
+  "timestream": {
+    "name": "timestream",
+    "type": "service"
+  },
+  "cloud-development-kit": {
+    "name": "cloud development kit",
+    "type": "service"
+  },
+  "cloud9-resource": {
+    "name": "cloud9",
+    "type": "service"
+  },
+  "cloud9": {
+    "name": "cloud9",
+    "type": "service"
+  },
+  "cloudshell": {
+    "name": "cloudshell",
+    "type": "service"
+  },
+  "codeartifact": {
+    "name": "codeartifact",
+    "type": "service"
+  },
+  "codebuild": {
+    "name": "codebuild",
+    "type": "service"
+  },
+  "codecommit": {
+    "name": "codecommit",
+    "type": "service"
+  },
+  "codedeploy": {
+    "name": "codedeploy",
+    "type": "service"
+  },
+  "codepipeline": {
+    "name": "codepipeline",
+    "type": "service"
+  },
+  "codestar": {
+    "name": "codestar",
+    "type": "service"
+  },
+  "command-line-interface": {
+    "name": "command line interface",
+    "type": "service"
+  },
+  "developer-tools": {
+    "name": "developer tools",
+    "type": "service"
+  },
+  "tools-and-sdks": {
+    "name": "tools and sdks",
+    "type": "service"
+  },
+  "x-ray": {
+    "name": "x ray",
+    "type": "service"
+  },
+  "customer-enablement": {
+    "name": "customer enablement",
+    "type": "service"
+  },
+  "iq": {
+    "name": "iq",
+    "type": "service"
+  },
+  "managed-services": {
+    "name": "managed services",
+    "type": "service"
+  },
+  "professional-services": {
+    "name": "professional services",
+    "type": "service"
+  },
+  "support": {
+    "name": "support",
+    "type": "service"
+  },
+  "appstream-2-0": {
+    "name": "appstream 2 0",
+    "type": "service"
+  },
+  "desktop-and-app-streaming": {
+    "name": "desktop and app streaming",
+    "type": "service"
+  },
+  "workdocs": {
+    "name": "workdocs",
+    "type": "service"
+  },
+  "worklink": {
+    "name": "worklink",
+    "type": "service"
+  },
+  "workspaces": {
+    "name": "workspaces",
+    "type": "service"
+  },
+  "connect": {
+    "name": "connect",
+    "type": "service"
+  },
+  "customer-engagement": {
+    "name": "customer engagement",
+    "type": "service"
+  },
+  "pinpoint": {
+    "name": "pinpoint",
+    "type": "service"
+  },
+  "simple-email-service-ses-email": {
+    "name": "simple email service ses email",
+    "type": "notification"
+  },
+  "simple-email-service-ses": {
+    "name": "simple email service ses",
+    "type": "notification"
+  },
+  "game-tech": {
+    "name": "game tech",
+    "type": "service"
+  },
+  "gamelift": {
+    "name": "gamelift",
+    "type": "service"
+  },
+  "client": {
+    "name": "client",
+    "type": "client"
+  },
+  "disk": {
+    "name": "disk",
+    "type": "service"
+  },
+  "forums": {
+    "name": "forums",
+    "type": "service"
+  },
+  "general": {
+    "name": "general",
+    "type": "service"
+  },
+  "generic-database": {
+    "name": "generic database",
+    "type": "database"
+  },
+  "generic-firewall": {
+    "name": "generic firewall",
+    "type": "service"
+  },
+  "generic-office-building": {
+    "name": "generic office building",
+    "type": "service"
+  },
+  "generic-saml-token": {
+    "name": "generic saml token",
+    "type": "service"
+  },
+  "generic-sdk": {
+    "name": "generic sdk",
+    "type": "service"
+  },
+  "internet-alt1": {
+    "name": "internet alt1",
+    "type": "service"
+  },
+  "internet-alt2": {
+    "name": "internet alt2",
+    "type": "service"
+  },
+  "internet-gateway": {
+    "name": "internet gateway",
+    "type": "gateway"
+  },
+  "marketplace": {
+    "name": "marketplace",
+    "type": "service"
+  },
+  "mobile-client": {
+    "name": "mobile client",
+    "type": "client"
+  },
+  "multimedia": {
+    "name": "multimedia",
+    "type": "service"
+  },
+  "office-building": {
+    "name": "office building",
+    "type": "service"
+  },
+  "saml-token": {
+    "name": "saml token",
+    "type": "service"
+  },
+  "sdk": {
+    "name": "sdk",
+    "type": "service"
+  },
+  "ssl-padlock": {
+    "name": "ssl padlock",
+    "type": "service"
+  },
+  "tape-storage": {
+    "name": "tape storage",
+    "type": "storage"
+  },
+  "toolkit": {
+    "name": "toolkit",
+    "type": "service"
+  },
+  "traditional-server": {
+    "name": "traditional server",
+    "type": "service"
+  },
+  "user": {
+    "name": "user",
+    "type": "client"
+  },
+  "users": {
+    "name": "users",
+    "type": "client"
+  },
+  "application-integration": {
+    "name": "application integration",
+    "type": "service"
+  },
+  "appsync": {
+    "name": "appsync",
+    "type": "service"
+  },
+  "console-mobile-application": {
+    "name": "console mobile application",
+    "type": "client"
+  },
+  "event-resource": {
+    "name": "event",
+    "type": "service"
+  },
+  "eventbridge-custom-event-bus-resource": {
+    "name": "eventbridge custom event bus",
+    "type": "queue"
+  },
+  "eventbridge-default-event-bus-resource": {
+    "name": "eventbridge default event bus",
+    "type": "queue"
+  },
+  "eventbridge-event": {
+    "name": "eventbridge event",
+    "type": "queue"
+  },
+  "eventbridge-pipes": {
+    "name": "eventbridge pipes",
+    "type": "queue"
+  },
+  "eventbridge-rule": {
+    "name": "eventbridge rule",
+    "type": "queue"
+  },
+  "eventbridge-saas-partner-event-bus-resource": {
+    "name": "eventbridge saas partner event bus",
+    "type": "queue"
+  },
+  "eventbridge-scheduler": {
+    "name": "eventbridge scheduler",
+    "type": "queue"
+  },
+  "eventbridge-schema": {
+    "name": "eventbridge schema",
+    "type": "queue"
+  },
+  "eventbridge": {
+    "name": "eventbridge",
+    "type": "queue"
+  },
+  "express-workflows": {
+    "name": "express workflows",
+    "type": "service"
+  },
+  "mq": {
+    "name": "mq",
+    "type": "service"
+  },
+  "simple-notification-service-sns-email-notification": {
+    "name": "simple notification service sns email notification",
+    "type": "queue"
+  },
+  "simple-notification-service-sns-http-notification": {
+    "name": "simple notification service sns http notification",
+    "type": "queue"
+  },
+  "simple-notification-service-sns-topic": {
+    "name": "simple notification service sns topic",
+    "type": "queue"
+  },
+  "simple-notification-service-sns": {
+    "name": "simple notification service sns",
+    "type": "queue"
+  },
+  "simple-queue-service-sqs-message": {
+    "name": "simple queue service sqs message",
+    "type": "queue"
+  },
+  "simple-queue-service-sqs-queue": {
+    "name": "simple queue service sqs queue",
+    "type": "queue"
+  },
+  "simple-queue-service-sqs": {
+    "name": "simple queue service sqs",
+    "type": "queue"
+  },
+  "step-functions": {
+    "name": "step functions",
+    "type": "service"
+  },
+  "freertos": {
+    "name": "freertos",
+    "type": "service"
+  },
+  "internet-of-things": {
+    "name": "internet of things",
+    "type": "service"
+  },
+  "iot-1-click": {
+    "name": "iot 1 click",
+    "type": "service"
+  },
+  "iot-action": {
+    "name": "iot action",
+    "type": "service"
+  },
+  "iot-actuator": {
+    "name": "iot actuator",
+    "type": "service"
+  },
+  "iot-alexa-echo": {
+    "name": "iot alexa echo",
+    "type": "service"
+  },
+  "iot-alexa-enabled-device": {
+    "name": "iot alexa enabled device",
+    "type": "service"
+  },
+  "iot-alexa-skill": {
+    "name": "iot alexa skill",
+    "type": "service"
+  },
+  "iot-alexa-voice-service": {
+    "name": "iot alexa voice",
+    "type": "service"
+  },
+  "iot-analytics-channel": {
+    "name": "iot analytics channel",
+    "type": "service"
+  },
+  "iot-analytics-data-set": {
+    "name": "iot analytics data set",
+    "type": "service"
+  },
+  "iot-analytics-data-store": {
+    "name": "iot analytics data store",
+    "type": "service"
+  },
+  "iot-analytics-notebook": {
+    "name": "iot analytics notebook",
+    "type": "service"
+  },
+  "iot-analytics-pipeline": {
+    "name": "iot analytics pipeline",
+    "type": "service"
+  },
+  "iot-analytics": {
+    "name": "iot analytics",
+    "type": "service"
+  },
+  "iot-bank": {
+    "name": "iot bank",
+    "type": "service"
+  },
+  "iot-bicycle": {
+    "name": "iot bicycle",
+    "type": "service"
+  },
+  "iot-button": {
+    "name": "iot button",
+    "type": "service"
+  },
+  "iot-camera": {
+    "name": "iot camera",
+    "type": "service"
+  },
+  "iot-car": {
+    "name": "iot car",
+    "type": "service"
+  },
+  "iot-cart": {
+    "name": "iot cart",
+    "type": "service"
+  },
+  "iot-certificate": {
+    "name": "iot certificate",
+    "type": "service"
+  },
+  "iot-coffee-pot": {
+    "name": "iot coffee pot",
+    "type": "service"
+  },
+  "iot-core": {
+    "name": "iot core",
+    "type": "service"
+  },
+  "iot-desired-state": {
+    "name": "iot desired state",
+    "type": "service"
+  },
+  "iot-device-defender": {
+    "name": "iot device defender",
+    "type": "service"
+  },
+  "iot-device-gateway": {
+    "name": "iot device gateway",
+    "type": "gateway"
+  },
+  "iot-device-management": {
+    "name": "iot device management",
+    "type": "service"
+  },
+  "iot-door-lock": {
+    "name": "iot door lock",
+    "type": "service"
+  },
+  "iot-events": {
+    "name": "iot events",
+    "type": "service"
+  },
+  "iot-factory": {
+    "name": "iot factory",
+    "type": "service"
+  },
+  "iot-fire-tv-stick": {
+    "name": "iot fire tv stick",
+    "type": "service"
+  },
+  "iot-fire-tv": {
+    "name": "iot fire tv",
+    "type": "service"
+  },
+  "iot-generic": {
+    "name": "iot generic",
+    "type": "service"
+  },
+  "iot-greengrass-connector": {
+    "name": "iot greengrass connector",
+    "type": "service"
+  },
+  "iot-greengrass": {
+    "name": "iot greengrass",
+    "type": "service"
+  },
+  "iot-hardware-board": {
+    "name": "iot hardware board",
+    "type": "service"
+  },
+  "iot-house": {
+    "name": "iot house",
+    "type": "service"
+  },
+  "iot-http": {
+    "name": "iot http",
+    "type": "service"
+  },
+  "iot-http2": {
+    "name": "iot http2",
+    "type": "service"
+  },
+  "iot-jobs": {
+    "name": "iot jobs",
+    "type": "service"
+  },
+  "iot-lambda": {
+    "name": "iot lambda",
+    "type": "service"
+  },
+  "iot-lightbulb": {
+    "name": "iot lightbulb",
+    "type": "service"
+  },
+  "iot-medical-emergency": {
+    "name": "iot medical emergency",
+    "type": "service"
+  },
+  "iot-mqtt": {
+    "name": "iot mqtt",
+    "type": "service"
+  },
+  "iot-over-the-air-update": {
+    "name": "iot over the air update",
+    "type": "service"
+  },
+  "iot-policy-emergency": {
+    "name": "iot policy emergency",
+    "type": "service"
+  },
+  "iot-policy": {
+    "name": "iot policy",
+    "type": "service"
+  },
+  "iot-reported-state": {
+    "name": "iot reported state",
+    "type": "service"
+  },
+  "iot-rule": {
+    "name": "iot rule",
+    "type": "service"
+  },
+  "iot-sensor": {
+    "name": "iot sensor",
+    "type": "service"
+  },
+  "iot-servo": {
+    "name": "iot servo",
+    "type": "service"
+  },
+  "iot-shadow": {
+    "name": "iot shadow",
+    "type": "service"
+  },
+  "iot-simulator": {
+    "name": "iot simulator",
+    "type": "service"
+  },
+  "iot-sitewise": {
+    "name": "iot sitewise",
+    "type": "service"
+  },
+  "iot-thermostat": {
+    "name": "iot thermostat",
+    "type": "service"
+  },
+  "iot-things-graph": {
+    "name": "iot things graph",
+    "type": "service"
+  },
+  "iot-topic": {
+    "name": "iot topic",
+    "type": "queue"
+  },
+  "iot-travel": {
+    "name": "iot travel",
+    "type": "service"
+  },
+  "iot-utility": {
+    "name": "iot utility",
+    "type": "service"
+  },
+  "iot-windfarm": {
+    "name": "iot windfarm",
+    "type": "service"
+  },
+  "amazon-devops-guru": {
+    "name": "amazon devops guru",
+    "type": "service"
+  },
+  "amazon-managed-grafana": {
+    "name": "amazon managed grafana",
+    "type": "monitoring"
+  },
+  "amazon-managed-prometheus": {
+    "name": "amazon managed prometheus",
+    "type": "monitoring"
+  },
+  "amazon-managed-workflows-apache-airflow": {
+    "name": "amazon managed workflows apache airflow",
+    "type": "service"
+  },
+  "auto-scaling": {
+    "name": "auto scaling",
+    "type": "service"
+  },
+  "chatbot": {
+    "name": "chatbot",
+    "type": "service"
+  },
+  "cloudformation-change-set": {
+    "name": "cloudformation change set",
+    "type": "service"
+  },
+  "cloudformation-stack": {
+    "name": "cloudformation stack",
+    "type": "service"
+  },
+  "cloudformation-template": {
+    "name": "cloudformation template",
+    "type": "service"
+  },
+  "cloudformation": {
+    "name": "cloudformation",
+    "type": "service"
+  },
+  "cloudtrail": {
+    "name": "cloudtrail",
+    "type": "service"
+  },
+  "cloudwatch-alarm": {
+    "name": "cloudwatch alarm",
+    "type": "monitoring"
+  },
+  "cloudwatch-event-event-based": {
+    "name": "cloudwatch event event based",
+    "type": "monitoring"
+  },
+  "cloudwatch-event-time-based": {
+    "name": "cloudwatch event time based",
+    "type": "monitoring"
+  },
+  "cloudwatch-logs": {
+    "name": "cloudwatch logs",
+    "type": "monitoring"
+  },
+  "cloudwatch-rule": {
+    "name": "cloudwatch rule",
+    "type": "monitoring"
+  },
+  "cloudwatch": {
+    "name": "cloudwatch",
+    "type": "monitoring"
+  },
+  "codeguru": {
+    "name": "codeguru",
+    "type": "service"
+  },
+  "config": {
+    "name": "config",
+    "type": "service"
+  },
+  "control-tower": {
+    "name": "control tower",
+    "type": "service"
+  },
+  "license-manager": {
+    "name": "license manager",
+    "type": "service"
+  },
+  "management-and-governance": {
+    "name": "management and governance",
+    "type": "service"
+  },
+  "management-console": {
+    "name": "management console",
+    "type": "service"
+  },
+  "opsworks-apps": {
+    "name": "opsworks apps",
+    "type": "service"
+  },
+  "opsworks-deployments": {
+    "name": "opsworks deployments",
+    "type": "service"
+  },
+  "opsworks-instances": {
+    "name": "opsworks instances",
+    "type": "service"
+  },
+  "opsworks-layers": {
+    "name": "opsworks layers",
+    "type": "service"
+  },
+  "opsworks-monitoring": {
+    "name": "opsworks monitoring",
+    "type": "monitoring"
+  },
+  "opsworks-permissions": {
+    "name": "opsworks permissions",
+    "type": "service"
+  },
+  "opsworks-resources": {
+    "name": "opsworks resources",
+    "type": "service"
+  },
+  "opsworks-stack": {
+    "name": "opsworks stack",
+    "type": "service"
+  },
+  "opsworks": {
+    "name": "opsworks",
+    "type": "service"
+  },
+  "organizations-account": {
+    "name": "organizations account",
+    "type": "service"
+  },
+  "organizations-organizational-unit": {
+    "name": "organizations organizational unit",
+    "type": "service"
+  },
+  "organizations": {
+    "name": "organizations",
+    "type": "service"
+  },
+  "personal-health-dashboard": {
+    "name": "personal health dashboard",
+    "type": "service"
+  },
+  "proton": {
+    "name": "proton",
+    "type": "service"
+  },
+  "service-catalog": {
+    "name": "service catalog",
+    "type": "service"
+  },
+  "systems-manager-app-config": {
+    "name": "systems manager app config",
+    "type": "service"
+  },
+  "systems-manager-automation": {
+    "name": "systems manager automation",
+    "type": "service"
+  },
+  "systems-manager-documents": {
+    "name": "systems manager documents",
+    "type": "service"
+  },
+  "systems-manager-inventory": {
+    "name": "systems manager inventory",
+    "type": "service"
+  },
+  "systems-manager-maintenance-windows": {
+    "name": "systems manager maintenance windows",
+    "type": "service"
+  },
+  "systems-manager-opscenter": {
+    "name": "systems manager opscenter",
+    "type": "service"
+  },
+  "systems-manager-parameter-store": {
+    "name": "systems manager parameter store",
+    "type": "service"
+  },
+  "systems-manager-patch-manager": {
+    "name": "systems manager patch manager",
+    "type": "service"
+  },
+  "systems-manager-run-command": {
+    "name": "systems manager run command",
+    "type": "service"
+  },
+  "systems-manager-state-manager": {
+    "name": "systems manager state manager",
+    "type": "service"
+  },
+  "systems-manager": {
+    "name": "systems manager",
+    "type": "service"
+  },
+  "trusted-advisor-checklist-cost": {
+    "name": "trusted advisor checklist cost",
+    "type": "service"
+  },
+  "trusted-advisor-checklist-fault-tolerant": {
+    "name": "trusted advisor checklist fault tolerant",
+    "type": "service"
+  },
+  "trusted-advisor-checklist-performance": {
+    "name": "trusted advisor checklist performance",
+    "type": "service"
+  },
+  "trusted-advisor-checklist-security": {
+    "name": "trusted advisor checklist security",
+    "type": "service"
+  },
+  "trusted-advisor-checklist": {
+    "name": "trusted advisor checklist",
+    "type": "service"
+  },
+  "trusted-advisor": {
+    "name": "trusted advisor",
+    "type": "service"
+  },
+  "user-notifications": {
+    "name": "user notifications",
+    "type": "client"
+  },
+  "well-architected-tool": {
+    "name": "well architected tool",
+    "type": "service"
+  },
+  "elastic-transcoder": {
+    "name": "elastic transcoder",
+    "type": "service"
+  },
+  "elemental-conductor": {
+    "name": "elemental conductor",
+    "type": "service"
+  },
+  "elemental-delta": {
+    "name": "elemental delta",
+    "type": "service"
+  },
+  "elemental-live": {
+    "name": "elemental live",
+    "type": "service"
+  },
+  "elemental-mediaconnect": {
+    "name": "elemental mediaconnect",
+    "type": "service"
+  },
+  "elemental-mediaconvert": {
+    "name": "elemental mediaconvert",
+    "type": "service"
+  },
+  "elemental-medialive": {
+    "name": "elemental medialive",
+    "type": "service"
+  },
+  "elemental-mediapackage": {
+    "name": "elemental mediapackage",
+    "type": "service"
+  },
+  "elemental-mediastore": {
+    "name": "elemental mediastore",
+    "type": "service"
+  },
+  "elemental-mediatailor": {
+    "name": "elemental mediatailor",
+    "type": "service"
+  },
+  "elemental-server": {
+    "name": "elemental server",
+    "type": "service"
+  },
+  "media-services": {
+    "name": "media services",
+    "type": "service"
+  },
+  "application-discovery-service": {
+    "name": "application discovery",
+    "type": "service"
+  },
+  "cloudendure-migration": {
+    "name": "cloudendure migration",
+    "type": "service"
+  },
+  "datasync-agent": {
+    "name": "datasync agent",
+    "type": "service"
+  },
+  "datasync": {
+    "name": "datasync",
+    "type": "service"
+  },
+  "migration-and-transfer": {
+    "name": "migration and transfer",
+    "type": "service"
+  },
+  "migration-hub": {
+    "name": "migration hub",
+    "type": "service"
+  },
+  "server-migration-service": {
+    "name": "server migration",
+    "type": "service"
+  },
+  "snowball-edge": {
+    "name": "snowball edge",
+    "type": "cdn"
+  },
+  "snowball": {
+    "name": "snowball",
+    "type": "service"
+  },
+  "snowmobile": {
+    "name": "snowmobile",
+    "type": "client"
+  },
+  "transfer-for-sftp": {
+    "name": "transfer for sftp",
+    "type": "service"
+  },
+  "apache-mxnet-on-aws": {
+    "name": "apache mxnet on aws",
+    "type": "service"
+  },
+  "augmented-ai": {
+    "name": "augmented ai",
+    "type": "service"
+  },
+  "bedrock": {
+    "name": "bedrock",
+    "type": "service"
+  },
+  "comprehend": {
+    "name": "comprehend",
+    "type": "service"
+  },
+  "deep-learning-amis": {
+    "name": "deep learning amis",
+    "type": "service"
+  },
+  "deep-learning-containers": {
+    "name": "deep learning containers",
+    "type": "service"
+  },
+  "deepcomposer": {
+    "name": "deepcomposer",
+    "type": "service"
+  },
+  "deeplens": {
+    "name": "deeplens",
+    "type": "service"
+  },
+  "deepracer": {
+    "name": "deepracer",
+    "type": "service"
+  },
+  "elastic-inference": {
+    "name": "elastic inference",
+    "type": "service"
+  },
+  "forecast": {
+    "name": "forecast",
+    "type": "service"
+  },
+  "fraud-detector": {
+    "name": "fraud detector",
+    "type": "service"
+  },
+  "kendra": {
+    "name": "kendra",
+    "type": "service"
+  },
+  "lex": {
+    "name": "lex",
+    "type": "service"
+  },
+  "machine-learning": {
+    "name": "machine learning",
+    "type": "service"
+  },
+  "personalize": {
+    "name": "personalize",
+    "type": "service"
+  },
+  "polly": {
+    "name": "polly",
+    "type": "service"
+  },
+  "q": {
+    "name": "q",
+    "type": "service"
+  },
+  "rekognition-image": {
+    "name": "rekognition image",
+    "type": "service"
+  },
+  "rekognition-video": {
+    "name": "rekognition video",
+    "type": "service"
+  },
+  "rekognition": {
+    "name": "rekognition",
+    "type": "service"
+  },
+  "sagemaker-ground-truth": {
+    "name": "sagemaker ground truth",
+    "type": "service"
+  },
+  "sagemaker-model": {
+    "name": "sagemaker model",
+    "type": "service"
+  },
+  "sagemaker-notebook": {
+    "name": "sagemaker notebook",
+    "type": "service"
+  },
+  "sagemaker-training-job": {
+    "name": "sagemaker training job",
+    "type": "service"
+  },
+  "sagemaker": {
+    "name": "sagemaker",
+    "type": "service"
+  },
+  "tensorflow-on-aws": {
+    "name": "tensorflow on aws",
+    "type": "service"
+  },
+  "textract": {
+    "name": "textract",
+    "type": "service"
+  },
+  "transcribe": {
+    "name": "transcribe",
+    "type": "service"
+  },
+  "transform": {
+    "name": "transform",
+    "type": "service"
+  },
+  "translate": {
+    "name": "translate",
+    "type": "service"
+  },
+  "amplify": {
+    "name": "amplify",
+    "type": "service"
+  },
+  "api-gateway-endpoint": {
+    "name": "api gateway endpoint",
+    "type": "gateway"
+  },
+  "api-gateway": {
+    "name": "api gateway",
+    "type": "gateway"
+  },
+  "device-farm": {
+    "name": "device farm",
+    "type": "service"
+  },
+  "mobile": {
+    "name": "mobile",
+    "type": "client"
+  },
+  "app-mesh": {
+    "name": "app mesh",
+    "type": "service"
+  },
+  "client-vpn": {
+    "name": "client vpn",
+    "type": "client"
+  },
+  "cloud-map": {
+    "name": "cloud map",
+    "type": "service"
+  },
+  "cloudfront-download-distribution": {
+    "name": "cloudfront download distribution",
+    "type": "cdn"
+  },
+  "cloudfront-edge-location": {
+    "name": "cloudfront edge location",
+    "type": "cdn"
+  },
+  "cloudfront-streaming-distribution": {
+    "name": "cloudfront streaming distribution",
+    "type": "cdn"
+  },
+  "cloudfront": {
+    "name": "cloudfront",
+    "type": "cdn"
+  },
+  "direct-connect": {
+    "name": "direct connect",
+    "type": "service"
+  },
+  "elastic-load-balancing": {
+    "name": "elastic load balancing",
+    "type": "service"
+  },
+  "elb-application-load-balancer": {
+    "name": "elb application load balancer",
+    "type": "load_balancer"
+  },
+  "elb-classic-load-balancer": {
+    "name": "elb classic load balancer",
+    "type": "load_balancer"
+  },
+  "elb-network-load-balancer": {
+    "name": "elb network load balancer",
+    "type": "load_balancer"
+  },
+  "endpoint": {
+    "name": "endpoint",
+    "type": "service"
+  },
+  "global-accelerator": {
+    "name": "global accelerator",
+    "type": "service"
+  },
+  "nacl": {
+    "name": "nacl",
+    "type": "service"
+  },
+  "nat-gateway": {
+    "name": "nat gateway",
+    "type": "gateway"
+  },
+  "network-firewall": {
+    "name": "network firewall",
+    "type": "service"
+  },
+  "networking-and-content-delivery": {
+    "name": "networking and content delivery",
+    "type": "cdn"
+  },
+  "private-subnet": {
+    "name": "private subnet",
+    "type": "service"
+  },
+  "privatelink": {
+    "name": "privatelink",
+    "type": "service"
+  },
+  "public-subnet": {
+    "name": "public subnet",
+    "type": "service"
+  },
+  "route-53-hosted-zone": {
+    "name": "route 53 hosted zone",
+    "type": "service"
+  },
+  "route-53": {
+    "name": "route",
+    "type": "service"
+  },
+  "route-table": {
+    "name": "route table",
+    "type": "service"
+  },
+  "site-to-site-vpn": {
+    "name": "site to site vpn",
+    "type": "service"
+  },
+  "transit-gateway-attachment": {
+    "name": "transit gateway attachment",
+    "type": "gateway"
+  },
+  "transit-gateway": {
+    "name": "transit gateway",
+    "type": "gateway"
+  },
+  "vpc-customer-gateway": {
+    "name": "vpc customer gateway",
+    "type": "gateway"
+  },
+  "vpc-elastic-network-adapter": {
+    "name": "vpc elastic network adapter",
+    "type": "service"
+  },
+  "vpc-elastic-network-interface": {
+    "name": "vpc elastic network interface",
+    "type": "service"
+  },
+  "vpc-flow-logs": {
+    "name": "vpc flow logs",
+    "type": "service"
+  },
+  "vpc-peering": {
+    "name": "vpc peering",
+    "type": "service"
+  },
+  "vpc-router": {
+    "name": "vpc router",
+    "type": "service"
+  },
+  "vpc-traffic-mirroring": {
+    "name": "vpc traffic mirroring",
+    "type": "service"
+  },
+  "vpc": {
+    "name": "vpc",
+    "type": "service"
+  },
+  "vpn-connection": {
+    "name": "vpn connection",
+    "type": "service"
+  },
+  "vpn-gateway": {
+    "name": "vpn gateway",
+    "type": "gateway"
+  },
+  "braket": {
+    "name": "braket",
+    "type": "service"
+  },
+  "quantum-technologies": {
+    "name": "quantum technologies",
+    "type": "service"
+  },
+  "robomaker-cloud-extension-ros": {
+    "name": "robomaker cloud extension ros",
+    "type": "service"
+  },
+  "robomaker-development-environment": {
+    "name": "robomaker development environment",
+    "type": "service"
+  },
+  "robomaker-fleet-management": {
+    "name": "robomaker fleet management",
+    "type": "service"
+  },
+  "robomaker-simulator": {
+    "name": "robomaker simulator",
+    "type": "service"
+  },
+  "robomaker": {
+    "name": "robomaker",
+    "type": "service"
+  },
+  "robotics": {
+    "name": "robotics",
+    "type": "service"
+  },
+  "ground-station": {
+    "name": "ground station",
+    "type": "service"
+  },
+  "satellite": {
+    "name": "satellite",
+    "type": "service"
+  },
+  "ad-connector": {
+    "name": "ad connector",
+    "type": "service"
+  },
+  "artifact": {
+    "name": "artifact",
+    "type": "service"
+  },
+  "certificate-authority": {
+    "name": "certificate authority",
+    "type": "service"
+  },
+  "certificate-manager": {
+    "name": "certificate manager",
+    "type": "service"
+  },
+  "cloud-directory": {
+    "name": "cloud directory",
+    "type": "service"
+  },
+  "cloudhsm": {
+    "name": "cloudhsm",
+    "type": "service"
+  },
+  "cognito": {
+    "name": "cognito",
+    "type": "service"
+  },
+  "detective": {
+    "name": "detective",
+    "type": "service"
+  },
+  "directory-service": {
+    "name": "directory",
+    "type": "service"
+  },
+  "firewall-manager": {
+    "name": "firewall manager",
+    "type": "service"
+  },
+  "guardduty": {
+    "name": "guardduty",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-access-analyzer": {
+    "name": "identity and access management iam access analyzer",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-add-on": {
+    "name": "identity and access management iam add on",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-aws-sts-alternate": {
+    "name": "identity and access management iam aws sts alternate",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-aws-sts": {
+    "name": "identity and access management iam aws sts",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-data-encryption-key": {
+    "name": "identity and access management iam data encryption key",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-encrypted-data": {
+    "name": "identity and access management iam encrypted data",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-long-term-security-credential": {
+    "name": "identity and access management iam long term security credential",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-mfa-token": {
+    "name": "identity and access management iam mfa token",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-permissions": {
+    "name": "identity and access management iam permissions",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-role": {
+    "name": "identity and access management iam role",
+    "type": "service"
+  },
+  "identity-and-access-management-iam-temporary-security-credential": {
+    "name": "identity and access management iam temporary security credential",
+    "type": "service"
+  },
+  "identity-and-access-management-iam": {
+    "name": "identity and access management iam",
+    "type": "service"
+  },
+  "inspector-agent": {
+    "name": "inspector agent",
+    "type": "service"
+  },
+  "inspector": {
+    "name": "inspector",
+    "type": "service"
+  },
+  "key-management-service": {
+    "name": "key management",
+    "type": "service"
+  },
+  "macie": {
+    "name": "macie",
+    "type": "service"
+  },
+  "managed-microsoft-ad": {
+    "name": "managed microsoft ad",
+    "type": "service"
+  },
+  "resource-access-manager": {
+    "name": "resource access manager",
+    "type": "service"
+  },
+  "secrets-manager": {
+    "name": "secrets manager",
+    "type": "service"
+  },
+  "security-hub-finding": {
+    "name": "security hub finding",
+    "type": "service"
+  },
+  "security-hub": {
+    "name": "security hub",
+    "type": "service"
+  },
+  "security-identity-and-compliance": {
+    "name": "security identity and compliance",
+    "type": "service"
+  },
+  "security-lake": {
+    "name": "security lake",
+    "type": "service"
+  },
+  "shield-advanced": {
+    "name": "shield advanced",
+    "type": "service"
+  },
+  "shield": {
+    "name": "shield",
+    "type": "service"
+  },
+  "simple-ad": {
+    "name": "simple ad",
+    "type": "service"
+  },
+  "single-sign-on": {
+    "name": "single sign on",
+    "type": "service"
+  },
+  "waf-filtering-rule": {
+    "name": "waf filtering rule",
+    "type": "service"
+  },
+  "waf": {
+    "name": "waf",
+    "type": "service"
+  },
+  "backup": {
+    "name": "backup",
+    "type": "service"
+  },
+  "cloudendure-disaster-recovery": {
+    "name": "cloudendure disaster recovery",
+    "type": "service"
+  },
+  "efs-infrequentaccess-primary-bg": {
+    "name": "efs infrequentaccess primary bg",
+    "type": "storage"
+  },
+  "efs-standard-primary-bg": {
+    "name": "efs standard primary bg",
+    "type": "storage"
+  },
+  "elastic-block-store-ebs-snapshot": {
+    "name": "elastic block store ebs snapshot",
+    "type": "storage"
+  },
+  "elastic-block-store-ebs-volume": {
+    "name": "elastic block store ebs volume",
+    "type": "storage"
+  },
+  "elastic-block-store-ebs": {
+    "name": "elastic block store ebs",
+    "type": "storage"
+  },
+  "elastic-file-system-efs-file-system": {
+    "name": "elastic file system efs file system",
+    "type": "storage"
+  },
+  "elastic-file-system-efs": {
+    "name": "elastic file system efs",
+    "type": "storage"
+  },
+  "fsx-for-lustre": {
+    "name": "fsx for lustre",
+    "type": "service"
+  },
+  "fsx-for-windows-file-server": {
+    "name": "fsx for windows file server",
+    "type": "service"
+  },
+  "fsx": {
+    "name": "fsx",
+    "type": "service"
+  },
+  "multiple-volumes-resource": {
+    "name": "multiple volumes",
+    "type": "service"
+  },
+  "s3-access-points": {
+    "name": "s3 access points",
+    "type": "storage"
+  },
+  "s3-glacier-archive": {
+    "name": "s3 glacier archive",
+    "type": "storage"
+  },
+  "s3-glacier-vault": {
+    "name": "s3 glacier vault",
+    "type": "storage"
+  },
+  "s3-glacier": {
+    "name": "s3 glacier",
+    "type": "storage"
+  },
+  "s3-object-lambda-access-points": {
+    "name": "s3 object lambda access points",
+    "type": "storage"
+  },
+  "simple-storage-service-s3-bucket-with-objects": {
+    "name": "simple storage service s3 bucket with objects",
+    "type": "storage"
+  },
+  "simple-storage-service-s3-bucket": {
+    "name": "simple storage service s3 bucket",
+    "type": "storage"
+  },
+  "simple-storage-service-s3-object": {
+    "name": "simple storage service s3 object",
+    "type": "storage"
+  },
+  "simple-storage-service-s3": {
+    "name": "simple storage service s3",
+    "type": "storage"
+  },
+  "snow-family-snowball-import-export": {
+    "name": "snow family snowball import export",
+    "type": "service"
+  },
+  "storage-gateway-cached-volume": {
+    "name": "storage gateway cached volume",
+    "type": "gateway"
+  },
+  "storage-gateway-non-cached-volume": {
+    "name": "storage gateway non cached volume",
+    "type": "gateway"
+  },
+  "storage-gateway-virtual-tape-library": {
+    "name": "storage gateway virtual tape library",
+    "type": "gateway"
+  },
+  "storage-gateway": {
+    "name": "storage gateway",
+    "type": "gateway"
+  },
+  "storage": {
+    "name": "storage",
+    "type": "storage"
+  },
+  "ai-studio": {
+    "name": "ai studio",
+    "type": "service"
+  },
+  "anomaly-detector": {
+    "name": "anomaly detector",
+    "type": "service"
+  },
+  "azure-applied-ai-services": {
+    "name": "azure applied ai services",
+    "type": "service"
+  },
+  "azure-experimentation-studio": {
+    "name": "azure experimentation studio",
+    "type": "service"
+  },
+  "azure-object-understanding": {
+    "name": "azure object understanding",
+    "type": "service"
+  },
+  "azure-openai": {
+    "name": "azure openai",
+    "type": "service"
+  },
+  "batch-ai": {
+    "name": "batch ai",
+    "type": "service"
+  },
+  "bonsai": {
+    "name": "bonsai",
+    "type": "service"
+  },
+  "bot-services": {
+    "name": "bot services",
+    "type": "service"
+  },
+  "cognitive-search": {
+    "name": "cognitive search",
+    "type": "service"
+  },
+  "cognitive-services-decisions": {
+    "name": "cognitive services decisions",
+    "type": "service"
+  },
+  "cognitive-services": {
+    "name": "cognitive services",
+    "type": "service"
+  },
+  "computer-vision": {
+    "name": "computer vision",
+    "type": "service"
+  },
+  "content-moderators": {
+    "name": "content moderators",
+    "type": "service"
+  },
+  "custom-vision": {
+    "name": "custom vision",
+    "type": "service"
+  },
+  "face-apis": {
+    "name": "face apis",
+    "type": "service"
+  },
+  "form-recognizers": {
+    "name": "form recognizers",
+    "type": "service"
+  },
+  "genomics-accounts": {
+    "name": "genomics accounts",
+    "type": "service"
+  },
+  "genomics": {
+    "name": "genomics",
+    "type": "service"
+  },
+  "immersive-readers": {
+    "name": "immersive readers",
+    "type": "service"
+  },
+  "language-understanding": {
+    "name": "language understanding",
+    "type": "service"
+  },
+  "language": {
+    "name": "language",
+    "type": "service"
+  },
+  "machine-learning-studio-classic-web-services": {
+    "name": "machine learning studio classic web services",
+    "type": "service"
+  },
+  "machine-learning-studio-web-service-plans": {
+    "name": "machine learning studio web service plans",
+    "type": "service"
+  },
+  "machine-learning-studio-workspaces": {
+    "name": "machine learning studio workspaces",
+    "type": "service"
+  },
+  "metrics-advisor": {
+    "name": "metrics advisor",
+    "type": "service"
+  },
+  "personalizers": {
+    "name": "personalizers",
+    "type": "service"
+  },
+  "qna-makers": {
+    "name": "qna makers",
+    "type": "service"
+  },
+  "serverless-search": {
+    "name": "serverless search",
+    "type": "service"
+  },
+  "speech-services": {
+    "name": "speech services",
+    "type": "service"
+  },
+  "translator-text": {
+    "name": "translator text",
+    "type": "service"
+  },
+  "analysis-services": {
+    "name": "analysis services",
+    "type": "service"
+  },
+  "azure-data-explorer-clusters": {
+    "name": "azure data explorer clusters",
+    "type": "service"
+  },
+  "azure-databricks": {
+    "name": "azure databricks",
+    "type": "service"
+  },
+  "azure-synapse-analytics": {
+    "name": "azure synapse analytics",
+    "type": "service"
+  },
+  "azure-workbooks": {
+    "name": "azure workbooks",
+    "type": "service"
+  },
+  "data-explorer-clusters": {
+    "name": "data explorer clusters",
+    "type": "service"
+  },
+  "data-factories": {
+    "name": "data factories",
+    "type": "service"
+  },
+  "data-lake-analytics": {
+    "name": "data lake analytics",
+    "type": "service"
+  },
+  "data-lake-store-gen1": {
+    "name": "data lake store gen1",
+    "type": "service"
+  },
+  "databricks": {
+    "name": "databricks",
+    "type": "service"
+  },
+  "endpoint-analytics": {
+    "name": "endpoint analytics",
+    "type": "service"
+  },
+  "event-hub-clusters": {
+    "name": "event hub clusters",
+    "type": "service"
+  },
+  "event-hubs": {
+    "name": "event hubs",
+    "type": "service"
+  },
+  "hd-insight-clusters": {
+    "name": "hd insight clusters",
+    "type": "service"
+  },
+  "log-analytics-workspaces": {
+    "name": "log analytics workspaces",
+    "type": "service"
+  },
+  "power-bi-embedded": {
+    "name": "power bi embedded",
+    "type": "service"
+  },
+  "power-platform": {
+    "name": "power platform",
+    "type": "service"
+  },
+  "private-link-services": {
+    "name": "private link services",
+    "type": "service"
+  },
+  "stream-analytics-jobs": {
+    "name": "stream analytics jobs",
+    "type": "service"
+  },
+  "synapse-analytics": {
+    "name": "synapse analytics",
+    "type": "service"
+  },
+  "app-service-certificates": {
+    "name": "app service certificates",
+    "type": "service"
+  },
+  "app-service-domains": {
+    "name": "app service domains",
+    "type": "service"
+  },
+  "app-service-environments": {
+    "name": "app service environments",
+    "type": "service"
+  },
+  "app-service-plans": {
+    "name": "app service plans",
+    "type": "service"
+  },
+  "app-services": {
+    "name": "app services",
+    "type": "service"
+  },
+  "cdn-profiles": {
+    "name": "cdn profiles",
+    "type": "cdn"
+  },
+  "notification-hubs": {
+    "name": "notification hubs",
+    "type": "notification"
+  },
+  "azure": {
+    "name": "azure",
+    "type": "service"
+  },
+  "applens": {
+    "name": "applens",
+    "type": "service"
+  },
+  "azure-hybrid-center": {
+    "name": "azure hybrid center",
+    "type": "service"
+  },
+  "collaborative-service": {
+    "name": "collaborative",
+    "type": "service"
+  },
+  "capacity": {
+    "name": "capacity",
+    "type": "service"
+  },
+  "infrastructure-backup": {
+    "name": "infrastructure backup",
+    "type": "service"
+  },
+  "multi-tenancy": {
+    "name": "multi tenancy",
+    "type": "service"
+  },
+  "offers": {
+    "name": "offers",
+    "type": "service"
+  },
+  "plans": {
+    "name": "plans",
+    "type": "service"
+  },
+  "updates": {
+    "name": "updates",
+    "type": "service"
+  },
+  "user-subscriptions": {
+    "name": "user subscriptions",
+    "type": "client"
+  },
+  "abs-member": {
+    "name": "abs member",
+    "type": "service"
+  },
+  "azure-blockchain-service": {
+    "name": "azure blockchain",
+    "type": "service"
+  },
+  "azure-token-service": {
+    "name": "azure token",
+    "type": "service"
+  },
+  "blockchain-applications": {
+    "name": "blockchain applications",
+    "type": "service"
+  },
+  "consortium": {
+    "name": "consortium",
+    "type": "service"
+  },
+  "outbound-connection": {
+    "name": "outbound connection",
+    "type": "service"
+  },
+  "application-group": {
+    "name": "application group",
+    "type": "service"
+  },
+  "automanaged-vm": {
+    "name": "automanaged vm",
+    "type": "service"
+  },
+  "availability-sets": {
+    "name": "availability sets",
+    "type": "service"
+  },
+  "azure-compute-galleries": {
+    "name": "azure compute galleries",
+    "type": "service"
+  },
+  "azure-spring-apps": {
+    "name": "azure spring apps",
+    "type": "service"
+  },
+  "batch-accounts": {
+    "name": "batch accounts",
+    "type": "service"
+  },
+  "citrix-virtual-desktops-essentials": {
+    "name": "citrix virtual desktops essentials",
+    "type": "service"
+  },
+  "cloud-services-classic": {
+    "name": "cloud services classic",
+    "type": "service"
+  },
+  "cloud-services": {
+    "name": "cloud services",
+    "type": "service"
+  },
+  "cloudsimple-virtual-machines": {
+    "name": "cloudsimple virtual machines",
+    "type": "service"
+  },
+  "container-apps": {
+    "name": "container apps",
+    "type": "service"
+  },
+  "container-instances": {
+    "name": "container instances",
+    "type": "service"
+  },
+  "container-registries": {
+    "name": "container registries",
+    "type": "service"
+  },
+  "container-services-deprecated": {
+    "name": "container services deprecated",
+    "type": "service"
+  },
+  "disk-encryption-sets": {
+    "name": "disk encryption sets",
+    "type": "service"
+  },
+  "disk-snapshots": {
+    "name": "disk snapshots",
+    "type": "service"
+  },
+  "disks-classic": {
+    "name": "disks classic",
+    "type": "service"
+  },
+  "disks-snapshots": {
+    "name": "disks snapshots",
+    "type": "service"
+  },
+  "disks": {
+    "name": "disks",
+    "type": "service"
+  },
+  "function-apps": {
+    "name": "function apps",
+    "type": "service"
+  },
+  "host-groups": {
+    "name": "host groups",
+    "type": "service"
+  },
+  "host-pools": {
+    "name": "host pools",
+    "type": "service"
+  },
+  "hosts": {
+    "name": "hosts",
+    "type": "service"
+  },
+  "image-definitions": {
+    "name": "image definitions",
+    "type": "service"
+  },
+  "image-templates": {
+    "name": "image templates",
+    "type": "service"
+  },
+  "image-versions": {
+    "name": "image versions",
+    "type": "service"
+  },
+  "images": {
+    "name": "images",
+    "type": "service"
+  },
+  "kubernetes-services": {
+    "name": "kubernetes services",
+    "type": "service"
+  },
+  "maintenance-configuration": {
+    "name": "maintenance configuration",
+    "type": "service"
+  },
+  "managed-service-fabric": {
+    "name": "managed service fabric",
+    "type": "service"
+  },
+  "mesh-applications": {
+    "name": "mesh applications",
+    "type": "service"
+  },
+  "os-images-classic": {
+    "name": "os images classic",
+    "type": "service"
+  },
+  "os-images": {
+    "name": "os images",
+    "type": "service"
+  },
+  "restore-points-collections": {
+    "name": "restore points collections",
+    "type": "service"
+  },
+  "restore-points": {
+    "name": "restore points",
+    "type": "service"
+  },
+  "sap-hana-on-azure": {
+    "name": "sap hana on azure",
+    "type": "service"
+  },
+  "service-fabric-clusters": {
+    "name": "service fabric clusters",
+    "type": "service"
+  },
+  "shared-image-galleries": {
+    "name": "shared image galleries",
+    "type": "service"
+  },
+  "spring-cloud": {
+    "name": "spring cloud",
+    "type": "service"
+  },
+  "virtual-machine": {
+    "name": "virtual machine",
+    "type": "service"
+  },
+  "virtual-machines-classic": {
+    "name": "virtual machines classic",
+    "type": "service"
+  },
+  "vm-classic": {
+    "name": "vm classic",
+    "type": "service"
+  },
+  "vm-images-classic": {
+    "name": "vm images classic",
+    "type": "service"
+  },
+  "vm-images": {
+    "name": "vm images",
+    "type": "service"
+  },
+  "vm-linux": {
+    "name": "vm linux",
+    "type": "service"
+  },
+  "vm-scale-set": {
+    "name": "vm scale set",
+    "type": "service"
+  },
+  "vm-scale-sets": {
+    "name": "vm scale sets",
+    "type": "service"
+  },
+  "vm-windows": {
+    "name": "vm windows",
+    "type": "service"
+  },
+  "vm": {
+    "name": "vm",
+    "type": "service"
+  },
+  "workspaces-2": {
+    "name": "workspaces 2",
+    "type": "service"
+  },
+  "azure-red-hat-openshift": {
+    "name": "azure red hat openshift",
+    "type": "service"
+  },
+  "blob-storage": {
+    "name": "blob storage",
+    "type": "storage"
+  },
+  "cache-for-redis": {
+    "name": "cache for redis",
+    "type": "cache"
+  },
+  "cosmos-db": {
+    "name": "cosmos db",
+    "type": "database"
+  },
+  "data-factory": {
+    "name": "data factory",
+    "type": "service"
+  },
+  "data-lake": {
+    "name": "data lake",
+    "type": "service"
+  },
+  "database-for-mariadb-servers": {
+    "name": "database for mariadb servers",
+    "type": "database"
+  },
+  "database-for-mysql-servers": {
+    "name": "database for mysql servers",
+    "type": "database"
+  },
+  "database-for-postgresql-servers": {
+    "name": "database for postgresql servers",
+    "type": "database"
+  },
+  "elastic-database-pools": {
+    "name": "elastic database pools",
+    "type": "database"
+  },
+  "elastic-job-agents": {
+    "name": "elastic job agents",
+    "type": "service"
+  },
+  "instance-pools": {
+    "name": "instance pools",
+    "type": "service"
+  },
+  "managed-databases": {
+    "name": "managed databases",
+    "type": "notification"
+  },
+  "sql-databases": {
+    "name": "sql databases",
+    "type": "database"
+  },
+  "sql-datawarehouse": {
+    "name": "sql datawarehouse",
+    "type": "database"
+  },
+  "sql-managed-instances": {
+    "name": "sql managed instances",
+    "type": "database"
+  },
+  "sql-server-stretch-databases": {
+    "name": "sql server stretch databases",
+    "type": "database"
+  },
+  "sql-servers": {
+    "name": "sql servers",
+    "type": "database"
+  },
+  "sql-vm": {
+    "name": "sql vm",
+    "type": "database"
+  },
+  "sql": {
+    "name": "sql",
+    "type": "database"
+  },
+  "ssis-lift-and-shift-ir": {
+    "name": "ssis lift and shift ir",
+    "type": "service"
+  },
+  "virtual-clusters": {
+    "name": "virtual clusters",
+    "type": "service"
+  },
+  "virtual-datacenter": {
+    "name": "virtual datacenter",
+    "type": "service"
+  },
+  "azure-cosmos-db": {
+    "name": "azure cosmos db",
+    "type": "database"
+  },
+  "azure-database-mariadb-server": {
+    "name": "azure database mariadb server",
+    "type": "database"
+  },
+  "azure-database-migration-services": {
+    "name": "azure database migration services",
+    "type": "database"
+  },
+  "azure-database-mysql-server": {
+    "name": "azure database mysql server",
+    "type": "database"
+  },
+  "azure-database-postgresql-server-group": {
+    "name": "azure database postgresql server group",
+    "type": "database"
+  },
+  "azure-database-postgresql-server": {
+    "name": "azure database postgresql server",
+    "type": "database"
+  },
+  "azure-purview-accounts": {
+    "name": "azure purview accounts",
+    "type": "service"
+  },
+  "azure-sql-edge": {
+    "name": "azure sql edge",
+    "type": "database"
+  },
+  "azure-sql-server-stretch-databases": {
+    "name": "azure sql server stretch databases",
+    "type": "database"
+  },
+  "azure-sql-vm": {
+    "name": "azure sql vm",
+    "type": "database"
+  },
+  "azure-sql": {
+    "name": "azure sql",
+    "type": "database"
+  },
+  "cache-redis": {
+    "name": "cache redis",
+    "type": "cache"
+  },
+  "managed-database": {
+    "name": "managed database",
+    "type": "database"
+  },
+  "oracle-database": {
+    "name": "oracle database",
+    "type": "database"
+  },
+  "sql-data-warehouses": {
+    "name": "sql data warehouses",
+    "type": "database"
+  },
+  "sql-database": {
+    "name": "sql database",
+    "type": "database"
+  },
+  "sql-elastic-pools": {
+    "name": "sql elastic pools",
+    "type": "database"
+  },
+  "sql-managed-instance": {
+    "name": "sql managed instance",
+    "type": "database"
+  },
+  "sql-server-registries": {
+    "name": "sql server registries",
+    "type": "database"
+  },
+  "sql-server": {
+    "name": "sql server",
+    "type": "database"
+  },
+  "api-connections": {
+    "name": "api connections",
+    "type": "service"
+  },
+  "api-management-services": {
+    "name": "api management services",
+    "type": "service"
+  },
+  "application-insights": {
+    "name": "application insights",
+    "type": "service"
+  },
+  "artifacts": {
+    "name": "artifacts",
+    "type": "service"
+  },
+  "azure-devops": {
+    "name": "azure devops",
+    "type": "service"
+  },
+  "boards": {
+    "name": "boards",
+    "type": "database"
+  },
+  "change-analysis": {
+    "name": "change analysis",
+    "type": "service"
+  },
+  "cloudtest": {
+    "name": "cloudtest",
+    "type": "service"
+  },
+  "code-optimization": {
+    "name": "code optimization",
+    "type": "service"
+  },
+  "devops-starter": {
+    "name": "devops starter",
+    "type": "service"
+  },
+  "devops": {
+    "name": "devops",
+    "type": "service"
+  },
+  "devtest-labs": {
+    "name": "devtest labs",
+    "type": "service"
+  },
+  "lab-accounts": {
+    "name": "lab accounts",
+    "type": "service"
+  },
+  "lab-services": {
+    "name": "lab services",
+    "type": "service"
+  },
+  "load-testing": {
+    "name": "load testing",
+    "type": "service"
+  },
+  "pipelines": {
+    "name": "pipelines",
+    "type": "service"
+  },
+  "repos": {
+    "name": "repos",
+    "type": "service"
+  },
+  "test-plans": {
+    "name": "test plans",
+    "type": "service"
+  },
+  "all-resources": {
+    "name": "all resources",
+    "type": "service"
+  },
+  "allresources": {
+    "name": "allresources",
+    "type": "service"
+  },
+  "azurehome": {
+    "name": "azurehome",
+    "type": "service"
+  },
+  "backlog": {
+    "name": "backlog",
+    "type": "service"
+  },
+  "biz-talk": {
+    "name": "biz talk",
+    "type": "service"
+  },
+  "blob-block": {
+    "name": "blob block",
+    "type": "storage"
+  },
+  "blob-page": {
+    "name": "blob page",
+    "type": "storage"
+  },
+  "branch": {
+    "name": "branch",
+    "type": "service"
+  },
+  "browser": {
+    "name": "browser",
+    "type": "client"
+  },
+  "bug": {
+    "name": "bug",
+    "type": "service"
+  },
+  "builds": {
+    "name": "builds",
+    "type": "service"
+  },
+  "cache": {
+    "name": "cache",
+    "type": "cache"
+  },
+  "code": {
+    "name": "code",
+    "type": "service"
+  },
+  "commit": {
+    "name": "commit",
+    "type": "service"
+  },
+  "controls-horizontal": {
+    "name": "controls horizontal",
+    "type": "service"
+  },
+  "controls": {
+    "name": "controls",
+    "type": "service"
+  },
+  "cost-alerts": {
+    "name": "cost alerts",
+    "type": "service"
+  },
+  "cost-analysis": {
+    "name": "cost analysis",
+    "type": "service"
+  },
+  "cost-budgets": {
+    "name": "cost budgets",
+    "type": "service"
+  },
+  "cost-management-and-billing": {
+    "name": "cost management and billing",
+    "type": "service"
+  },
+  "counter": {
+    "name": "counter",
+    "type": "service"
+  },
+  "cubes": {
+    "name": "cubes",
+    "type": "service"
+  },
+  "dashboard": {
+    "name": "dashboard",
+    "type": "service"
+  },
+  "dev-console": {
+    "name": "dev console",
+    "type": "service"
+  },
+  "developertools": {
+    "name": "developertools",
+    "type": "service"
+  },
+  "download": {
+    "name": "download",
+    "type": "service"
+  },
+  "error": {
+    "name": "error",
+    "type": "service"
+  },
+  "extensions": {
+    "name": "extensions",
+    "type": "service"
+  },
+  "feature-previews": {
+    "name": "feature previews",
+    "type": "service"
+  },
+  "file": {
+    "name": "file",
+    "type": "service"
+  },
+  "files": {
+    "name": "files",
+    "type": "service"
+  },
+  "folder-blank": {
+    "name": "folder blank",
+    "type": "service"
+  },
+  "folder-website": {
+    "name": "folder website",
+    "type": "service"
+  },
+  "free-services": {
+    "name": "free services",
+    "type": "service"
+  },
+  "ftp": {
+    "name": "ftp",
+    "type": "service"
+  },
+  "gear": {
+    "name": "gear",
+    "type": "service"
+  },
+  "globe-error": {
+    "name": "globe error",
+    "type": "service"
+  },
+  "globe-success": {
+    "name": "globe success",
+    "type": "service"
+  },
+  "globe-warning": {
+    "name": "globe warning",
+    "type": "service"
+  },
+  "guide": {
+    "name": "guide",
+    "type": "service"
+  },
+  "heart": {
+    "name": "heart",
+    "type": "service"
+  },
+  "help-and-support": {
+    "name": "help and support",
+    "type": "service"
+  },
+  "helpsupport": {
+    "name": "helpsupport",
+    "type": "service"
+  },
+  "image": {
+    "name": "image",
+    "type": "service"
+  },
+  "information": {
+    "name": "information",
+    "type": "service"
+  },
+  "input-output": {
+    "name": "input output",
+    "type": "service"
+  },
+  "journey-hub": {
+    "name": "journey hub",
+    "type": "service"
+  },
+  "launch-portal": {
+    "name": "launch portal",
+    "type": "service"
+  },
+  "learn": {
+    "name": "learn",
+    "type": "service"
+  },
+  "load-test": {
+    "name": "load test",
+    "type": "service"
+  },
+  "location": {
+    "name": "location",
+    "type": "service"
+  },
+  "log-streaming": {
+    "name": "log streaming",
+    "type": "service"
+  },
+  "management-groups": {
+    "name": "management groups",
+    "type": "service"
+  },
+  "management-portal": {
+    "name": "management portal",
+    "type": "service"
+  },
+  "managementgroups": {
+    "name": "managementgroups",
+    "type": "service"
+  },
+  "marketplace-management": {
+    "name": "marketplace management",
+    "type": "service"
+  },
+  "media-file": {
+    "name": "media file",
+    "type": "service"
+  },
+  "media": {
+    "name": "media",
+    "type": "service"
+  },
+  "mobile-engagement": {
+    "name": "mobile engagement",
+    "type": "client"
+  },
+  "module": {
+    "name": "module",
+    "type": "service"
+  },
+  "power-up": {
+    "name": "power up",
+    "type": "service"
+  },
+  "power": {
+    "name": "power",
+    "type": "service"
+  },
+  "powershell": {
+    "name": "powershell",
+    "type": "service"
+  },
+  "preview-features": {
+    "name": "preview features",
+    "type": "service"
+  },
+  "process-explorer": {
+    "name": "process explorer",
+    "type": "service"
+  },
+  "production-ready-database": {
+    "name": "production ready database",
+    "type": "database"
+  },
+  "quickstart-center": {
+    "name": "quickstart center",
+    "type": "service"
+  },
+  "quickstartcenter": {
+    "name": "quickstartcenter",
+    "type": "service"
+  },
+  "recent": {
+    "name": "recent",
+    "type": "service"
+  },
+  "region-management": {
+    "name": "region management",
+    "type": "service"
+  },
+  "reservations": {
+    "name": "reservations",
+    "type": "service"
+  },
+  "resource-explorer": {
+    "name": "resource explorer",
+    "type": "service"
+  },
+  "resource-group-list": {
+    "name": "resource group list",
+    "type": "service"
+  },
+  "resource-groups": {
+    "name": "resource groups",
+    "type": "service"
+  },
+  "resource-linked": {
+    "name": "resource linked",
+    "type": "service"
+  },
+  "resource": {
+    "name": "resource",
+    "type": "service"
+  },
+  "resourcegroups": {
+    "name": "resourcegroups",
+    "type": "service"
+  },
+  "scheduler": {
+    "name": "scheduler",
+    "type": "service"
+  },
+  "search-grid": {
+    "name": "search grid",
+    "type": "service"
+  },
+  "search": {
+    "name": "search",
+    "type": "service"
+  },
+  "server-farm": {
+    "name": "server farm",
+    "type": "service"
+  },
+  "service-health": {
+    "name": "service health",
+    "type": "service"
+  },
+  "servicehealth": {
+    "name": "servicehealth",
+    "type": "service"
+  },
+  "shareddashboard": {
+    "name": "shareddashboard",
+    "type": "service"
+  },
+  "ssd": {
+    "name": "ssd",
+    "type": "service"
+  },
+  "storage-azure-files": {
+    "name": "storage azure files",
+    "type": "storage"
+  },
+  "storage-container": {
+    "name": "storage container",
+    "type": "storage"
+  },
+  "storage-queue": {
+    "name": "storage queue",
+    "type": "queue"
+  },
+  "subscriptions": {
+    "name": "subscriptions",
+    "type": "service"
+  },
+  "supportrequests": {
+    "name": "supportrequests",
+    "type": "service"
+  },
+  "table": {
+    "name": "table",
+    "type": "service"
+  },
+  "tag": {
+    "name": "tag",
+    "type": "service"
+  },
+  "tags": {
+    "name": "tags",
+    "type": "service"
+  },
+  "templates": {
+    "name": "templates",
+    "type": "service"
+  },
+  "tfs-vc-repository": {
+    "name": "tfs vc repository",
+    "type": "service"
+  },
+  "toolbox": {
+    "name": "toolbox",
+    "type": "service"
+  },
+  "troubleshoot": {
+    "name": "troubleshoot",
+    "type": "service"
+  },
+  "twousericon": {
+    "name": "twousericon",
+    "type": "service"
+  },
+  "userhealthicon": {
+    "name": "userhealthicon",
+    "type": "client"
+  },
+  "usericon": {
+    "name": "usericon",
+    "type": "client"
+  },
+  "userprivacy": {
+    "name": "userprivacy",
+    "type": "client"
+  },
+  "userresource": {
+    "name": "userresource",
+    "type": "client"
+  },
+  "versions": {
+    "name": "versions",
+    "type": "service"
+  },
+  "web-slots": {
+    "name": "web slots",
+    "type": "service"
+  },
+  "web-test": {
+    "name": "web test",
+    "type": "service"
+  },
+  "website-power": {
+    "name": "website power",
+    "type": "service"
+  },
+  "website-staging": {
+    "name": "website staging",
+    "type": "service"
+  },
+  "whatsnew": {
+    "name": "whatsnew",
+    "type": "service"
+  },
+  "workbooks": {
+    "name": "workbooks",
+    "type": "service"
+  },
+  "workflow": {
+    "name": "workflow",
+    "type": "service"
+  },
+  "azure-operator-5g-core": {
+    "name": "azure operator 5g core",
+    "type": "service"
+  },
+  "azure-operator-insights": {
+    "name": "azure operator insights",
+    "type": "service"
+  },
+  "azure-operator-nexus": {
+    "name": "azure operator nexus",
+    "type": "service"
+  },
+  "azure-operator-service-manager": {
+    "name": "azure operator service manager",
+    "type": "service"
+  },
+  "azure-programmable-connectivity": {
+    "name": "azure programmable connectivity",
+    "type": "service"
+  },
+  "aad-licenses": {
+    "name": "aad licenses",
+    "type": "notification"
+  },
+  "access-review": {
+    "name": "access review",
+    "type": "service"
+  },
+  "active-directory-connect-health": {
+    "name": "active directory connect health",
+    "type": "service"
+  },
+  "active-directory": {
+    "name": "active directory",
+    "type": "service"
+  },
+  "ad-b2c": {
+    "name": "ad b2c",
+    "type": "service"
+  },
+  "ad-domain-services": {
+    "name": "ad domain services",
+    "type": "service"
+  },
+  "ad-identity-protection": {
+    "name": "ad identity protection",
+    "type": "service"
+  },
+  "ad-privileged-identity-management": {
+    "name": "ad privileged identity management",
+    "type": "service"
+  },
+  "administrative-units": {
+    "name": "administrative units",
+    "type": "service"
+  },
+  "api-proxy": {
+    "name": "api proxy",
+    "type": "gateway"
+  },
+  "app-registrations": {
+    "name": "app registrations",
+    "type": "service"
+  },
+  "azure-active-directory": {
+    "name": "azure active directory",
+    "type": "service"
+  },
+  "azure-ad-b2c": {
+    "name": "azure ad b2c",
+    "type": "service"
+  },
+  "azure-ad-domain-services": {
+    "name": "azure ad domain services",
+    "type": "service"
+  },
+  "azure-ad-identity-protection": {
+    "name": "azure ad identity protection",
+    "type": "service"
+  },
+  "azure-ad-privilege-identity-management": {
+    "name": "azure ad privilege identity management",
+    "type": "service"
+  },
+  "azure-ad-privleged-identity-management": {
+    "name": "azure ad privleged identity management",
+    "type": "service"
+  },
+  "azure-ad-roles-and-administrators": {
+    "name": "azure ad roles and administrators",
+    "type": "service"
+  },
+  "azure-information-protection": {
+    "name": "azure information protection",
+    "type": "service"
+  },
+  "conditional-access": {
+    "name": "conditional access",
+    "type": "service"
+  },
+  "custom-azure-ad-roles": {
+    "name": "custom azure ad roles",
+    "type": "service"
+  },
+  "enterprise-applications": {
+    "name": "enterprise applications",
+    "type": "service"
+  },
+  "entra-connect": {
+    "name": "entra connect",
+    "type": "service"
+  },
+  "entra-domain-services": {
+    "name": "entra domain services",
+    "type": "service"
+  },
+  "entra-id-protection": {
+    "name": "entra id protection",
+    "type": "service"
+  },
+  "entra-managed-identities": {
+    "name": "entra managed identities",
+    "type": "service"
+  },
+  "entra-privleged-identity-management": {
+    "name": "entra privleged identity management",
+    "type": "service"
+  },
+  "entra-verified-id": {
+    "name": "entra verified id",
+    "type": "service"
+  },
+  "external-identities": {
+    "name": "external identities",
+    "type": "service"
+  },
+  "global-secure-access": {
+    "name": "global secure access",
+    "type": "service"
+  },
+  "groups": {
+    "name": "groups",
+    "type": "service"
+  },
+  "identity-governance": {
+    "name": "identity governance",
+    "type": "service"
+  },
+  "information-protection": {
+    "name": "information protection",
+    "type": "service"
+  },
+  "internet-access": {
+    "name": "internet access",
+    "type": "service"
+  },
+  "managed-identities": {
+    "name": "managed identities",
+    "type": "service"
+  },
+  "private-access": {
+    "name": "private access",
+    "type": "service"
+  },
+  "security": {
+    "name": "security",
+    "type": "service"
+  },
+  "tenant-properties": {
+    "name": "tenant properties",
+    "type": "service"
+  },
+  "user-settings": {
+    "name": "user settings",
+    "type": "client"
+  },
+  "verifiable-credentials": {
+    "name": "verifiable credentials",
+    "type": "service"
+  },
+  "api-for-fhir": {
+    "name": "api for fhir",
+    "type": "service"
+  },
+  "api-management": {
+    "name": "api management",
+    "type": "service"
+  },
+  "app-configuration": {
+    "name": "app configuration",
+    "type": "service"
+  },
+  "azure-api-for-fhir": {
+    "name": "azure api for fhir",
+    "type": "service"
+  },
+  "azure-data-catalog": {
+    "name": "azure data catalog",
+    "type": "service"
+  },
+  "azure-databox-gateway": {
+    "name": "azure databox gateway",
+    "type": "gateway"
+  },
+  "azure-service-bus": {
+    "name": "azure service bus",
+    "type": "service"
+  },
+  "azure-stack-edge": {
+    "name": "azure stack edge",
+    "type": "cdn"
+  },
+  "data-catalog": {
+    "name": "data catalog",
+    "type": "service"
+  },
+  "event-grid-domains": {
+    "name": "event grid domains",
+    "type": "service"
+  },
+  "event-grid-subscriptions": {
+    "name": "event grid subscriptions",
+    "type": "service"
+  },
+  "event-grid-topics": {
+    "name": "event grid topics",
+    "type": "service"
+  },
+  "integration-accounts": {
+    "name": "integration accounts",
+    "type": "service"
+  },
+  "integration-environments": {
+    "name": "integration environments",
+    "type": "service"
+  },
+  "integration-service-environments": {
+    "name": "integration service environments",
+    "type": "service"
+  },
+  "logic-apps-custom-connector": {
+    "name": "logic apps custom connector",
+    "type": "service"
+  },
+  "logic-apps": {
+    "name": "logic apps",
+    "type": "service"
+  },
+  "partner-namespace": {
+    "name": "partner namespace",
+    "type": "service"
+  },
+  "partner-registration": {
+    "name": "partner registration",
+    "type": "service"
+  },
+  "partner-topic": {
+    "name": "partner topic",
+    "type": "queue"
+  },
+  "relays": {
+    "name": "relays",
+    "type": "service"
+  },
+  "sendgrid-accounts": {
+    "name": "sendgrid accounts",
+    "type": "service"
+  },
+  "service-bus-relays": {
+    "name": "service bus relays",
+    "type": "service"
+  },
+  "service-bus": {
+    "name": "service bus",
+    "type": "service"
+  },
+  "service-catalog-managed-application-definitions": {
+    "name": "service catalog managed application definitions",
+    "type": "service"
+  },
+  "software-as-a-service": {
+    "name": "software as a",
+    "type": "service"
+  },
+  "storsimple-device-managers": {
+    "name": "storsimple device managers",
+    "type": "service"
+  },
+  "system-topic": {
+    "name": "system topic",
+    "type": "queue"
+  },
+  "client-apps": {
+    "name": "client apps",
+    "type": "client"
+  },
+  "device-compliance": {
+    "name": "device compliance",
+    "type": "service"
+  },
+  "device-configuration": {
+    "name": "device configuration",
+    "type": "service"
+  },
+  "device-enrollment": {
+    "name": "device enrollment",
+    "type": "service"
+  },
+  "device-security-apple": {
+    "name": "device security apple",
+    "type": "service"
+  },
+  "device-security-google": {
+    "name": "device security google",
+    "type": "service"
+  },
+  "device-security-windows": {
+    "name": "device security windows",
+    "type": "service"
+  },
+  "devices": {
+    "name": "devices",
+    "type": "service"
+  },
+  "ebooks": {
+    "name": "ebooks",
+    "type": "service"
+  },
+  "exchange-access": {
+    "name": "exchange access",
+    "type": "service"
+  },
+  "intune-app-protection": {
+    "name": "intune app protection",
+    "type": "service"
+  },
+  "intune-for-education": {
+    "name": "intune for education",
+    "type": "service"
+  },
+  "intune": {
+    "name": "intune",
+    "type": "service"
+  },
+  "mindaro": {
+    "name": "mindaro",
+    "type": "service"
+  },
+  "security-baselines": {
+    "name": "security baselines",
+    "type": "service"
+  },
+  "software-updates": {
+    "name": "software updates",
+    "type": "service"
+  },
+  "tenant-status": {
+    "name": "tenant status",
+    "type": "service"
+  },
+  "azure-iot-operations": {
+    "name": "azure iot operations",
+    "type": "service"
+  },
+  "azure-maps-accounts": {
+    "name": "azure maps accounts",
+    "type": "service"
+  },
+  "azure-stack": {
+    "name": "azure stack",
+    "type": "service"
+  },
+  "device-provisioning-services": {
+    "name": "device provisioning services",
+    "type": "service"
+  },
+  "digital-twins": {
+    "name": "digital twins",
+    "type": "service"
+  },
+  "industrial-iot": {
+    "name": "industrial iot",
+    "type": "service"
+  },
+  "iot-central-applications": {
+    "name": "iot central applications",
+    "type": "service"
+  },
+  "iot-edge": {
+    "name": "iot edge",
+    "type": "cdn"
+  },
+  "iot-hub-security": {
+    "name": "iot hub security",
+    "type": "service"
+  },
+  "iot-hub": {
+    "name": "iot hub",
+    "type": "service"
+  },
+  "maps": {
+    "name": "maps",
+    "type": "service"
+  },
+  "notification-hub-namespaces": {
+    "name": "notification hub namespaces",
+    "type": "notification"
+  },
+  "sphere": {
+    "name": "sphere",
+    "type": "service"
+  },
+  "stack-hci-premium": {
+    "name": "stack hci premium",
+    "type": "service"
+  },
+  "time-series-data-sets": {
+    "name": "time series data sets",
+    "type": "service"
+  },
+  "time-series-insights-access-policies": {
+    "name": "time series insights access policies",
+    "type": "service"
+  },
+  "time-series-insights-environments": {
+    "name": "time series insights environments",
+    "type": "service"
+  },
+  "time-series-insights-event-sources": {
+    "name": "time series insights event sources",
+    "type": "service"
+  },
+  "time-series-insights-events-sources": {
+    "name": "time series insights events sources",
+    "type": "service"
+  },
+  "windows-10-iot-core-services": {
+    "name": "windows 10 iot core services",
+    "type": "service"
+  },
+  "windows10-core-services": {
+    "name": "windows10 core services",
+    "type": "service"
+  },
+  "activity-log": {
+    "name": "activity log",
+    "type": "service"
+  },
+  "advisor": {
+    "name": "advisor",
+    "type": "service"
+  },
+  "alerts": {
+    "name": "alerts",
+    "type": "service"
+  },
+  "arc-machines": {
+    "name": "arc machines",
+    "type": "service"
+  },
+  "automation-accounts": {
+    "name": "automation accounts",
+    "type": "service"
+  },
+  "azure-arc": {
+    "name": "azure arc",
+    "type": "service"
+  },
+  "azure-lighthouse": {
+    "name": "azure lighthouse",
+    "type": "service"
+  },
+  "blueprints": {
+    "name": "blueprints",
+    "type": "service"
+  },
+  "compliance": {
+    "name": "compliance",
+    "type": "service"
+  },
+  "customer-lockbox-for-microsoft-azure": {
+    "name": "customer lockbox for microsoft azure",
+    "type": "service"
+  },
+  "diagnostics-settings": {
+    "name": "diagnostics settings",
+    "type": "service"
+  },
+  "education": {
+    "name": "education",
+    "type": "service"
+  },
+  "intune-trends": {
+    "name": "intune trends",
+    "type": "service"
+  },
+  "machinesazurearc": {
+    "name": "machinesazurearc",
+    "type": "service"
+  },
+  "managed-applications-center": {
+    "name": "managed applications center",
+    "type": "service"
+  },
+  "managed-desktop": {
+    "name": "managed desktop",
+    "type": "service"
+  },
+  "metrics": {
+    "name": "metrics",
+    "type": "service"
+  },
+  "monitor": {
+    "name": "monitor",
+    "type": "monitoring"
+  },
+  "my-customers": {
+    "name": "my customers",
+    "type": "service"
+  },
+  "operation-log-classic": {
+    "name": "operation log classic",
+    "type": "service"
+  },
+  "policy": {
+    "name": "policy",
+    "type": "service"
+  },
+  "recovery-services-vaults": {
+    "name": "recovery services vaults",
+    "type": "service"
+  },
+  "resource-graph-explorer": {
+    "name": "resource graph explorer",
+    "type": "service"
+  },
+  "resources-provider": {
+    "name": "resources provider",
+    "type": "service"
+  },
+  "scheduler-job-collections": {
+    "name": "scheduler job collections",
+    "type": "service"
+  },
+  "service-catalog-mad": {
+    "name": "service catalog mad",
+    "type": "service"
+  },
+  "service-providers": {
+    "name": "service providers",
+    "type": "service"
+  },
+  "solutions": {
+    "name": "solutions",
+    "type": "service"
+  },
+  "universal-print": {
+    "name": "universal print",
+    "type": "service"
+  },
+  "user-privacy": {
+    "name": "user privacy",
+    "type": "client"
+  },
+  "keys": {
+    "name": "keys",
+    "type": "service"
+  },
+  "azure-migrate": {
+    "name": "azure migrate",
+    "type": "service"
+  },
+  "data-box": {
+    "name": "data box",
+    "type": "service"
+  },
+  "data-box-edge": {
+    "name": "data box edge",
+    "type": "cdn"
+  },
+  "database-migration-services": {
+    "name": "database migration services",
+    "type": "database"
+  },
+  "migration-projects": {
+    "name": "migration projects",
+    "type": "service"
+  },
+  "remote-rendering": {
+    "name": "remote rendering",
+    "type": "service"
+  },
+  "spatial-anchor-accounts": {
+    "name": "spatial anchor accounts",
+    "type": "client"
+  },
+  "azure-open-ai": {
+    "name": "azure open ai",
+    "type": "service"
+  },
+  "azure-speech-service": {
+    "name": "azure speech",
+    "type": "service"
+  },
+  "machine-learning-service-workspaces": {
+    "name": "machine learning service workspaces",
+    "type": "service"
+  },
+  "machine-learning-studio-web-services": {
+    "name": "machine learning studio web services",
+    "type": "service"
+  },
+  "app-service-mobile": {
+    "name": "app service mobile",
+    "type": "client"
+  },
+  "auto-scale": {
+    "name": "auto scale",
+    "type": "service"
+  },
+  "azure-monitors-for-sap-solutions": {
+    "name": "azure monitors for sap solutions",
+    "type": "service"
+  },
+  "logs": {
+    "name": "logs",
+    "type": "service"
+  },
+  "network-watcher": {
+    "name": "network watcher",
+    "type": "service"
+  },
+  "application-gateway": {
+    "name": "application gateway",
+    "type": "gateway"
+  },
+  "application-security-groups": {
+    "name": "application security groups",
+    "type": "service"
+  },
+  "connections": {
+    "name": "connections",
+    "type": "service"
+  },
+  "ddos-protection-plans": {
+    "name": "ddos protection plans",
+    "type": "service"
+  },
+  "dns-private-zones": {
+    "name": "dns private zones",
+    "type": "service"
+  },
+  "dns-zones": {
+    "name": "dns zones",
+    "type": "service"
+  },
+  "expressroute-circuits": {
+    "name": "expressroute circuits",
+    "type": "service"
+  },
+  "firewall": {
+    "name": "firewall",
+    "type": "service"
+  },
+  "front-doors": {
+    "name": "front doors",
+    "type": "service"
+  },
+  "load-balancers": {
+    "name": "load balancers",
+    "type": "load_balancer"
+  },
+  "local-network-gateways": {
+    "name": "local network gateways",
+    "type": "service"
+  },
+  "network-interfaces": {
+    "name": "network interfaces",
+    "type": "service"
+  },
+  "network-security-groups-classic": {
+    "name": "network security groups classic",
+    "type": "service"
+  },
+  "on-premises-data-gateways": {
+    "name": "on premises data gateways",
+    "type": "service"
+  },
+  "private-endpoint": {
+    "name": "private endpoint",
+    "type": "service"
+  },
+  "public-ip-addresses": {
+    "name": "public ip addresses",
+    "type": "notification"
+  },
+  "reserved-ip-addresses-classic": {
+    "name": "reserved ip addresses classic",
+    "type": "service"
+  },
+  "route-filters": {
+    "name": "route filters",
+    "type": "service"
+  },
+  "route-tables": {
+    "name": "route tables",
+    "type": "service"
+  },
+  "service-endpoint-policies": {
+    "name": "service endpoint policies",
+    "type": "service"
+  },
+  "subnets": {
+    "name": "subnets",
+    "type": "service"
+  },
+  "traffic-manager-profiles": {
+    "name": "traffic manager profiles",
+    "type": "load_balancer"
+  },
+  "virtual-network-classic": {
+    "name": "virtual network classic",
+    "type": "service"
+  },
+  "virtual-network-gateways": {
+    "name": "virtual network gateways",
+    "type": "service"
+  },
+  "virtual-networks": {
+    "name": "virtual networks",
+    "type": "service"
+  },
+  "virtual-wans": {
+    "name": "virtual wans",
+    "type": "service"
+  },
+  "application-gateways": {
+    "name": "application gateways",
+    "type": "service"
+  },
+  "atm-multistack": {
+    "name": "atm multistack",
+    "type": "service"
+  },
+  "azure-communications-gateway": {
+    "name": "azure communications gateway",
+    "type": "gateway"
+  },
+  "azure-firewall-manager": {
+    "name": "azure firewall manager",
+    "type": "service"
+  },
+  "azure-firewall-policy": {
+    "name": "azure firewall policy",
+    "type": "service"
+  },
+  "bastions": {
+    "name": "bastions",
+    "type": "service"
+  },
+  "connected-cache": {
+    "name": "connected cache",
+    "type": "cache"
+  },
+  "dns-multistack": {
+    "name": "dns multistack",
+    "type": "service"
+  },
+  "dns-private-resolver": {
+    "name": "dns private resolver",
+    "type": "service"
+  },
+  "dns-security-policy": {
+    "name": "dns security policy",
+    "type": "service"
+  },
+  "firewalls": {
+    "name": "firewalls",
+    "type": "service"
+  },
+  "front-door-and-cdn-profiles": {
+    "name": "front door and cdn profiles",
+    "type": "cdn"
+  },
+  "ip-address-manager": {
+    "name": "ip address manager",
+    "type": "service"
+  },
+  "ip-groups": {
+    "name": "ip groups",
+    "type": "service"
+  },
+  "load-balancer-hub": {
+    "name": "load balancer hub",
+    "type": "load_balancer"
+  },
+  "nat": {
+    "name": "nat",
+    "type": "service"
+  },
+  "network-security-groups": {
+    "name": "network security groups",
+    "type": "service"
+  },
+  "private-link-service": {
+    "name": "private link",
+    "type": "service"
+  },
+  "private-link": {
+    "name": "private link",
+    "type": "service"
+  },
+  "proximity-placement-groups": {
+    "name": "proximity placement groups",
+    "type": "service"
+  },
+  "public-ip-addresses-classic": {
+    "name": "public ip addresses classic",
+    "type": "service"
+  },
+  "public-ip-prefixes": {
+    "name": "public ip prefixes",
+    "type": "service"
+  },
+  "resource-management-private-link": {
+    "name": "resource management private link",
+    "type": "service"
+  },
+  "spot-vm": {
+    "name": "spot vm",
+    "type": "service"
+  },
+  "spot-vmss": {
+    "name": "spot vmss",
+    "type": "service"
+  },
+  "subnet": {
+    "name": "subnet",
+    "type": "service"
+  },
+  "traffic-controller": {
+    "name": "traffic controller",
+    "type": "service"
+  },
+  "virtual-networks-classic": {
+    "name": "virtual networks classic",
+    "type": "service"
+  },
+  "virtual-router": {
+    "name": "virtual router",
+    "type": "service"
+  },
+  "virtual-wan-hub": {
+    "name": "virtual wan hub",
+    "type": "service"
+  },
+  "web-application-firewall-policieswaf": {
+    "name": "web application firewall policieswaf",
+    "type": "client"
+  },
+  "azure-sustainability": {
+    "name": "azure sustainability",
+    "type": "service"
+  },
+  "connected-vehicle-platform": {
+    "name": "connected vehicle platform",
+    "type": "service"
+  },
+  "entra-connect-health": {
+    "name": "entra connect health",
+    "type": "service"
+  },
+  "entra-connect-sync": {
+    "name": "entra connect sync",
+    "type": "service"
+  },
+  "icm-troubleshooting": {
+    "name": "icm troubleshooting",
+    "type": "service"
+  },
+  "osconfig": {
+    "name": "osconfig",
+    "type": "service"
+  },
+  "storage-actions": {
+    "name": "storage actions",
+    "type": "storage"
+  },
+  "aks-istio": {
+    "name": "aks istio",
+    "type": "service"
+  },
+  "app-compliance-automation": {
+    "name": "app compliance automation",
+    "type": "service"
+  },
+  "aquila": {
+    "name": "aquila",
+    "type": "service"
+  },
+  "arc-data-services": {
+    "name": "arc data services",
+    "type": "service"
+  },
+  "arc-kubernetes": {
+    "name": "arc kubernetes",
+    "type": "service"
+  },
+  "arc-postgresql-": {
+    "name": "arc postgresql",
+    "type": "database"
+  },
+  "arc-sql-managed-instance": {
+    "name": "arc sql managed instance",
+    "type": "database"
+  },
+  "arc-sql-server": {
+    "name": "arc sql server",
+    "type": "database"
+  },
+  "avs-vm": {
+    "name": "avs vm",
+    "type": "service"
+  },
+  "azure-a": {
+    "name": "azure a",
+    "type": "service"
+  },
+  "azure-backup-center": {
+    "name": "azure backup center",
+    "type": "service"
+  },
+  "azure-center-for-sap": {
+    "name": "azure center for sap",
+    "type": "service"
+  },
+  "azure-chaos-studio": {
+    "name": "azure chaos studio",
+    "type": "service"
+  },
+  "azure-cloud-shell": {
+    "name": "azure cloud shell",
+    "type": "service"
+  },
+  "azure-communication-services": {
+    "name": "azure communication services",
+    "type": "service"
+  },
+  "azure-deployment-environments": {
+    "name": "azure deployment environments",
+    "type": "service"
+  },
+  "azure-dev-tunnels": {
+    "name": "azure dev tunnels",
+    "type": "service"
+  },
+  "azure-edge-hardware-center": {
+    "name": "azure edge hardware center",
+    "type": "cdn"
+  },
+  "azure-hpc-workbenches": {
+    "name": "azure hpc workbenches",
+    "type": "service"
+  },
+  "azure-load-testing": {
+    "name": "azure load testing",
+    "type": "service"
+  },
+  "azure-managed-grafana": {
+    "name": "azure managed grafana",
+    "type": "monitoring"
+  },
+  "azure-monitor-dashboard": {
+    "name": "azure monitor dashboard",
+    "type": "monitoring"
+  },
+  "azure-network-function-manager-functions": {
+    "name": "azure network function manager functions",
+    "type": "service"
+  },
+  "azure-network-function-manager": {
+    "name": "azure network function manager",
+    "type": "service"
+  },
+  "azure-orbital": {
+    "name": "azure orbital",
+    "type": "service"
+  },
+  "azure-quotas": {
+    "name": "azure quotas",
+    "type": "service"
+  },
+  "azure-sphere": {
+    "name": "azure sphere",
+    "type": "service"
+  },
+  "azure-storage-mover": {
+    "name": "azure storage mover",
+    "type": "storage"
+  },
+  "azure-support-center-blue": {
+    "name": "azure support center blue",
+    "type": "service"
+  },
+  "azure-video-indexer": {
+    "name": "azure video indexer",
+    "type": "service"
+  },
+  "azure-virtual-desktop": {
+    "name": "azure virtual desktop",
+    "type": "service"
+  },
+  "azure-vmware-solution": {
+    "name": "azure vmware solution",
+    "type": "service"
+  },
+  "azureattestation": {
+    "name": "azureattestation",
+    "type": "service"
+  },
+  "azurite": {
+    "name": "azurite",
+    "type": "service"
+  },
+  "backup-vault": {
+    "name": "backup vault",
+    "type": "service"
+  },
+  "bare-metal-infrastructure": {
+    "name": "bare metal infrastructure",
+    "type": "service"
+  },
+  "capacity-reservation-groups": {
+    "name": "capacity reservation groups",
+    "type": "service"
+  },
+  "central-service-instance-for-sap": {
+    "name": "central service instance for sap",
+    "type": "service"
+  },
+  "ceres": {
+    "name": "ceres",
+    "type": "service"
+  },
+  "cloud-services-extended-support": {
+    "name": "cloud services extended support",
+    "type": "service"
+  },
+  "community-images": {
+    "name": "community images",
+    "type": "service"
+  },
+  "compliance-center": {
+    "name": "compliance center",
+    "type": "service"
+  },
+  "confidential-ledgers": {
+    "name": "confidential ledgers",
+    "type": "service"
+  },
+  "container-apps-environments": {
+    "name": "container apps environments",
+    "type": "service"
+  },
+  "cost-export": {
+    "name": "cost export",
+    "type": "service"
+  },
+  "custom-ip-prefix": {
+    "name": "custom ip prefix",
+    "type": "service"
+  },
+  "dashboard-hub": {
+    "name": "dashboard hub",
+    "type": "service"
+  },
+  "data-collection-rules": {
+    "name": "data collection rules",
+    "type": "service"
+  },
+  "database-instance-for-sap": {
+    "name": "database instance for sap",
+    "type": "database"
+  },
+  "dedicated-hsm": {
+    "name": "dedicated hsm",
+    "type": "service"
+  },
+  "defender-cm-local-manager": {
+    "name": "defender cm local manager",
+    "type": "service"
+  },
+  "defender-dcs-controller": {
+    "name": "defender dcs controller",
+    "type": "service"
+  },
+  "defender-distributer-control-system": {
+    "name": "defender distributer control system",
+    "type": "service"
+  },
+  "defender-engineering-station": {
+    "name": "defender engineering station",
+    "type": "service"
+  },
+  "defender-external-management": {
+    "name": "defender external management",
+    "type": "service"
+  },
+  "defender-freezer-monitor": {
+    "name": "defender freezer monitor",
+    "type": "monitoring"
+  },
+  "defender-historian": {
+    "name": "defender historian",
+    "type": "service"
+  },
+  "defender-hmi": {
+    "name": "defender hmi",
+    "type": "service"
+  },
+  "defender-industrial-packaging-system": {
+    "name": "defender industrial packaging system",
+    "type": "service"
+  },
+  "defender-industrial-printer": {
+    "name": "defender industrial printer",
+    "type": "service"
+  },
+  "defender-industrial-robot": {
+    "name": "defender industrial robot",
+    "type": "service"
+  },
+  "defender-industrial-scale-system": {
+    "name": "defender industrial scale system",
+    "type": "service"
+  },
+  "defender-marquee": {
+    "name": "defender marquee",
+    "type": "service"
+  },
+  "defender-meter": {
+    "name": "defender meter",
+    "type": "service"
+  },
+  "defender-plc": {
+    "name": "defender plc",
+    "type": "service"
+  },
+  "defender-pneumatic-device": {
+    "name": "defender pneumatic device",
+    "type": "service"
+  },
+  "defender-programable-board": {
+    "name": "defender programable board",
+    "type": "service"
+  },
+  "defender-relay": {
+    "name": "defender relay",
+    "type": "service"
+  },
+  "defender-robot-controller": {
+    "name": "defender robot controller",
+    "type": "service"
+  },
+  "defender-rtu": {
+    "name": "defender rtu",
+    "type": "service"
+  },
+  "defender-sensor": {
+    "name": "defender sensor",
+    "type": "service"
+  },
+  "defender-slot": {
+    "name": "defender slot",
+    "type": "service"
+  },
+  "defender-web-guiding-system": {
+    "name": "defender web guiding system",
+    "type": "service"
+  },
+  "device-update-iot-hub": {
+    "name": "device update iot hub",
+    "type": "service"
+  },
+  "disk-pool": {
+    "name": "disk pool",
+    "type": "service"
+  },
+  "edge-management": {
+    "name": "edge management",
+    "type": "cdn"
+  },
+  "elastic-san": {
+    "name": "elastic san",
+    "type": "service"
+  },
+  "exchange-on-premises-access": {
+    "name": "exchange on premises access",
+    "type": "service"
+  },
+  "express-route-traffic-collector": {
+    "name": "express route traffic collector",
+    "type": "service"
+  },
+  "expressroute-direct": {
+    "name": "expressroute direct",
+    "type": "service"
+  },
+  "fhir-service": {
+    "name": "fhir",
+    "type": "service"
+  },
+  "fiji": {
+    "name": "fiji",
+    "type": "service"
+  },
+  "hdi-aks-cluster": {
+    "name": "hdi aks cluster",
+    "type": "service"
+  },
+  "internet-analyzer-profiles": {
+    "name": "internet analyzer profiles",
+    "type": "service"
+  },
+  "kubernetes-fleet-manager": {
+    "name": "kubernetes fleet manager",
+    "type": "service"
+  },
+  "log-analytics-query-pack": {
+    "name": "log analytics query pack",
+    "type": "service"
+  },
+  "managed-instance-apache-cassandra": {
+    "name": "managed instance apache cassandra",
+    "type": "database"
+  },
+  "medtech-service": {
+    "name": "medtech",
+    "type": "service"
+  },
+  "microsoft-dev-box": {
+    "name": "microsoft dev box",
+    "type": "service"
+  },
+  "mission-landing-zone": {
+    "name": "mission landing zone",
+    "type": "service"
+  },
+  "mobile-networks": {
+    "name": "mobile networks",
+    "type": "client"
+  },
+  "modular-data-center": {
+    "name": "modular data center",
+    "type": "service"
+  },
+  "network-managers": {
+    "name": "network managers",
+    "type": "service"
+  },
+  "network-security-perimeters": {
+    "name": "network security perimeters",
+    "type": "service"
+  },
+  "open-supply-chain-platform": {
+    "name": "open supply chain platform",
+    "type": "service"
+  },
+  "peering-service": {
+    "name": "peering",
+    "type": "service"
+  },
+  "peerings": {
+    "name": "peerings",
+    "type": "service"
+  },
+  "private-endpoints": {
+    "name": "private endpoints",
+    "type": "service"
+  },
+  "reserved-capacity": {
+    "name": "reserved capacity",
+    "type": "service"
+  },
+  "resource-guard": {
+    "name": "resource guard",
+    "type": "service"
+  },
+  "resource-mover": {
+    "name": "resource mover",
+    "type": "service"
+  },
+  "rtos": {
+    "name": "rtos",
+    "type": "service"
+  },
+  "scvmm-management-servers": {
+    "name": "scvmm management servers",
+    "type": "service"
+  },
+  "sonic-dash": {
+    "name": "sonic dash",
+    "type": "service"
+  },
+  "ssh-keys": {
+    "name": "ssh keys",
+    "type": "service"
+  },
+  "storage-functions": {
+    "name": "storage functions",
+    "type": "storage"
+  },
+  "targets-management": {
+    "name": "targets management",
+    "type": "service"
+  },
+  "template-specs": {
+    "name": "template specs",
+    "type": "service"
+  },
+  "test-base": {
+    "name": "test base",
+    "type": "service"
+  },
+  "update-management-center": {
+    "name": "update management center",
+    "type": "service"
+  },
+  "video-analyzers": {
+    "name": "video analyzers",
+    "type": "service"
+  },
+  "virtual-enclaves": {
+    "name": "virtual enclaves",
+    "type": "service"
+  },
+  "virtual-instance-for-sap": {
+    "name": "virtual instance for sap",
+    "type": "service"
+  },
+  "virtual-visits-builder": {
+    "name": "virtual visits builder",
+    "type": "service"
+  },
+  "vm-app-definitions": {
+    "name": "vm app definitions",
+    "type": "service"
+  },
+  "vm-app-versions": {
+    "name": "vm app versions",
+    "type": "service"
+  },
+  "vm-image-version": {
+    "name": "vm image version",
+    "type": "service"
+  },
+  "wac": {
+    "name": "wac",
+    "type": "service"
+  },
+  "web-app-database": {
+    "name": "web app database",
+    "type": "database"
+  },
+  "web-jobs": {
+    "name": "web jobs",
+    "type": "service"
+  },
+  "windows-notification-services": {
+    "name": "windows notification services",
+    "type": "notification"
+  },
+  "worker-container-app": {
+    "name": "worker container app",
+    "type": "service"
+  },
+  "azure-ad-authentication-methods": {
+    "name": "azure ad authentication methods",
+    "type": "service"
+  },
+  "azure-ad-risky-signins": {
+    "name": "azure ad risky signins",
+    "type": "service"
+  },
+  "azure-ad-risky-users": {
+    "name": "azure ad risky users",
+    "type": "service"
+  },
+  "azure-sentinel": {
+    "name": "azure sentinel",
+    "type": "service"
+  },
+  "defender": {
+    "name": "defender",
+    "type": "service"
+  },
+  "detonation": {
+    "name": "detonation",
+    "type": "service"
+  },
+  "extended-security-updates": {
+    "name": "extended security updates",
+    "type": "service"
+  },
+  "extendedsecurityupdates": {
+    "name": "extendedsecurityupdates",
+    "type": "service"
+  },
+  "identity-secure-score": {
+    "name": "identity secure score",
+    "type": "service"
+  },
+  "key-vaults": {
+    "name": "key vaults",
+    "type": "service"
+  },
+  "microsoft-defender-easm": {
+    "name": "microsoft defender easm",
+    "type": "service"
+  },
+  "microsoft-defender-for-cloud": {
+    "name": "microsoft defender for cloud",
+    "type": "service"
+  },
+  "microsoft-defender-for-iot": {
+    "name": "microsoft defender for iot",
+    "type": "service"
+  },
+  "multifactor-authentication": {
+    "name": "multifactor authentication",
+    "type": "service"
+  },
+  "security-center": {
+    "name": "security center",
+    "type": "service"
+  },
+  "sentinel": {
+    "name": "sentinel",
+    "type": "service"
+  },
+  "archive-storage": {
+    "name": "archive storage",
+    "type": "storage"
+  },
+  "azure-fileshares": {
+    "name": "azure fileshares",
+    "type": "service"
+  },
+  "azure-hcp-cache": {
+    "name": "azure hcp cache",
+    "type": "cache"
+  },
+  "azure-netapp-files": {
+    "name": "azure netapp files",
+    "type": "service"
+  },
+  "azurefxtedgefiler": {
+    "name": "azurefxtedgefiler",
+    "type": "service"
+  },
+  "data-box-edge-data-box-gateway": {
+    "name": "data box edge data box gateway",
+    "type": "gateway"
+  },
+  "data-lake-storage-gen1": {
+    "name": "data lake storage gen1",
+    "type": "storage"
+  },
+  "data-lake-storage": {
+    "name": "data lake storage",
+    "type": "storage"
+  },
+  "data-share-invitations": {
+    "name": "data share invitations",
+    "type": "service"
+  },
+  "data-shares": {
+    "name": "data shares",
+    "type": "service"
+  },
+  "general-storage": {
+    "name": "general storage",
+    "type": "storage"
+  },
+  "import-export-jobs": {
+    "name": "import export jobs",
+    "type": "service"
+  },
+  "netapp-files": {
+    "name": "netapp files",
+    "type": "service"
+  },
+  "queues-storage": {
+    "name": "queues storage",
+    "type": "queue"
+  },
+  "storage-accounts-classic": {
+    "name": "storage accounts classic",
+    "type": "storage"
+  },
+  "storage-accounts": {
+    "name": "storage accounts",
+    "type": "storage"
+  },
+  "storage-explorer": {
+    "name": "storage explorer",
+    "type": "storage"
+  },
+  "storage-sync-services": {
+    "name": "storage sync services",
+    "type": "storage"
+  },
+  "storsimple-data-managers": {
+    "name": "storsimple data managers",
+    "type": "service"
+  },
+  "table-storage": {
+    "name": "table storage",
+    "type": "storage"
+  },
+  "api-center": {
+    "name": "api center",
+    "type": "service"
+  },
+  "app-space": {
+    "name": "app space",
+    "type": "service"
+  },
+  "azure-media-service": {
+    "name": "azure media",
+    "type": "service"
+  },
+  "signalr": {
+    "name": "signalr",
+    "type": "service"
+  },
+  "static-apps": {
+    "name": "static apps",
+    "type": "service"
+  },
+  "bigquery": {
+    "name": "bigquery",
+    "type": "service"
+  },
+  "composer": {
+    "name": "composer",
+    "type": "service"
+  },
+  "data-fusion": {
+    "name": "data fusion",
+    "type": "service"
+  },
+  "dataflow": {
+    "name": "dataflow",
+    "type": "service"
+  },
+  "datalab": {
+    "name": "datalab",
+    "type": "service"
+  },
+  "dataprep": {
+    "name": "dataprep",
+    "type": "service"
+  },
+  "dataproc": {
+    "name": "dataproc",
+    "type": "service"
+  },
+  "looker": {
+    "name": "looker",
+    "type": "service"
+  },
+  "pubsub": {
+    "name": "pubsub",
+    "type": "queue"
+  },
+  "apigee": {
+    "name": "apigee",
+    "type": "service"
+  },
+  "endpoints": {
+    "name": "endpoints",
+    "type": "service"
+  },
+  "app-engine": {
+    "name": "app engine",
+    "type": "service"
+  },
+  "binary-authorization": {
+    "name": "binary authorization",
+    "type": "service"
+  },
+  "compute-engine": {
+    "name": "compute engine",
+    "type": "service"
+  },
+  "container-optimized-os": {
+    "name": "container optimized os",
+    "type": "service"
+  },
+  "functions": {
+    "name": "functions",
+    "type": "service"
+  },
+  "gke-on-prem": {
+    "name": "gke on prem",
+    "type": "service"
+  },
+  "gpu": {
+    "name": "gpu",
+    "type": "service"
+  },
+  "kubernetes-engine": {
+    "name": "kubernetes engine",
+    "type": "service"
+  },
+  "os-configuration-management": {
+    "name": "os configuration management",
+    "type": "service"
+  },
+  "os-inventory-management": {
+    "name": "os inventory management",
+    "type": "service"
+  },
+  "os-patch-management": {
+    "name": "os patch management",
+    "type": "service"
+  },
+  "run": {
+    "name": "run",
+    "type": "service"
+  },
+  "bigtable": {
+    "name": "bigtable",
+    "type": "database"
+  },
+  "datastore": {
+    "name": "datastore",
+    "type": "database"
+  },
+  "firestore": {
+    "name": "firestore",
+    "type": "service"
+  },
+  "memorystore": {
+    "name": "memorystore",
+    "type": "service"
+  },
+  "spanner": {
+    "name": "spanner",
+    "type": "database"
+  },
+  "build": {
+    "name": "build",
+    "type": "service"
+  },
+  "cloud-shell": {
+    "name": "cloud shell",
+    "type": "service"
+  },
+  "code-for-intellij": {
+    "name": "code for intellij",
+    "type": "service"
+  },
+  "container-registry": {
+    "name": "container registry",
+    "type": "service"
+  },
+  "gradle-app-engine-plugin": {
+    "name": "gradle app engine plugin",
+    "type": "service"
+  },
+  "ide-plugins": {
+    "name": "ide plugins",
+    "type": "service"
+  },
+  "maven-app-engine-plugin": {
+    "name": "maven app engine plugin",
+    "type": "service"
+  },
+  "source-repositories": {
+    "name": "source repositories",
+    "type": "service"
+  },
+  "tasks": {
+    "name": "tasks",
+    "type": "service"
+  },
+  "test-lab": {
+    "name": "test lab",
+    "type": "service"
+  },
+  "tools-for-eclipse": {
+    "name": "tools for eclipse",
+    "type": "service"
+  },
+  "tools-for-powershell": {
+    "name": "tools for powershell",
+    "type": "service"
+  },
+  "tools-for-visual-studio": {
+    "name": "tools for visual studio",
+    "type": "service"
+  },
+  "gcp": {
+    "name": "gcp",
+    "type": "service"
+  },
+  "billing": {
+    "name": "billing",
+    "type": "service"
+  },
+  "project": {
+    "name": "project",
+    "type": "service"
+  },
+  "quotas": {
+    "name": "quotas",
+    "type": "service"
+  },
+  "migrate-compute-engine": {
+    "name": "migrate compute engine",
+    "type": "service"
+  },
+  "transfer-appliance": {
+    "name": "transfer appliance",
+    "type": "service"
+  },
+  "advanced-solutions-lab": {
+    "name": "advanced solutions lab",
+    "type": "service"
+  },
+  "ai-hub": {
+    "name": "ai hub",
+    "type": "service"
+  },
+  "ai-platform-data-labeling-service": {
+    "name": "ai platform data labeling",
+    "type": "service"
+  },
+  "ai-platform": {
+    "name": "ai platform",
+    "type": "service"
+  },
+  "automl-natural-language": {
+    "name": "automl natural language",
+    "type": "service"
+  },
+  "automl-tables": {
+    "name": "automl tables",
+    "type": "service"
+  },
+  "automl-translation": {
+    "name": "automl translation",
+    "type": "service"
+  },
+  "automl-video-intelligence": {
+    "name": "automl video intelligence",
+    "type": "service"
+  },
+  "automl-vision": {
+    "name": "automl vision",
+    "type": "service"
+  },
+  "automl": {
+    "name": "automl",
+    "type": "service"
+  },
+  "dialog-flow-enterprise-edition": {
+    "name": "dialog flow enterprise edition",
+    "type": "service"
+  },
+  "inference-api": {
+    "name": "inference api",
+    "type": "service"
+  },
+  "jobs-api": {
+    "name": "jobs api",
+    "type": "service"
+  },
+  "natural-language-api": {
+    "name": "natural language api",
+    "type": "service"
+  },
+  "recommendations-ai": {
+    "name": "recommendations ai",
+    "type": "service"
+  },
+  "speech-to-text": {
+    "name": "speech to text",
+    "type": "service"
+  },
+  "text-to-speech": {
+    "name": "text to speech",
+    "type": "service"
+  },
+  "tpu": {
+    "name": "tpu",
+    "type": "service"
+  },
+  "translation-api": {
+    "name": "translation api",
+    "type": "service"
+  },
+  "vertex-ai": {
+    "name": "vertex ai",
+    "type": "service"
+  },
+  "video-intelligence-api": {
+    "name": "video intelligence api",
+    "type": "service"
+  },
+  "vision-api": {
+    "name": "vision api",
+    "type": "service"
+  },
+  "armor": {
+    "name": "armor",
+    "type": "service"
+  },
+  "cdn": {
+    "name": "cdn",
+    "type": "cdn"
+  },
+  "cloud-ids": {
+    "name": "cloud ids",
+    "type": "service"
+  },
+  "dedicated-interconnect": {
+    "name": "dedicated interconnect",
+    "type": "service"
+  },
+  "dns": {
+    "name": "dns",
+    "type": "service"
+  },
+  "external-ip-addresses": {
+    "name": "external ip addresses",
+    "type": "notification"
+  },
+  "firewall-rules": {
+    "name": "firewall rules",
+    "type": "service"
+  },
+  "load-balancing": {
+    "name": "load balancing",
+    "type": "service"
+  },
+  "network-connectivity-center": {
+    "name": "network connectivity center",
+    "type": "service"
+  },
+  "network-intelligence-center": {
+    "name": "network intelligence center",
+    "type": "service"
+  },
+  "network-security": {
+    "name": "network security",
+    "type": "service"
+  },
+  "network-tiers": {
+    "name": "network tiers",
+    "type": "service"
+  },
+  "network-topology": {
+    "name": "network topology",
+    "type": "service"
+  },
+  "network": {
+    "name": "network",
+    "type": "service"
+  },
+  "partner-interconnect": {
+    "name": "partner interconnect",
+    "type": "service"
+  },
+  "premium-network-tier": {
+    "name": "premium network tier",
+    "type": "service"
+  },
+  "private-service-connect": {
+    "name": "private service connect",
+    "type": "service"
+  },
+  "router": {
+    "name": "router",
+    "type": "service"
+  },
+  "routes": {
+    "name": "routes",
+    "type": "service"
+  },
+  "service-mesh": {
+    "name": "service mesh",
+    "type": "service"
+  },
+  "standard-network-tier": {
+    "name": "standard network tier",
+    "type": "service"
+  },
+  "traffic-director": {
+    "name": "traffic director",
+    "type": "service"
+  },
+  "virtual-private-cloud": {
+    "name": "virtual private cloud",
+    "type": "service"
+  },
+  "vpn": {
+    "name": "vpn",
+    "type": "service"
+  },
+  "logging": {
+    "name": "logging",
+    "type": "monitoring"
+  },
+  "monitoring": {
+    "name": "monitoring",
+    "type": "monitoring"
+  },
+  "access-context-manager": {
+    "name": "access context manager",
+    "type": "service"
+  },
+  "assured-workloads": {
+    "name": "assured workloads",
+    "type": "service"
+  },
+  "certificate-authority-service": {
+    "name": "certificate authority",
+    "type": "service"
+  },
+  "cloud-asset-inventory": {
+    "name": "cloud asset inventory",
+    "type": "service"
+  },
+  "iam": {
+    "name": "iam",
+    "type": "service"
+  },
+  "iap": {
+    "name": "iap",
+    "type": "service"
+  },
+  "resource-manager": {
+    "name": "resource manager",
+    "type": "service"
+  },
+  "secret-manager": {
+    "name": "secret manager",
+    "type": "service"
+  },
+  "security-command-center": {
+    "name": "security command center",
+    "type": "service"
+  },
+  "security-health-advisor": {
+    "name": "security health advisor",
+    "type": "service"
+  },
+  "security-scanner": {
+    "name": "security scanner",
+    "type": "service"
+  },
+  "filestore": {
+    "name": "filestore",
+    "type": "storage"
+  },
+  "local-ssd": {
+    "name": "local ssd",
+    "type": "service"
+  },
+  "persistent-disk": {
+    "name": "persistent disk",
+    "type": "service"
+  }
+}

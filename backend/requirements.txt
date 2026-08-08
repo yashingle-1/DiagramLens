@@ -25,10 +25,24 @@ python-multipart>=0.0.18  # for file uploads
 pillow>=10.4.0           # image validation
  
 # Classical CV pipeline (DiagramLens research contribution)
-opencv-python>=4.10.0
+# contrib build, pinned below 5.x: LSD (cv2.createLineSegmentDetector) is used
+# by the hybrid connection detector, and OpenCV 5 is a major API bump this
+# project has not been validated against. Install ONE opencv distribution only
+# — opencv-python and opencv-contrib-python both provide `cv2` and shadow
+# each other.
+opencv-contrib-python>=4.10,<5
 pytesseract==0.3.13
 
-# Hybrid ML pipeline — SAM + CLIP + TrOCR (DiagramLens research contribution)
+# Hybrid pipeline v2 — PaddleOCR PP-OCRv5 text engine (proposer P3).
+# paddlex is pinned: 3.7 changed PaddlePredictorOption's signature and breaks
+# paddleocr 3.1 at construction time ("takes 1 positional argument but 2 were
+# given"), which silently drops the arm back to the Tesseract fallback.
+paddlepaddle==3.0.0
+paddleocr==3.1.0
+paddlex==3.1.0
+
+# torch/transformers serve BOTH arms: CLIP powers icon-bank retrieval in v2,
+# and segment-anything is only needed for the HYBRID_VERSION=v1 ablation.
 # torch CPU build: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 torch>=2.0.0
 torchvision
