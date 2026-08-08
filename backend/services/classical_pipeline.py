@@ -409,7 +409,7 @@ def _detect_connections(
             source=component_ids[s],
             target=component_ids[t],
             label="",
-            directed=True,
+            directed=False,   # pairs are deduped undirected above — direction was never measured
         ))
     return conns
 

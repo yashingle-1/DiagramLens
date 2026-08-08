@@ -11,19 +11,23 @@ Robustness notes (these caused real "zero components" bugs):
   unparseable output (except quota errors, which fail fast).
 """
 
+import io
 import json
 import re
 import asyncio
 import time
 from typing import Optional
 
+from PIL import Image
 from google import genai
 from google.genai import types
 
 from config import settings
+from models.schemas import GeminiExtraction
 from services.llm.base import LLMProvider, LLMResult
 from services.llm.prompts import (
     EXTRACTION_PROMPTS,
+    EXTRACTION_PROMPTS_V2,
     CHAT_SYSTEM_PROMPT,
     CHAT_INTERVIEW_PROMPT,
     COMPONENT_EXPLAIN_PROMPT,
@@ -32,16 +36,56 @@ from services.llm.prompts import (
 MODEL_ID = "gemini-2.5-flash"
 MAX_ATTEMPTS = 3
 
+_MIME_BY_FORMAT = {
+    "jpeg": "image/jpeg", "jpg": "image/jpeg", "png": "image/png",
+    "webp": "image/webp", "gif": "image/gif", "bmp": "image/bmp",
+}
+
+
+def _detect_mime(image_bytes: bytes) -> str:
+    """Declaring a JPEG as image/png misrepresents the upload to the API."""
+    try:
+        fmt = (Image.open(io.BytesIO(image_bytes)).format or "").lower()
+        return _MIME_BY_FORMAT.get(fmt, "image/png")
+    except Exception:
+        return "image/png"
+
 
 class GeminiProvider(LLMProvider):
 
     def __init__(self):
         self.client = genai.Client(api_key=settings.gemini_api_key)
+        # Counts how often the fallback text parser had to rescue the output.
+        # With response_schema set this should stay at 0 — report it as
+        # evidence that structured output removed the truncation losses.
+        self.salvage_count = 0
 
-        # Low temperature = consistent structured output. 32768 output tokens
-        # because complex diagrams (15+ components) exceeded 16384 and the
-        # truncated JSON was unparseable.
+        # response_schema makes the API guarantee parseable JSON, so the
+        # markdown-fence and truncated-JSON recovery paths below are a
+        # fallback, not the normal route. Budget is modest because v2 prompts
+        # extract only, and thinking tokens count against the same ceiling.
         self.extraction_config = types.GenerateContentConfig(
+            temperature=0.1,
+            max_output_tokens=settings.gemini_max_output_tokens,
+            response_mime_type="application/json",
+            response_schema=GeminiExtraction,
+            thinking_config=types.ThinkingConfig(
+                thinking_budget=settings.gemini_thinking_budget
+            ),
+        )
+
+        # Explain/enrichment calls return a different shape, so they get a
+        # plain JSON config without the extraction schema attached.
+        self.explain_config = types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=settings.gemini_max_output_tokens,
+            response_mime_type="application/json",
+        )
+
+        # v1 ablation: unconstrained output and the old large ceiling. Without
+        # this the v1 prompts would still be forced into the v2 schema and the
+        # comparison would measure nothing.
+        self.legacy_config = types.GenerateContentConfig(
             temperature=0.1,
             max_output_tokens=32768,
         )
@@ -74,7 +118,11 @@ class GeminiProvider(LLMProvider):
     ) -> LLMResult:
 
         start_time = time.time()
-        prompt = EXTRACTION_PROMPTS.get(prompt_variant, EXTRACTION_PROMPTS["zero_shot"])
+        legacy  = settings.prompt_version == "v1"
+        prompts = EXTRACTION_PROMPTS if legacy else EXTRACTION_PROMPTS_V2
+        prompt  = prompts.get(prompt_variant, prompts["zero_shot"])
+        config  = self.legacy_config if legacy else self.extraction_config
+        mime    = _detect_mime(image_bytes)
 
         last_error: Optional[str] = None
         for attempt in range(MAX_ATTEMPTS):
@@ -82,10 +130,10 @@ class GeminiProvider(LLMProvider):
                 response = await self.client.aio.models.generate_content(
                     model=MODEL_ID,
                     contents=[
-                        types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime),
                         prompt,
                     ],
-                    config=self.extraction_config,
+                    config=config,
                 )
             except Exception as e:
                 error_str = str(e).lower()
@@ -182,7 +230,7 @@ COMPONENT TO ANALYZE:
         response = await self.client.aio.models.generate_content(
             model=MODEL_ID,
             contents=prompt,
-            config=self.extraction_config,
+            config=self.explain_config,
         )
         text, _ = self._extract_text(response)
         return self._parse_json(text)
@@ -224,7 +272,11 @@ COMPONENT TO ANALYZE:
         if start != -1:
             salvaged = self._salvage_truncated_json(cleaned[start:])
             if salvaged is not None:
-                print("[gemini] salvaged truncated JSON output")
+                # Salvage trims to the last complete object, so components are
+                # lost here. Counted so the rate is reportable, not invisible.
+                self.salvage_count += 1
+                print(f"[gemini] salvaged truncated JSON output "
+                      f"(salvage #{self.salvage_count} — components may be missing)")
                 return salvaged
 
         return None

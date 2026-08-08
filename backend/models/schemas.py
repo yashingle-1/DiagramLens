@@ -54,6 +54,17 @@ class ComponentSchema(BaseModel):
     technology: Optional[str]               = None
     position:   Optional[ComponentPosition] = None
     metadata:   Optional[ComponentMetadata] = None
+    # Structural / provenance fields from the hybrid arm. All optional and
+    # nullable: ground truth annotates them only where the notation has the
+    # concept, and metrics skip any field the ground truth leaves null.
+    parent_id:   Optional[str]   = None    # enclosing VPC / subnet / C4 boundary
+    is_container: bool           = False   # this component IS a boundary
+    icon_match:  Optional[str]   = None    # exact vendor product name (P1)
+    icon_score:  Optional[float] = None
+    stereotype:  Optional[str]   = None    # UML <<interface>>
+    c4_level:    Optional[str]   = None    # context | container | component | code
+    description: Optional[str]   = None    # C4 third text line
+    proposer:    Optional[str]   = None    # icon+text | shape+text | icon | text
 
     @field_validator("id")
     @classmethod
@@ -70,6 +81,16 @@ class ConnectionSchema(BaseModel):
     target:  str          # component id
     label:   str = ""     # "REST"|"gRPC"|"HTTP"|"TCP"|""
     directed: bool = True
+    # Denormalised endpoint names. Component ids differ between pipelines, so
+    # cross-pipeline and ground-truth comparison must happen on names.
+    source_name: Optional[str] = None
+    target_name: Optional[str] = None
+    # Measured connection geometry (hybrid arm). arrowhead_* is "none" when no
+    # decoration was found — direction is never assumed from its absence.
+    line_style:       Optional[str] = None   # solid | dashed | unknown
+    arrowhead_source: Optional[str] = None
+    arrowhead_target: Optional[str] = None
+    relationship:     Optional[str] = None   # inheritance|composition|dependency|async|...
     # Optional legacy fields kept for canvas compatibility
     direction: Optional[str] = None
     protocol:  Optional[str] = None
@@ -92,6 +113,9 @@ class ArchitectureSchema(BaseModel):
     # Hallucination filter results (gemini pipeline only) — OCR cross-validation
     hallucinated_components: Optional[List[str]] = None
     hallucination_rate:      Optional[float]     = None
+    # How sure the notation classifier was, so a low-confidence routing
+    # decision is visible rather than silently trusted.
+    notation_confidence: Optional[float] = None
     # Set when the pipeline failed and returned an empty result. An empty
     # component list is honest data (recall 0) — a fake "Unknown" placeholder
     # would pollute precision scores in the benchmark.
@@ -100,6 +124,34 @@ class ArchitectureSchema(BaseModel):
 # Backward-compat aliases used by chat.py and cases-related code
 Component  = ComponentSchema
 Connection = ConnectionSchema
+
+
+# ── Gemini structured-output schema ───────────────────────
+# Passed as response_schema so the API guarantees parseable JSON. This removes
+# the markdown-fence stripping and truncated-JSON salvage paths, which were
+# lossy — salvage trims to the last complete object and silently drops
+# components, showing up as a recall failure.
+# No Optional fields: the SDK maps Optional to a nullable union that Gemini
+# handles inconsistently. Defaults stand in for absent values instead.
+class GeminiComponent(BaseModel):
+    id:         str
+    name:       str
+    type:       ComponentType = ComponentType.OTHER
+    technology: str   = ""
+    confidence: float = 0.9    # per component, not the document-level score
+
+class GeminiConnection(BaseModel):
+    id:       str
+    source:   str    # component id
+    target:   str    # component id
+    label:    str  = ""
+    directed: bool = True
+
+class GeminiExtraction(BaseModel):
+    components:       List[GeminiComponent]
+    connections:      List[GeminiConnection]
+    arch_type:        str   = "other"
+    confidence_score: float = 0.9
 
 
 # ── API Request Schemas ───────────────────────────────────

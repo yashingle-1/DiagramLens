@@ -75,9 +75,17 @@ class Benchmark(Base):
     component_precision  = Column(Float, nullable=True)
     component_recall     = Column(Float, nullable=True)
     component_f1         = Column(Float, nullable=True)
-    connection_precision = Column(Float, nullable=True)
+    connection_precision = Column(Float, nullable=True)   # directed pairs
     connection_recall    = Column(Float, nullable=True)
     connection_f1        = Column(Float, nullable=True)
+    # Topology only — ignores arrow direction. Reported beside the directed
+    # score so a missed line is distinguishable from a misread arrowhead.
+    connection_undirected_precision = Column(Float, nullable=True)
+    connection_undirected_recall    = Column(Float, nullable=True)
+    connection_undirected_f1        = Column(Float, nullable=True)
+    # Same components scored with un-normalised character similarity, for the
+    # methodology table quantifying the effect of name normalisation.
+    component_f1_raw     = Column(Float, nullable=True)
 
     # Hallucination tracking — stored as JSON lists of names, not counts
     hallucinated_components = Column(JSON, default=list)

@@ -1,7 +1,99 @@
-# ── Extraction Prompts ────────────────────────────────────
-# Three variants for MSc research comparison
-# Each variant is tested against the same diagrams
-# to measure which produces most accurate extraction
+# ── Naming rules (shared by every v2 extraction prompt) ───
+# Ground truth is annotated from the text printed on the diagram. When the
+# model expands "ALB" to "Application Load Balancer" or prefixes "S3" with
+# "Amazon", the extraction is semantically right but scores as a miss. These
+# rules pin the output to what is actually visible.
+NAMING_RULES = """
+NAMING RULES — strict:
+- "name" MUST be the exact text visible in the diagram, character for character.
+- Do NOT expand abbreviations. If the diagram says "ALB", output "ALB".
+- Do NOT add vendor prefixes that are not printed on the diagram.
+- Do NOT rename, pluralise, or tidy the label.
+- If a component shows an icon but no text label, use the standard product name
+  for that icon and repeat it in "technology".
+- If you cannot read a label with confidence, OMIT the component entirely
+  rather than guessing a name.
+- "confidence" is per component: how sure you are of THAT component's name.
+"""
+
+# ── Extraction Prompts v2 (current) ───────────────────────
+# Extraction only. No metadata, no responsibilities, no suggestions — those
+# are analysis, not extraction, and cost ~60 output tokens per component. On a
+# 20-component diagram that pushed output past the token ceiling, and the
+# truncation-salvage path in gemini.py silently dropped whole components,
+# which showed up as a recall failure that looked like a model failure.
+#
+# Output shape is enforced by response_schema (see models/schemas.py
+# GeminiExtraction), so these prompts do not restate the JSON template.
+# Per-component analysis now lives in COMPONENT_EXPLAIN_PROMPT, called lazily
+# by the Explain tab and excluded from extraction timing.
+
+EXTRACTION_PROMPTS_V2 = {
+
+    "zero_shot": f"""
+Extract the structure of this software architecture diagram.
+
+- Every visible box, shape, icon or labelled element is a component.
+- Every arrow or line between components is a connection.
+- Set "directed" true only when the line actually has an arrowhead.
+  Plain lines with no arrowhead are directed=false.
+- "label" is the protocol or text printed on the line, or "" if there is none.
+{NAMING_RULES}
+""",
+
+    "few_shot": f"""
+Extract the structure of this software architecture diagram.
+
+Example — for a diagram showing an NGINX load balancer feeding a Node.js web
+server which reads from a PostgreSQL database, the correct extraction is:
+
+  components:
+    c1  "Load Balancer"  type=load_balancer  technology="NGINX"      confidence=0.95
+    c2  "Web Server"     type=service        technology="Node.js"    confidence=0.93
+    c3  "PostgreSQL"     type=database       technology="PostgreSQL" confidence=0.97
+  connections:
+    e1  c1 -> c2  label="HTTP"  directed=true
+    e2  c2 -> c3  label="SQL"   directed=true
+
+Note the names are copied from the diagram, not expanded or embellished.
+
+Now extract the provided diagram the same way.
+- Every visible component must be included.
+- Every visible connection must be included.
+- Set "directed" true only when the line actually has an arrowhead.
+{NAMING_RULES}
+""",
+
+    "chain_of_thought": f"""
+Extract the structure of this software architecture diagram. Work through
+these steps internally, then return the result.
+
+STEP 1 — Read every label. Scan the whole image, including small text below
+icons and text inside boxes. List the exact printed text of each one.
+
+STEP 2 — Decide which labels are components and which are group boundaries
+(VPC, subnet, availability zone, system boundary) or decoration.
+
+STEP 3 — Classify each component by its shape and label:
+  cylinder -> database | rounded box labelled cache/redis -> cache
+  parallelogram or labelled queue/topic -> queue | hexagon -> load_balancer
+  diamond or shield -> gateway | cloud shape -> cdn or storage
+  browser/mobile/person icon -> client | monitor/graph icon -> monitoring
+  envelope/bell icon -> notification | plain box with a service name -> service
+
+STEP 4 — Trace every line. For each, record which two components it joins,
+whether it carries an arrowhead (and at which end), and any text printed on it.
+A line with no arrowhead is directed=false.
+
+STEP 5 — Return components and connections.
+{NAMING_RULES}
+"""
+}
+
+
+# ── Extraction Prompts v1 (legacy, ablation only) ─────────
+# Kept reachable via settings.prompt_version="v1" so the metadata-heavy
+# behaviour can be reproduced for a before/after comparison.
 
 EXTRACTION_PROMPTS = {
 

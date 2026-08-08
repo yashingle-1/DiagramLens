@@ -16,7 +16,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.connection import get_db
 from models.database import Architecture, Benchmark
 from models.schemas import BenchmarkRequest
-from services.metrics import score_components, score_connections
+from services.metrics import (
+    raw_ratio,
+    score_components,
+    score_connections,
+)
 
 router = APIRouter()
 
@@ -79,9 +83,21 @@ async def run_benchmark(
             continue
 
         raw = arch.raw_json or {}
-        extracted_names = [c["name"] for c in raw.get("components", [])]
+        components      = raw.get("components", [])
+        extracted_names = [c.get("name", "") for c in components]
+
+        # Ground truth stores connections by component NAME; every pipeline
+        # emits them by component ID ("c1", "h3"). Without this translation,
+        # find_best_match("c1", ["CloudFront", ...]) never matches and
+        # connection F1 is a constant 0.0 for all three pipelines.
+        # Pipelines that already emit names (source_name) win outright.
+        id_to_name = {c["id"]: c.get("name", "") for c in components if c.get("id")}
+
+        def _resolve(conn: dict, end: str) -> str:
+            return conn.get(f"{end}_name") or id_to_name.get(conn.get(end, ""), conn.get(end, ""))
+
         extracted_conns = [
-            {"source": c.get("source", ""), "target": c.get("target", "")}
+            {"source": _resolve(c, "source"), "target": _resolve(c, "target")}
             for c in raw.get("connections", [])
         ]
 
@@ -89,6 +105,11 @@ async def run_benchmark(
         conn_metrics = score_connections(
             extracted_conns, gt_connections,
             extracted_names, gt_component_names,
+        )
+        # Un-normalised component score, for the methodology table showing how
+        # much of the reported accuracy comes from name normalisation.
+        raw_comp_metrics = score_components(
+            extracted_names, gt_component_names, ratio_fn=raw_ratio
         )
 
         # Save to DB
@@ -104,6 +125,10 @@ async def run_benchmark(
             connection_precision=conn_metrics["precision"],
             connection_recall=conn_metrics["recall"],
             connection_f1=conn_metrics["f1"],
+            connection_undirected_precision=conn_metrics["undirected_precision"],
+            connection_undirected_recall=conn_metrics["undirected_recall"],
+            connection_undirected_f1=conn_metrics["undirected_f1"],
+            component_f1_raw=raw_comp_metrics["f1"],
             hallucinated_components=comp_metrics.get("hallucinated_names", []),
             missed_components=comp_metrics.get("missed_names", []),
             response_time_ms=arch.response_time_ms,
@@ -126,6 +151,10 @@ async def run_benchmark(
             "connection_precision": conn_metrics["precision"],
             "connection_recall":    conn_metrics["recall"],
             "connection_f1":        conn_metrics["f1"],
+            "connection_undirected_precision": conn_metrics["undirected_precision"],
+            "connection_undirected_recall":    conn_metrics["undirected_recall"],
+            "connection_undirected_f1":        conn_metrics["undirected_f1"],
+            "component_f1_raw":     raw_comp_metrics["f1"],
             "hallucinated_components": comp_metrics.get("hallucinated_names", []),
             "missed_components":       comp_metrics.get("missed_names", []),
             "response_time_ms":        arch.response_time_ms,
@@ -158,7 +187,9 @@ async def get_benchmark_results(db: AsyncSession = Depends(get_db)):
             "diagram_standard":  b.diagram_standard,
             "complexity":        b.complexity,
             "component_f1":      b.component_f1,
+            "component_f1_raw":  b.component_f1_raw,
             "connection_f1":     b.connection_f1,
+            "connection_undirected_f1": b.connection_undirected_f1,
             "hallucinated":      b.hallucinated_components,
             "missed":            b.missed_components,
             "response_time_ms":  b.response_time_ms,

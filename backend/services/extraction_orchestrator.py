@@ -92,20 +92,31 @@ async def _run_gemini(
             id=c.get("id", f"c{i + 1}"),
             name=c.get("name", f"Component {i + 1}"),
             type=comp_type,
-            confidence=raw.get("confidence_score"),
+            # Per component, not the document-level score. Assigning the same
+            # document value to every component made per-component confidence
+            # meaningless and blocked any confidence-calibration analysis.
+            confidence=c.get("confidence"),
             technology=c.get("technology"),
             position=pos_data,
             metadata=meta_data,
         ))
 
+    # Component ids differ across pipelines, so connections also carry endpoint
+    # NAMES for cross-pipeline and ground-truth comparison.
+    id_to_name = {c.id: c.name for c in components}
+
     connections: list[ConnectionSchema] = []
     for i, conn in enumerate(raw.get("connections", [])):
+        src, tgt = conn.get("source", ""), conn.get("target", "")
         connections.append(ConnectionSchema(
             id=conn.get("id", f"e{i + 1}"),
-            source=conn.get("source", ""),
-            target=conn.get("target", ""),
+            source=src,
+            target=tgt,
+            source_name=id_to_name.get(src, src),
+            target_name=id_to_name.get(tgt, tgt),
             label=conn.get("label") or "",
-            directed=True,
+            # Only trust an arrowhead the model actually reported seeing.
+            directed=bool(conn.get("directed", True)),
             direction=conn.get("direction"),
             protocol=conn.get("protocol"),
             data_type=conn.get("data_type"),
