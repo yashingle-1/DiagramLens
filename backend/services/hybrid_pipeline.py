@@ -1,440 +1,591 @@
 """
-Specialized ML Hybrid pipeline — NO LLM, NO GENERATIVE AI, NO EXTERNAL API CALLS.
+Hybrid arm v2 — notation-adaptive proposal fusion.
 
-Three specialized models chained, each doing exactly one job:
-  1. SAM  (Meta)      — automatic mask generation → candidate component regions
-  2. CLIP (OpenAI)    — zero-shot classification of each region's component type
-  3. TrOCR (Microsoft)— text extraction from each region (pytesseract fallback)
+NO generative model, NO LLM, NO API calls. Specialised discriminative models
+(PaddleOCR PP-OCRv5 detection+recognition, CLIP image embeddings) plus
+deterministic geometry.
 
-Connection inference reuses the classical HoughLinesP detector on the original
-image with SAM-derived bounding boxes.
+Three proposers run over the same image and are merged into one component list:
 
-All models run locally. Zero API cost. Models are loaded lazily on first call
-and cached at module level (rule 9 in CLAUDE.md).
-Never raises on partial results — returns what was found, even if incomplete.
+    P1  icon_bank      CLIP image->image retrieval against official vendor icon
+                       packs. Carries AWS / Azure / GCP, where identity lives in
+                       the glyph and the label sits outside it.
+    P2  shape_detector Contour geometry. Carries C4 / UML / informal, where
+                       identity lives in a drawn box with the label inside.
+    P3  text clusters  PaddleOCR word boxes clustered spatially. THE UNIVERSAL
+                       FLOOR — every component in every notation carries a
+                       label, so this always fires. P1 and P2 only upgrade
+                       precision and typing.
+
+Why this replaced SAM + CLIP-prompting:
+  SAM's automatic mask generator is class-agnostic. On synthetic diagrams it
+  over-segmented decorative gradients and icon sub-parts while under-
+  distinguishing semantic units, so the old code needed a wall of filters
+  (MAX_REGIONS / DUPLICATE_IOU / CONTAINMENT_RATIO) and still produced ~6
+  components in ~137s. CLIP was scored against text prompts, which is out of
+  distribution for abstract vector glyphs — the old code already overrode its
+  verdict whenever a label keyword matched. Both findings are reportable.
+  The previous implementation is preserved in hybrid_pipeline_v1.py and is
+  still reachable via HYBRID_VERSION=v1 for the ablation table.
+
+Never raises — returns whatever was found, even if partial.
 """
+
+from __future__ import annotations
 
 import asyncio
 import io
 import os
-import threading
 import time
-import torch
 
 import cv2
 import numpy as np
 from PIL import Image
 
-from models.schemas import ArchitectureSchema, ComponentSchema
-from services.classical_pipeline import (
-    _classify_type,
-    _complexity,
-    _detect_connections,
-    _infer_arch_type,
-    _infer_diagram_standard,
-    _is_noise,
+from models.schemas import ArchitectureSchema, ComponentSchema, ConnectionSchema, ComponentPosition
+from services import icon_bank, ocr_engine
+from services.common import (
+    classify_type,
+    complexity,
+    infer_arch_type,
+    is_noise,
+    looks_like_container,
+)
+from services.connection_detector import (
+    detect_connections, detect_connector_segments, segment_midspan_to_box_distance,
+)
+from services.notation_classifier import classify_notation, is_icon_centric
+from services.notation_profiles import (
+    clean_name, is_compartment_header, is_watermark, profile_for, split_stereotype,
+)
+from services.shape_detector import (
+    Shape, are_compartments, children_of, compartment_ids, contains,
+    detect_dashed_boundaries, detect_shapes, merge_compartments, split_containers,
 )
 
-# ── Tuning constants ──────────────────────────────────────────────────────────
-SAM_LONG_SIDE        = 1024    # downscale before SAM — CPU speed vs detail tradeoff
-SAM_POINTS_PER_SIDE  = 16      # default 32 is ~4x slower on CPU
-MIN_REGION_FRACTION  = 0.0005  # regions smaller than this fraction of image = noise
-MAX_REGION_FRACTION  = 0.30    # regions larger than this = container/background
-MAX_REGIONS          = 40      # cap candidate regions (smallest kept first)
-DUPLICATE_IOU        = 0.80    # two boxes this similar = same region, keep one
-CONTAINMENT_RATIO    = 0.80    # kept box lying this much inside a candidate = "contained"
-MAX_NAME_CHARS       = 80      # OCR text longer than this = container noise, not a label
-MAX_NAME_WORDS       = 12
-TEXT_SKIP_MIN_PROB   = 0.5     # CLIP "text annotation" verdict only trusted above this
-DEDUPE_NAME_RATIO    = 0.90    # near-identical names on overlapping boxes = same component
-DEDUPE_BOX_IOU       = 0.30
-CLIP_MODEL_ID        = "openai/clip-vit-base-patch32"
-TROCR_MODEL_ID       = "microsoft/trocr-base-printed"
+# ── Tuning ────────────────────────────────────────────────────────────────────
+TEXT_GAP_HORIZ = 1.4     # same-line merge if x-gap < factor × text height
+TEXT_GAP_VERT  = 0.7     # stacked merge if y-gap < factor × text height
+MERGE_IOU      = 0.60    # proposals overlapping this much are the same component
+MAX_NAME_CHARS = 60      # longer than this is a description, not a label
+MAX_NAME_WORDS = 8
+MAX_COMPONENTS = 60      # guard against a pathological image; logged if hit
+EDGE_LABEL_MIN_PX        = 10    # text this close to a connector is its label
+EDGE_LABEL_HEIGHT_FACTOR = 1.0   # ...scaled by the label's own text height
+# Compartment geometry lives in shape_detector — split_containers needs it too.
 
-# CLIP zero-shot prompts → DiagramLens component type ("" = not a component, skip)
-CLIP_PROMPTS: list[tuple[str, str]] = [
-    ("a database or data storage component",       "database"),
-    ("an API gateway or load balancer",            "gateway"),
-    ("a backend server or microservice",           "service"),
-    ("a cache like Redis or Memcached",            "cache"),
-    ("a message queue or event bus",               "queue"),
-    ("a CDN or content delivery network",          "cdn"),
-    ("a client application or web browser",        "client"),
-    ("a cloud storage service",                    "storage"),
-    ("a network or security component",            "other"),
-    ("a plain text label or annotation",           ""),
-]
-
-# ── Lazy model cache ──────────────────────────────────────────────────────────
-_models: dict = {}
-_load_lock = threading.Lock()
+# Evidence ranking — richer evidence wins when two proposals overlap.
+_EVIDENCE_RANK = {"icon+text": 4, "shape+text": 3, "icon": 2, "text": 1}
 
 
-def _sam_checkpoint_path() -> str:
-    return os.environ.get(
-        "SAM_CHECKPOINT",
-        os.path.join(os.path.dirname(__file__), "..", "models", "sam", "sam_vit_b_01ec64.pth"),
-    )
+class _Proposal:
+    __slots__ = ("box", "name", "type", "proposer", "confidence", "icon_match",
+                 "icon_score", "shape_kind", "stereotype", "description")
+
+    def __init__(self, box, name, type_, proposer, confidence=None,
+                 icon_match=None, icon_score=None, shape_kind=None,
+                 stereotype=None, description=None):
+        self.box, self.name, self.type = box, name, type_
+        self.proposer, self.confidence = proposer, confidence
+        self.icon_match, self.icon_score = icon_match, icon_score
+        self.shape_kind = shape_kind
+        self.stereotype, self.description = stereotype, description
 
 
-def _load_models() -> dict:
-    """Load SAM + CLIP + TrOCR once, cache at module level. Thread-safe."""
-    if _models:
-        return _models
-    with _load_lock:
-        if _models:
-            return _models
+# ── Shape kind -> component type ──────────────────────────────────────────────
+_SHAPE_TYPE = {
+    "cylinder":     "database",
+    "diamond":      "gateway",
+    "hexagon":      "load_balancer",
+    "ellipse":      "other",
+    "rect":         "service",
+    "rounded_rect": "service",
+}
 
-        import torch  # noqa: F401 — fail early with a clear message if missing
-        from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
-        from transformers import (
-            CLIPModel,
-            CLIPProcessor,
-            TrOCRProcessor,
-            VisionEncoderDecoderModel,
+
+def _iou(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> float:
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    ix = max(0, min(ax + aw, bx + bw) - max(ax, bx))
+    iy = max(0, min(ay + ah, by + bh) - max(ay, by))
+    inter = ix * iy
+    union = aw * ah + bw * bh - inter
+    return inter / union if union > 0 else 0.0
+
+
+# ── P3: text clustering ───────────────────────────────────────────────────────
+def _same_label(a: ocr_engine.OcrWord, b: ocr_engine.OcrWord) -> bool:
+    """Two word boxes belong to one label. Gaps scale with text height so a
+    heading and a nearby body label are not merged."""
+    th = max(a.h, b.h)
+    v_overlap = min(a.bottom, b.bottom) - max(a.y, b.y)
+    h_overlap = min(a.right, b.right) - max(a.x, b.x)
+
+    if v_overlap > 0.3 * min(a.h, b.h):                       # same line
+        if max(a.x, b.x) - min(a.right, b.right) < TEXT_GAP_HORIZ * th:
+            return True
+    # Stacked. Centre alignment is required, not mere overlap: a wrapped label
+    # ("Elastic Load" / "Balancing") is centred on itself, whereas a component
+    # label and the group caption beneath it ("Web Server" / "Auto Scaling
+    # Group") are offset. Overlap alone merges the two into one component.
+    if h_overlap > 0.3 * min(a.w, b.w) and abs(a.cx - b.cx) < 0.35 * min(a.w, b.w):
+        if max(a.y, b.y) - min(a.bottom, b.bottom) < TEXT_GAP_VERT * th:
+            return True
+    return False
+
+
+def _cluster_words(words: list[ocr_engine.OcrWord]) -> list[list[ocr_engine.OcrWord]]:
+    n = len(words)
+    parent = list(range(n))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if _same_label(words[i], words[j]):
+                ri, rj = find(i), find(j)
+                if ri != rj:
+                    parent[rj] = ri
+
+    groups: dict[int, list] = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(words[i])
+    return list(groups.values())
+
+
+def _cluster_box(cluster: list[ocr_engine.OcrWord]) -> tuple[int, int, int, int]:
+    x0 = min(w.x for w in cluster)
+    y0 = min(w.y for w in cluster)
+    x1 = max(w.right for w in cluster)
+    y1 = max(w.bottom for w in cluster)
+    return (x0, y0, x1 - x0, y1 - y0)
+
+
+# ── Fusion ────────────────────────────────────────────────────────────────────
+def _build_proposals(
+    img_rgb: np.ndarray,
+    words: list[ocr_engine.OcrWord],
+    shapes: list[Shape],
+    icon_matches: dict[int, icon_bank.IconMatch],
+    notation: str = "informal",
+    notation_confidence: float = 0.0,
+    segments: list[tuple[float, float, float, float]] | None = None,
+) -> list[_Proposal]:
+    """Merge the three proposers. Text is the floor; shape and icon upgrade it."""
+    profile = profile_for(notation, notation_confidence)
+
+    clusters = _cluster_words(words)
+    cluster_boxes = [_cluster_box(c) for c in clusters]
+    cluster_names = [ocr_engine.reading_order(c) for c in clusters]
+    claimed: set[int] = set()
+
+    # Text lying on a connector is that link's label, not a component. Marked
+    # up front so no proposer can claim it.
+    edge_labels = _edge_label_indices(
+        cluster_boxes, cluster_names, shapes, segments or [], profile)
+    claimed.update(edge_labels)
+
+    proposals: list[_Proposal] = []
+
+    # UML/C4 compartments are themselves rectangles, so each would otherwise be
+    # proposed as its own component ("artifacts", "license_service.dll", ...).
+    compartments = compartment_ids(shapes)
+
+    # Shape + text: label sits INSIDE the box (C4, UML, informal)
+    for shape in shapes:
+        if id(shape) in compartments:
+            continue
+        inside = [i for i, box in enumerate(cluster_boxes)
+                  if i not in claimed and contains(shape.box, box, 0.7)]
+        if not inside:
+            continue
+
+        # Does this shape enclose other shapes that are NOT its compartments?
+        #
+        # This is the discriminator, and it replaces counting text clusters.
+        # A UML/C4 box holds several text clusters because it has compartments
+        # and is ONE component. An Auto Scaling Group box also holds several,
+        # but it is a group boundary. Counting clusters cannot tell them apart:
+        # it either fuses the ASG's children into one node or explodes every
+        # UML box into four.
+        if _is_group_boundary(shape, shapes):
+            continue
+
+        # Notations WITHOUT compartments: several distinct labels inside one
+        # detected rectangle means the rectangle is a group the detector failed
+        # to recognise, not a component with sections. Reading it as one
+        # component collapses several real components into one — measured as a
+        # recall drop from 0.73 to 0.59. Leave them to the text proposer.
+        if (not profile.merge_compartments and len(inside) > 1
+                and not _is_one_label([cluster_boxes[i] for i in inside])):
+            continue
+
+        claimed.update(inside)
+        ordered = sorted(inside, key=lambda i: cluster_boxes[i][1])
+        name, marker, description = _read_compartments(
+            [cluster_names[i] for i in ordered], profile
         )
-
-        ckpt = _sam_checkpoint_path()
-        if not os.path.isfile(ckpt):
-            raise FileNotFoundError(
-                f"SAM checkpoint not found at {ckpt}. Download sam_vit_b_01ec64.pth "
-                "from https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
-            )
-
-        sam = sam_model_registry["vit_b"](checkpoint=ckpt)
-        _models["mask_generator"] = SamAutomaticMaskGenerator(
-            sam,
-            points_per_side=SAM_POINTS_PER_SIDE,
-            min_mask_region_area=200,
-        )
-        _models["clip_model"]     = CLIPModel.from_pretrained(CLIP_MODEL_ID)
-        _models["clip_processor"] = CLIPProcessor.from_pretrained(CLIP_MODEL_ID)
-        _models["trocr_processor"] = TrOCRProcessor.from_pretrained(TROCR_MODEL_ID)
-        _models["trocr_model"]     = VisionEncoderDecoderModel.from_pretrained(TROCR_MODEL_ID)
-        _models["clip_model"].eval()
-        _models["trocr_model"].eval()
-        print("[hybrid_pipeline] SAM + CLIP + TrOCR loaded")
-        return _models
-
-
-# ── Stage 1: SAM segmentation ─────────────────────────────────────────────────
-def _segment_regions(img_rgb: np.ndarray) -> list[tuple[int, int, int, int]]:
-    """Run SAM automatic mask generation, return filtered bounding boxes (x, y, w, h)
-    in ORIGINAL image coordinates."""
-    models = _load_models()
-    h, w = img_rgb.shape[:2]
-
-    scale = SAM_LONG_SIDE / max(h, w)
-    if scale < 1.0:
-        small = cv2.resize(img_rgb, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
-    else:
-        scale = 1.0
-        small = img_rgb
-
-    masks = models["mask_generator"].generate(small)
-
-    def _inter(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> int:
-        ax, ay, aw, ah = a
-        bx, by, bw_, bh_ = b
-        ix = max(0, min(ax + aw, bx + bw_) - max(ax, bx))
-        iy = max(0, min(ay + ah, by + bh_) - max(ay, by))
-        return ix * iy
-
-    img_area = small.shape[0] * small.shape[1]
-    boxes: list[tuple[int, int, int, int]] = []
-    # Smallest first: leaf components (icons, boxes) win over enclosing containers.
-    for m in sorted(masks, key=lambda m: m["area"]):
-        frac = m["area"] / img_area
-        if frac > MAX_REGION_FRACTION or frac < MIN_REGION_FRACTION:
+        if not name or is_noise(name):
             continue
-        cand = tuple(int(v) for v in m["bbox"])
-        cx, cy, cw, ch = cand
-        cand_area = cw * ch
-        if cand_area == 0:
+        proposals.append(_Proposal(
+            box=shape.box, name=name[:MAX_NAME_CHARS],
+            type_=_SHAPE_TYPE.get(shape.kind, "service"),
+            proposer="shape+text", shape_kind=shape.kind,
+            stereotype=marker, description=description,
+        ))
+
+    # Icon + text: label sits OUTSIDE, below or beside the glyph (AWS/Azure/GCP)
+    for shape_idx, hit in icon_matches.items():
+        box = shapes[shape_idx].box
+        near = [i for i, cbox in enumerate(cluster_boxes)
+                if i not in claimed and _near_icon(box, cbox)]
+        if near:
+            claimed.update(near)
+            name = " ".join(cluster_names[i] for i in near).strip()
+        else:
+            name = hit.name          # glyph with no readable label
+        proposals.append(_Proposal(
+            box=box, name=name[:MAX_NAME_CHARS] or hit.name, type_=hit.type,
+            proposer="icon+text" if near else "icon",
+            confidence=round(hit.score, 3), icon_match=hit.name,
+            icon_score=round(hit.score, 3),
+        ))
+
+    # Shape + label-below: the icon-centric pattern without an icon bank. The
+    # glyph is a detected shape and its label sits underneath. Without this the
+    # component's box is only its text, so connectors — which attach to the
+    # glyph — never come within snapping distance and the link is lost.
+    used_shapes = {id(s) for s in shapes if any(
+        contains(s.box, cluster_boxes[i], 0.7) for i in claimed)}
+    for shape in shapes:
+        if id(shape) in used_shapes:
+            continue
+        near = [i for i, cbox in enumerate(cluster_boxes)
+                if i not in claimed and _near_icon(shape.box, cbox)]
+        if not near:
+            continue
+        claimed.update(near)
+        name = " ".join(cluster_names[i] for i in near).strip()
+        if not name or is_noise(name):
+            continue
+        proposals.append(_Proposal(
+            box=_union(shape.box, *[cluster_boxes[i] for i in near]),
+            name=name[:MAX_NAME_CHARS],
+            type_=_SHAPE_TYPE.get(shape.kind, "service"),
+            proposer="shape+text", shape_kind=shape.kind,
+        ))
+
+    # Text alone — the floor. Any label not claimed above is still a component.
+    for i, cluster in enumerate(clusters):
+        if i in claimed:
+            continue
+        name, marker = clean_name(cluster_names[i], profile)
+        if not name or is_noise(name) or _is_description(name):
+            continue
+        if is_watermark(name) or is_compartment_header(name, profile):
+            continue
+        proposals.append(_Proposal(
+            box=cluster_boxes[i], name=name, type_=classify_type(name),
+            proposer="text", stereotype=marker,
+        ))
+
+    return _nms(proposals)
+
+
+def _is_group_boundary(shape: Shape, shapes: list[Shape]) -> bool:
+    """Encloses other shapes that are NOT its own compartments."""
+    children = children_of(shape, shapes)
+    return bool(children) and not are_compartments(shape, children)
+
+
+def _read_compartments(lines: list[str], profile) -> tuple[str, str | None, str | None]:
+    """Turn a box's stacked text into (name, stereotype/tag, description).
+
+    UML and C4 boxes are divided into compartments. The first non-header
+    compartment is the component's name; the rest describe it. Joining them all
+    produced names like "«application» License Status artifacts
+    license_status.exe", which matches no ground-truth entry.
+    """
+    kept = [ln for ln in lines
+            if ln and not is_watermark(ln) and not is_compartment_header(ln, profile)]
+    if not kept:
+        return "", None, None
+
+    name, marker = clean_name(kept[0], profile)
+    rest = " ".join(kept[1:]).strip() or None
+
+    # A first compartment holding only a stereotype means the name wrapped to
+    # the following line.
+    if not name and len(kept) > 1:
+        name, _ = clean_name(kept[1], profile)
+        rest = " ".join(kept[2:]).strip() or None
+    return name, marker, (rest[:200] if rest else None)
+
+
+def _edge_label_indices(cluster_boxes, cluster_names, shapes, segments, profile) -> set[int]:
+    """Text clusters sitting on a connector — link labels, not components.
+
+    Covers UML interface names ("«API» HASP Java"), C4 relationship sentences
+    and cloud protocol tags in one rule, because the geometry is the same in
+    every notation. Only text OUTSIDE every shape is eligible, so a label
+    inside a box adjacent to its own border is never mistaken for one.
+    """
+    found: set[int] = set()
+    for i, box in enumerate(cluster_boxes):
+        if any(contains(shape.box, box, 0.6) for shape in shapes):
             continue
 
-        duplicate = False
-        contains_count = 0
-        for kept in boxes:
-            kx, ky, kw, kh = kept
-            inter = _inter(cand, kept)
-            union = cand_area + kw * kh - inter
-            if union > 0 and inter / union >= DUPLICATE_IOU:
-                duplicate = True
-                break
-            # Does the candidate enclose this kept (smaller) box?
-            if kw * kh > 0 and inter / (kw * kh) >= CONTAINMENT_RATIO:
-                contains_count += 1
-        if duplicate:
+        # UML puts an interface name on the connector, marked with a
+        # stereotype. A stereotyped label OUTSIDE every box is therefore a
+        # link label, whatever its distance from the line — the lollipop
+        # glyph breaks the segment and pushes the label clear of it.
+        if profile.stereotyped_text_outside_is_edge_label and split_stereotype(
+                cluster_names[i])[1]:
+            found.add(i)
             continue
-        # A region wrapping 2+ already-kept components is a group container
-        # (VPC boundary, availability zone, subnet) — not a component itself.
-        if contains_count >= 2:
+
+        if not profile.geometric_edge_labels:
             continue
-        boxes.append(cand)
-        if len(boxes) >= MAX_REGIONS:
-            break
-
-    # Map back to original coordinates
-    inv = 1.0 / scale
-    return [(int(x * inv), int(y * inv), int(bw * inv), int(bh * inv)) for (x, y, bw, bh) in boxes]
+        tol = max(EDGE_LABEL_MIN_PX, EDGE_LABEL_HEIGHT_FACTOR * box[3])
+        if any(segment_midspan_to_box_distance(seg, box) <= tol for seg in segments):
+            found.add(i)
+    return found
 
 
-# ── Stage 2: CLIP zero-shot type classification ───────────────────────────────
-def _classify_regions(img_rgb: np.ndarray,
-                      boxes: list[tuple[int, int, int, int]]) -> list[tuple[str, float]]:
-    """Classify every region crop in ONE batched CLIP pass.
-    Returns [(component_type, confidence)] aligned with boxes; type "" = skip."""
-    import torch
-
-    models = _load_models()
-    crops = []
-    for (x, y, bw, bh) in boxes:
-        crop = img_rgb[max(0, y):y + bh, max(0, x):x + bw]
-        crops.append(Image.fromarray(crop) if crop.size else Image.new("RGB", (8, 8)))
-
-    prompts = [p for p, _ in CLIP_PROMPTS]
-    inputs = models["clip_processor"](
-        text=prompts, images=crops, return_tensors="pt", padding=True
-    )
-    with torch.no_grad():
-        logits = models["clip_model"](**inputs).logits_per_image  # (n_crops, n_prompts)
-        probs = logits.softmax(dim=1)
-
-    results: list[tuple[str, float]] = []
-    for row in probs:
-        idx = int(row.argmax())
-        comp_type, prob = CLIP_PROMPTS[idx][1], float(row[idx])
-        # Only trust the "text annotation" (skip) verdict when CLIP is
-        # confident. A weak win for it on a real component crop would
-        # silently drop the component — fall back to the runner-up type.
-        if comp_type == "" and prob < TEXT_SKIP_MIN_PROB:
-            order = row.argsort(descending=True)
-            runner_up = int(order[1])
-            comp_type, prob = CLIP_PROMPTS[runner_up][1], float(row[runner_up])
-        results.append((comp_type, prob))
-    return results
+def _union(*boxes: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
+    x0 = min(b[0] for b in boxes)
+    y0 = min(b[1] for b in boxes)
+    x1 = max(b[0] + b[2] for b in boxes)
+    y1 = max(b[1] + b[3] for b in boxes)
+    return (x0, y0, x1 - x0, y1 - y0)
 
 
-# ── Stage 3: text extraction (tesseract on expanded crop + TrOCR fallback) ───
-LABEL_EXPAND_DOWN  = 0.6   # diagram labels usually sit below the icon/shape
-LABEL_EXPAND_SIDE  = 0.45  # generous — truncating a label's last letters is worse
-TROCR_VALIDATE_RATIO = 0.8  # TrOCR word must fuzzy-match a full-page OCR word
+# Prose that describes a component or a relationship is not itself a component.
+# C4 puts a description line inside every box and a sentence on every arrow
+# ("Sends e-mail using", "Reads from and writes to"), which is the single
+# largest source of false positives in the box-centric notations.
+_DESCRIPTION_VERBS = (
+    "sends", "send", "reads", "read", "writes", "write", "provides", "provide",
+    "makes", "make", "uses", "use", "views", "view", "delivers", "deliver",
+    "gets", "get", "calls", "call", "allows", "allow", "stores", "store",
+    "returns", "return", "manages", "manage", "handles", "handle",
+)
 
 
-def _page_ocr_words(img_rgb: np.ndarray) -> set[str]:
-    """Full-image OCR word set — used to reject TrOCR hallucinations."""
-    try:
-        import pytesseract
-        return set(pytesseract.image_to_string(Image.fromarray(img_rgb)).lower().split())
-    except Exception:
-        return set()
+def _is_description(name: str) -> bool:
+    stripped = name.strip()
+    if len(stripped) > MAX_NAME_CHARS:
+        return True
+    words = stripped.split()
+    if len(words) > MAX_NAME_WORDS:
+        return True
+    if words and words[0].lower() in _DESCRIPTION_VERBS:
+        return True
+    # A trailing full stop marks a sentence; component labels do not carry one.
+    return stripped.endswith(".") and len(words) > 3
 
 
-OCR_UPSCALE_MIN_H  = 64    # crops shorter than this get upscaled before OCR
-OCR_UPSCALE_FACTOR = 3
+def _is_one_label(boxes: list[tuple[int, int, int, int]]) -> bool:
+    """True if these text boxes are the wrapped lines of a SINGLE label:
+    centred on each other and stacked without a gap."""
+    ordered = sorted(boxes, key=lambda b: b[1])
+    for (ax, ay, aw, ah), (bx, by, bw, bh) in zip(ordered, ordered[1:]):
+        if abs((ax + aw / 2) - (bx + bw / 2)) > 0.35 * min(aw, bw):
+            return False
+        if by - (ay + ah) > TEXT_GAP_VERT * max(ah, bh):
+            return False
+    return True
 
 
-def _clean_ocr_tokens(text: str) -> str:
-    """Strips OCR junk: edge tokens that are truncated fragments ('ce', 'co:')
-    or pure punctuation ('/', '\\'). Short tokens survive only if they look
-    like real identifiers (uppercase acronyms or containing a digit: S3, DB, EC2)."""
-    def is_junk(tok: str) -> bool:
-        core = tok.strip(".,:;|/\\()[]{}<>-_'\"")
-        if not core or not any(ch.isalnum() for ch in core):
-            return True   # pure punctuation
-        if len(core) <= 2 and not (core.isupper() or any(ch.isdigit() for ch in core)):
-            return True   # truncated lowercase fragment like 'ce'
+def _near_icon(icon_box: tuple[int, int, int, int],
+               text_box: tuple[int, int, int, int],
+               gap_factor: float = 1.2) -> bool:
+    """Icon-centric notations print the label under the glyph."""
+    ix, iy, iw, ih = icon_box
+    tx, ty, tw, th = text_box
+    if tx + tw < ix - iw * 0.5 or tx > ix + iw * 1.5:
         return False
-
-    tokens = text.split()
-    while tokens and is_junk(tokens[0]):
-        tokens.pop(0)
-    while tokens and is_junk(tokens[-1]):
-        tokens.pop()
-    # Interior pure-punctuation tokens are noise too
-    tokens = [t for t in tokens if any(ch.isalnum() for ch in t)]
-    return " ".join(t.strip(".,:;|") for t in tokens).strip()
+    return 0 <= ty - (iy + ih) <= gap_factor * ih
 
 
-def _tesseract_words(pil: Image.Image, min_conf: float) -> str:
-    import pytesseract
-    data = pytesseract.image_to_data(
-        pil, config="--psm 6", output_type=pytesseract.Output.DICT
-    )
-    words = [t.strip() for t, c in zip(data["text"], data["conf"])
-             if t.strip() and float(c) > min_conf]
-    return " ".join(words)
+def _nms(proposals: list[_Proposal]) -> list[_Proposal]:
+    """Keep the richest-evidence proposal where two overlap."""
+    ordered = sorted(proposals, key=lambda p: -_EVIDENCE_RANK.get(p.proposer, 0))
+    kept: list[_Proposal] = []
+    for p in ordered:
+        if any(_iou(p.box, k.box) >= MERGE_IOU for k in kept):
+            continue
+        kept.append(p)
+    return kept
 
 
-def _read_region_text(img_rgb: np.ndarray, box: tuple[int, int, int, int],
-                      page_words: set[str]) -> str:
-    """OCR the region. The crop is expanded down/sideways because diagram labels
-    typically sit outside the segmented shape, and upscaled because tesseract
-    misreads small text (root cause of garbled names like 'ce Web Server').
-    Fallback order: tesseract conf>40 → TrOCR (validated against full-page OCR,
-    a generative decoder invents words on pure iconography) → tesseract conf>20."""
-    import torch
-
-    h, w = img_rgb.shape[:2]
-    x, y, bw, bh = box
-    ex = max(0, x - int(bw * LABEL_EXPAND_SIDE))
-    ey = max(0, y - int(bh * 0.1))
-    ex2 = min(w, x + bw + int(bw * LABEL_EXPAND_SIDE))
-    ey2 = min(h, y + bh + int(bh * LABEL_EXPAND_DOWN))
-    crop = img_rgb[ey:ey2, ex:ex2]
-    if crop.size == 0:
-        return ""
-
-    # Upscale small crops — tesseract accuracy drops sharply below ~30px text
-    if crop.shape[0] < OCR_UPSCALE_MIN_H:
-        crop = cv2.resize(crop, None, fx=OCR_UPSCALE_FACTOR, fy=OCR_UPSCALE_FACTOR,
-                          interpolation=cv2.INTER_CUBIC)
-    pil = Image.fromarray(crop)
-
-    # Primary: tesseract with per-word confidence filter
-    try:
-        text = _clean_ocr_tokens(_tesseract_words(pil, min_conf=40))
-        if text:
-            return text
-    except Exception:
-        pass
-
-    # Fallback: TrOCR on the original (unexpanded) crop, hallucination-guarded
-    models = _load_models()
-    tight = img_rgb[max(0, y):y + bh, max(0, x):x + bw]
-    if tight.size > 0:
-        try:
-            pixel_values = models["trocr_processor"](
-                images=Image.fromarray(tight), return_tensors="pt"
-            ).pixel_values
-            with torch.no_grad():
-                ids = models["trocr_model"].generate(pixel_values, max_new_tokens=32)
-            raw = models["trocr_processor"].batch_decode(ids, skip_special_tokens=True)[0].strip()
-
-            from difflib import SequenceMatcher
-            validated = [
-                word for word in raw.split()
-                if any(SequenceMatcher(None, word.lower(), pw).ratio() >= TROCR_VALIDATE_RATIO
-                       for pw in page_words)
-            ]
-            text = _clean_ocr_tokens(" ".join(validated))
-            if text:
-                return text
-        except Exception:
-            pass
-
-    # Last resort: low-confidence tesseract on the expanded crop. Better to
-    # keep the region with a noisy label than to drop a real component.
-    try:
-        return _clean_ocr_tokens(_tesseract_words(pil, min_conf=20))
-    except Exception:
-        return ""
-
-
-def _dedupe_components(
-    components: list[ComponentSchema],
-    boxes: list[tuple[int, int, int, int]],
-) -> tuple[list[ComponentSchema], list[tuple[int, int, int, int]]]:
-    """Merges components whose names are near-identical AND whose boxes overlap
-    (same physical shape segmented twice). Keeps the higher-confidence one."""
-    from difflib import SequenceMatcher
-
-    def iou(a, b) -> float:
-        ax, ay, aw, ah = a
-        bx, by, bw_, bh_ = b
-        ix = max(0, min(ax + aw, bx + bw_) - max(ax, bx))
-        iy = max(0, min(ay + ah, by + bh_) - max(ay, by))
-        inter = ix * iy
-        union = aw * ah + bw_ * bh_ - inter
-        return inter / union if union > 0 else 0.0
-
-    keep: list[int] = []
-    for i, (comp, box) in enumerate(zip(components, boxes)):
-        merged = False
-        for j in keep:
-            same_name = SequenceMatcher(
-                None, comp.name.lower(), components[j].name.lower()
-            ).ratio() >= DEDUPE_NAME_RATIO
-            if same_name and iou(box, boxes[j]) >= DEDUPE_BOX_IOU:
-                # Duplicate — keep whichever has higher CLIP confidence
-                if (comp.confidence or 0) > (components[j].confidence or 0):
-                    components[j] = comp.model_copy(update={"id": components[j].id})
-                    boxes[j] = box
-                merged = True
-                break
-        if not merged:
-            keep.append(i)
-
-    kept_components = [components[i] for i in keep]
-    kept_boxes = [boxes[i] for i in keep]
-    # Re-sequence ids so downstream connection mapping stays consistent
-    for n, c in enumerate(kept_components):
-        c.id = f"h{n + 1}"
-    return kept_components, kept_boxes
-
-
-# ── Sync core (runs in a worker thread) ───────────────────────────────────────
+# ── Sync core ─────────────────────────────────────────────────────────────────
 def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureSchema:
     pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     img_rgb = np.array(pil)
-    gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
 
-    boxes = _segment_regions(img_rgb)
-    if not boxes:
-        raise ValueError("SAM found no candidate regions")
+    # Stage 1 — one full-page OCR pass. Text is needed by every later stage.
+    words = ocr_engine.read_page(img_rgb)
 
-    classifications = _classify_regions(img_rgb, boxes)
-    page_words = _page_ocr_words(img_rgb)
+    # Stage 2 — notation FIRST, so the rule profile is available to the
+    # geometry stage. Stereotypes and bracket tags come from the OCR text, so
+    # this needs no shapes; the icon-bank signal is folded in afterwards.
+    ocr_text = " ".join(w.text for w in words)
+    notation, notation_conf = classify_notation(img_rgb, ocr_text)
+    profile = profile_for(notation, notation_conf)
+
+    # Stage 3 — geometry, split into components and group boundaries.
+    # Dashed boundaries are found separately: contour analysis on a dashed
+    # outline returns one contour per dash, never a rectangle.
+    shapes = detect_shapes(img_rgb)
+    if profile.merge_compartments:
+        # Only for compartmented notations — see Profile.merge_compartments.
+        shapes = merge_compartments(shapes)
+    shape_components, containers = split_containers(shapes)
+    containers += [b for b in detect_dashed_boundaries(img_rgb)
+                   if not any(_iou(b.box, c.box) >= 0.55 for c in containers)]
+
+    # Stage 4 — icon retrieval over the non-container shapes. A confident
+    # vendor-icon consensus overrides the text-only notation guess.
+    icon_matches: dict[int, icon_bank.IconMatch] = {}
+    if icon_bank.available() and shape_components:
+        crops = [img_rgb[y:y + h, x:x + w] for (x, y, w, h) in
+                 (s.box for s in shape_components)]
+        results = icon_bank.match_batch(crops)
+        icon_matches = {i: m for i, m in enumerate(results) if m}
+        if icon_matches:
+            providers = [m.provider for m in icon_matches.values()]
+            provider = max(set(providers), key=providers.count)
+            notation, notation_conf = classify_notation(
+                img_rgb, ocr_text, icon_bank.hit_rate(results), provider
+            )
+
+    # Stage 5 — connector segments from shapes alone. Needed BEFORE components
+    # exist so that text lying on a link can be recognised as that link's
+    # label rather than proposed as a component.
+    container_boxes = [c.box for c in containers]
+    segments = detect_connector_segments(
+        img_rgb, [s.box for s in shape_components], container_boxes,
+        [w.box for w in words],
+    )
+
+    # Stage 6 — fuse proposers into one component list, under the notation's
+    # rule profile (see notation_profiles.py).
+    proposals = _build_proposals(
+        img_rgb, words, shape_components, icon_matches,
+        notation, notation_conf, segments,
+    )
+    if len(proposals) > MAX_COMPONENTS:
+        print(f"[hybrid_pipeline] capping {len(proposals)} proposals to {MAX_COMPONENTS}")
+        proposals = proposals[:MAX_COMPONENTS]
 
     components: list[ComponentSchema] = []
-    kept_boxes: list[tuple[int, int, int, int]] = []
-    for box, (comp_type, clip_conf) in zip(boxes, classifications):
-        if comp_type == "":          # CLIP confident: text annotation, not a component
-            continue
-        text = _read_region_text(img_rgb, box, page_words)
-        if not text or _is_noise(text):
-            continue
-        # Very long OCR output = region swallowed surrounding labels, not a component name
-        if len(text) > MAX_NAME_CHARS or len(text.split()) > MAX_NAME_WORDS:
-            continue
-        # Keyword-based type beats CLIP when the label is explicit ("Redis Cache")
-        keyword_type = _classify_type(text)
-        final_type = keyword_type if keyword_type != "other" else comp_type
+    boxes: list[tuple[int, int, int, int]] = []
+    for i, p in enumerate(proposals):
+        # An explicit label beats a shape or icon guess ("Redis Cache" is a
+        # cache regardless of what box it was drawn in).
+        keyword_type = classify_type(p.name) if p.name else "other"
+        final_type = keyword_type if keyword_type not in ("other", "service") else p.type
+        x, y, w, h = p.box
         components.append(ComponentSchema(
-            id=f"h{len(components) + 1}",
-            name=text,
-            type=final_type,
-            confidence=round(clip_conf, 3),
+            id=f"h{i + 1}", name=p.name or f"Component {i + 1}", type=final_type,
+            confidence=p.confidence,
+            position=ComponentPosition(x=float(x + w / 2), y=float(y + h / 2)),
+            icon_match=p.icon_match, icon_score=p.icon_score, proposer=p.proposer,
+            stereotype=p.stereotype, description=p.description,
         ))
-        kept_boxes.append(box)
+        boxes.append(p.box)
 
-    # Dedupe: near-identical names on overlapping boxes = SAM segmented the
-    # same shape twice. Distant boxes with the same name are kept — replicated
-    # components (multi-AZ web servers) are genuine.
-    components, kept_boxes = _dedupe_components(components, kept_boxes)
+    # Stage 6 — containers kept as components with children linked via parent_id.
+    # The old pipeline discarded these; VPC / subnet / AZ / C4 boundaries are
+    # architectural knowledge and are what a knowledge graph needs.
+    _attach_containers(components, boxes, containers, words)
 
-    centroids = [(x + bw / 2, y + bh / 2) for (x, y, bw, bh) in kept_boxes]
-    component_ids = [c.id for c in components]
-    connections = _detect_connections(gray, kept_boxes, centroids, component_ids)
+    # Stage 7 — connections. Own detector, not the classical arm's, so the
+    # three-way comparison measures three methods rather than two.
+    text_boxes = [w.box for w in words]
+    detected = detect_connections(
+        img_rgb, boxes, [c.id for c in components[:len(boxes)]], text_boxes, notation,
+        container_boxes=container_boxes,
+    )
+    connections = _to_connection_schemas(detected, components)
 
     names = [c.name for c in components]
     return ArchitectureSchema(
         session_id=session_id,
         pipeline="hybrid",
-        diagram_standard=_infer_diagram_standard(names),
-        complexity=_complexity(len(components)),
-        arch_type=_infer_arch_type([c.type for c in components]),
-        components=components,   # empty = honest zero, not a fake "Unknown"
+        diagram_standard=notation,
+        complexity=complexity(len(components)),
+        arch_type=infer_arch_type([c.type for c in components]),
+        components=components,
         connections=connections,
         response_time_ms=int((time.time() - start) * 1000),
+        notation_confidence=notation_conf,
     )
+
+
+def _attach_containers(components: list[ComponentSchema],
+                       boxes: list[tuple[int, int, int, int]],
+                       containers: list[Shape],
+                       words: list[ocr_engine.OcrWord]) -> None:
+    """Append group boundaries as components and set parent_id on their children.
+    Smallest container wins, so a subnet inside a VPC is the direct parent."""
+    if not containers:
+        return
+    start_idx = len(components)
+    for n, container in enumerate(sorted(containers, key=lambda s: s.area)):
+        # Boundary labels sit at the top-left of the region
+        x, y, w, h = container.box
+        header = ocr_engine.text_for_box(words, (x, y, w, max(24, int(h * 0.18))))
+        # An unnamed region is not evidence of a boundary. The old fallback
+        # name ("Boundary 1") itself contained the word "boundary", so the
+        # looks_like_container guard passed and every unlabelled rectangle was
+        # emitted as a container.
+        if not header or is_noise(header):
+            continue
+        name = header
+        cid = f"h{start_idx + n + 1}"
+        components.append(ComponentSchema(
+            id=cid, name=name[:MAX_NAME_CHARS], type="other", is_container=True,
+            position=ComponentPosition(x=float(x + w / 2), y=float(y + h / 2)),
+            proposer="shape",
+        ))
+        for child, box in zip(components[:start_idx], boxes):
+            if child.parent_id is None and contains(container.box, box):
+                child.parent_id = cid
+
+
+def _to_connection_schemas(detected, components: list[ComponentSchema]) -> list[ConnectionSchema]:
+    out: list[ConnectionSchema] = []
+    for n, d in enumerate(detected):
+        if d.source_idx >= len(components) or d.target_idx >= len(components):
+            continue
+        src, tgt = components[d.source_idx], components[d.target_idx]
+        out.append(ConnectionSchema(
+            id=f"e{n + 1}", source=src.id, target=tgt.id,
+            source_name=src.name, target_name=tgt.name,
+            label="", directed=d.directed,
+            line_style=d.line_style,
+            arrowhead_source=d.arrowhead_source,
+            arrowhead_target=d.arrowhead_target,
+            relationship=d.relationship,
+        ))
+    return out
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 async def run_hybrid_pipeline(image_bytes: bytes, session_id: str) -> ArchitectureSchema:
-    """Full SAM + CLIP + TrOCR extraction. Never raises — returns partial results."""
+    """Full hybrid extraction. Never raises — returns partial results on error."""
     start = time.time()
+
+    if os.environ.get("HYBRID_VERSION", "v2").lower() == "v1":
+        from services.hybrid_pipeline_v1 import run_hybrid_pipeline_v1
+        return await run_hybrid_pipeline_v1(image_bytes, session_id)
+
     try:
         return await asyncio.to_thread(_extract, image_bytes, session_id, start)
     except Exception as e:
@@ -445,8 +596,8 @@ async def run_hybrid_pipeline(image_bytes: bytes, session_id: str) -> Architectu
             diagram_standard="informal",
             complexity="low",
             arch_type="other",
-            components=[],
-            connections=[],
+            components=[],      # empty = honest zero; a fake "Unknown" would
+            connections=[],     # count as a false positive in the benchmark
             response_time_ms=int((time.time() - start) * 1000),
             extraction_error=str(e)[:500],
         )

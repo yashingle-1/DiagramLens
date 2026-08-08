@@ -15,6 +15,16 @@ backend/venv/
 # SAM checkpoint — 375MB, too large for git
 backend/models/sam/*.pth
 
+# Raw vendor icon packs (AWS/Azure/GCP) — 1456 files, 16.5MB, and the glyphs
+# are vendor trademarks. Regenerate with:
+#   pip install diagrams
+#   copy <site-packages>/resources/{aws,azure,gcp} -> backend/data/icons/
+#   python backend/scripts/build_icon_bank.py
+# The derived embedding bank IS committed, so the pipeline runs without them.
+backend/data/icons/aws/
+backend/data/icons/azure/
+backend/data/icons/gcp/
+
 # HuggingFace model cache
 backend/.cache/
 *.bin
@@ -75,3 +85,5 @@ SoC-Report-Template.docx
 SoC-Report-Template.pdf
 SP-doc-template.docx
 docs/ASSESSOR_BRIEFING.md
+fill_report.py
+Marking Guidance for COMP5200M.pdf

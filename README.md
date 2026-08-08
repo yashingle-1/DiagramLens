@@ -1,313 +1,218 @@
-# ArchExplain 🏗️
+# DiagramLens
 
-> **AI-Powered Architecture Diagram Analyser**
-> Upload a software architecture diagram and get instant, structured explanations powered by LLMs (Gemini, Claude, GPT-4V).
+A framework for extracting structured, machine-readable representations of software
+architecture diagrams, and for comparing three different ways of doing it.
 
----
-
-## Table of Contents
-
-1. [Project Overview](#project-overview)
-2. [Tech Stack](#tech-stack)
-3. [Project Structure](#project-structure)
-4. [Getting Started](#getting-started)
-   - [Prerequisites](#prerequisites)
-   - [Environment Variables](#environment-variables)
-   - [Running with Docker (Recommended)](#running-with-docker-recommended)
-   - [Running Manually (Development)](#running-manually-development)
-5. [API Reference](#api-reference)
-6. [Key Concepts](#key-concepts)
-7. [LLM Provider Support](#llm-provider-support)
-8. [Development Notes](#development-notes)
+MSc Advanced Computer Science (AI) project — University of Leeds.
 
 ---
 
-## Project Overview
+## What it does
 
-ArchExplain analyses architecture diagrams by:
+You give it an image of a software architecture diagram. It returns JSON describing
+the components and the connections between them:
 
-1. **Uploading** an image (PNG/JPG) of a system architecture.
-2. **Extracting** components (services, databases, gateways, queues, etc.) and their connections via a Vision LLM.
-3. **Exposing** an interactive chat interface to ask follow-up questions about the diagram.
-4. **Providing** pre-loaded case studies (Netflix, Uber, etc.) for learning.
-5. **Benchmarking** multiple LLM providers and prompt strategies (zero-shot, few-shot, chain-of-thought) against each other.
-
----
-
-## Tech Stack
-
-| Layer        | Technology                                      |
-|--------------|-------------------------------------------------|
-| **Frontend** | Next.js 16 · React 19 · TypeScript · Tailwind CSS · shadcn/ui · Zustand · TanStack Query · React Flow |
-| **Backend**  | FastAPI · Python · Pydantic v2 · Uvicorn        |
-| **Database** | PostgreSQL 15 (via SQLAlchemy async + asyncpg)  |
-| **Cache**    | Redis 7                                         |
-| **LLMs**     | Google Gemini (primary) · Anthropic Claude · OpenAI GPT-4V |
-| **DevOps**   | Docker · Docker Compose                         |
-
----
-
-## Project Structure
-
-```
-archexplain/
-├── docker-compose.yml          # Orchestrates all services
-├── .env                        # Active environment config (not committed)
-├── .env.example                # Template for environment variables
-│
-├── backend/                    # FastAPI application
-│   ├── main.py                 # App entry-point, middleware, router mounts
-│   ├── config.py               # Pydantic-settings config (singleton)
-│   ├── requirements.txt        # Python dependencies
-│   │
-│   ├── routers/                # API route handlers
-│   │   ├── analyze.py          # POST /api/analyze — image upload & extraction
-│   │   ├── chat.py             # POST /api/chat  — conversational Q&A
-│   │   ├── cases.py            # GET  /api/cases — pre-built case studies
-│   │   ├── session.py          # GET  /api/session/{id} — session retrieval
-│   │   └── benchmark.py        # POST /api/benchmark — multi-LLM comparison
-│   │
-│   ├── services/               # Business logic
-│   │   ├── extraction.py       # Diagram → ArchitectureSchema using LLM
-│   │   ├── cache.py            # Redis read/write helpers
-│   │   ├── storage.py          # File upload & static serving helpers
-│   │   └── llm/                # LLM provider adapters (Gemini, Claude, OpenAI)
-│   │
-│   ├── models/
-│   │   ├── schemas.py          # Pydantic request/response models
-│   │   └── database.py         # SQLAlchemy ORM models & table definitions
-│   │
-│   ├── db/
-│   │   └── connection.py       # Async database connection & table creation
-│   │
-│   ├── data/                   # Static case study JSON files
-│   ├── scripts/                # One-off helper scripts (seeding, migrations)
-│   └── uploads/                # Uploaded diagram images (auto-created)
-│
-└── frontend/                   # Next.js application
-    ├── app/                    # Next.js App Router pages
-    ├── components/             # Reusable React components
-    ├── lib/                    # API client, utilities
-    ├── store/                  # Zustand state management
-    └── types/                  # Shared TypeScript types
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-| Tool | Version | Notes |
-|------|---------|-------|
-| Docker Desktop | ≥ 24 | Recommended for full stack |
-| Node.js | ≥ 20 | Frontend dev only |
-| Python | ≥ 3.11 | Backend dev only |
-| Git | any | — |
-
-### Environment Variables
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```bash
-cp .env.example .env
-```
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | ✅ | Get free key at [aistudio.google.com](https://aistudio.google.com) |
-| `LLM_PROVIDER` | ✅ | `gemini` \| `claude` \| `openai` (default: `gemini`) |
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `REDIS_URL` | ✅ | Redis connection string |
-| `CLAUDE_API_KEY` | ❌ | Only needed for benchmarking |
-| `OPENAI_API_KEY` | ❌ | Only needed for benchmarking |
-| `MAX_UPLOAD_SIZE_MB` | ❌ | Max image size (default: `10`) |
-
-> [!CAUTION]
-> Never commit your `.env` file. It is already listed in `.gitignore`.
-> The `config.py` file contains a placeholder API key — remove it and rely on `.env`.
-
----
-
-### Running with Docker (Recommended)
-
-```bash
-# 1. Clone and enter project
-git clone <repo-url>
-cd archexplain
-
-# 2. Set up environment
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
-
-# 3. Start all services
-docker compose up --build
-
-# 4. Open the app
-#    Frontend → http://localhost:3000
-#    Backend API → http://localhost:8000
-#    API Docs (Swagger) → http://localhost:8000/docs
-```
-
-To stop:
-```bash
-docker compose down
-```
-
-To reset everything (including volumes):
-```bash
-docker compose down -v
-```
-
----
-
-### Running Manually (Development)
-
-**Backend**
-
-```bash
-cd backend
-
-# Create and activate virtual environment
-python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS/Linux
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start the API server (with auto-reload)
-uvicorn main:app --reload --port 8000
-```
-
-> Make sure PostgreSQL and Redis are running locally, or use Docker for just the services:
-> ```bash
-> docker compose up postgres redis
-> ```
-
-**Frontend**
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start dev server
-npm run dev
-```
-
-Frontend will be available at `http://localhost:3000`.
-
----
-
-## API Reference
-
-All endpoints are prefixed with `/api`. Full interactive docs available at `/docs` (Swagger UI) and `/redoc`.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check |
-| `POST` | `/api/analyze` | Upload diagram image → returns `ArchitectureSchema` |
-| `POST` | `/api/chat` | Send a chat message about the analysed diagram |
-| `GET` | `/api/cases` | List all pre-loaded case studies |
-| `GET` | `/api/cases/{id}` | Get full details of a specific case study |
-| `GET` | `/api/session/{id}` | Retrieve a previous analysis session |
-| `POST` | `/api/benchmark` | Run multi-LLM / multi-prompt benchmarking |
-
-### Example: Analyse a Diagram
-
-```bash
-curl -X POST http://localhost:8000/api/analyze \
-  -F "file=@/path/to/diagram.png"
-```
-
-Response:
 ```json
 {
-  "session_id": "uuid",
-  "architecture": {
-    "components": [...],
-    "connections": [...],
-    "arch_type": "microservices",
-    "confidence_score": 0.92
-  },
-  "image_url": "/uploads/diagram.png",
-  "cached": false,
-  "llm_provider": "gemini"
+  "pipeline": "hybrid",
+  "diagram_standard": "uml",
+  "components": [
+    {"id": "h1", "name": "License Services Java", "type": "service",
+     "stereotype": "component", "description": "license_service.jar"}
+  ],
+  "connections": [
+    {"source": "h1", "target": "h2", "source_name": "License Services Java",
+     "target_name": "HASP Java Native Interface Proxy",
+     "directed": true, "line_style": "solid", "arrowhead_target": "open_arrow"}
+  ]
 }
 ```
 
----
+The same image is processed by three independent pipelines, each representing a
+different paradigm, and all three emit the same schema so their outputs are directly
+comparable.
 
-## Key Concepts
+## The research question
 
-### ArchitectureSchema
+Vision-Language Models can produce this JSON directly, so why build anything else?
 
-The core data model returned by every analysis:
+Because a VLM is not always the right tool. It can hallucinate components that are not
+in the image, it requires sending the diagram to a third-party API, it costs money per
+call, and its output is hard to explain or reproduce. Whether those trade-offs matter
+depends on the situation.
+
+This project measures the alternatives under one benchmark rather than assuming an
+answer.
+
+## The three pipelines
+
+| Pipeline | Approach | Runs where |
+|---|---|---|
+| **Classical** | OpenCV contour and edge analysis, Hough line detection, Tesseract OCR. No machine learning of any kind. | Local, ~1.5s |
+| **Hybrid** | Specialised discriminative models — PaddleOCR PP-OCRv5 for text, CLIP image embeddings for icon retrieval — combined with deterministic geometry. No generative model. | Local, ~8s |
+| **Gemini** | Gemini 2.5 Flash with structured output, prompted to extract the diagram directly. | Google API |
+
+The classical pipeline is the experimental control and is deliberately frozen. The
+hybrid pipeline has its own connection detector rather than sharing the classical one,
+so the three-way comparison measures three genuinely different methods.
+
+### How the hybrid pipeline works
+
+Three proposers run over the same image and are merged into one component list:
+
+- **Icon retrieval** — CLIP image embeddings matched against a bank of official
+  AWS / Azure / GCP icons. Carries cloud diagrams, where the label sits outside the glyph.
+- **Shape detection** — contour geometry. Carries C4, UML and informal diagrams, where
+  the label sits inside a drawn box.
+- **Text clustering** — PaddleOCR word boxes grouped spatially. This is the universal
+  floor: every component in every notation carries a label, so this always fires. The
+  other two only improve precision and typing.
+
+A notation classifier runs first and selects a rule profile, because notations decorate
+components differently. A UML box has compartments (`«stereotype» Name`, then
+`artifacts`, then a file list) that a naive reader turns into four components. C4 boxes
+carry a bracket tag and a description line. Those rules live in
+`backend/services/notation_profiles.py` as data, not code — adding a notation means
+adding a dictionary entry.
+
+## Current results
+
+Measured on 13 manually annotated ground-truth diagrams. Component names are compared
+with normalised fuzzy matching (acronym expansion, vendor-prefix removal, token-set
+similarity) at a 0.75 threshold.
+
+| Pipeline | Component F1 | Precision | Recall | Time |
+|---|---|---|---|---|
+| Classical | 0.486 | 0.377 | 0.752 | 1.6s |
+| Hybrid | **0.597** | 0.542 | 0.707 | 7.8s |
+| Gemini | not yet measured | | | |
+
+Component F1 by notation (hybrid):
+
+| Notation | n | F1 |
+|---|---|---|
+| UML | 3 | 0.783 |
+| C4 | 5 | 0.591 |
+| Informal | 1 | 0.761 |
+| AWS | 4 | 0.424 |
+
+**Caveats, stated plainly:**
+
+- The Gemini pipeline has not been benchmarked since the prompt and schema were
+  rewritten. The three-way comparison is currently incomplete.
+- n = 13, and the per-notation subsets are n = 1 to 5. These are indicative, not
+  conclusive.
+- Connection extraction scores poorly (F1 0.029 hybrid, 0.067 classical). Line detection
+  is not the bottleneck — endpoints snap correctly and roughly the right number of links
+  are found. The loss is in scoring: when component precision is 0.54, more than half of
+  all connection endpoints resolve to a component absent from the ground truth, which
+  discards the whole connection. Connection accuracy is capped by component precision.
+- Reported F1 uses normalised name matching. The same extractions scored with plain
+  character similarity give 0.308 (hybrid) and 0.280 (classical). Both figures are
+  stored per benchmark run so the effect of normalisation is visible rather than hidden.
+
+## Setup
+
+Requires Python 3.11, Node 20, PostgreSQL and Redis.
+
+```bash
+# Backend
+cd backend
+python -m venv venv
+venv\Scripts\activate            # Windows;  source venv/bin/activate on Unix
+pip install -r requirements.txt
+cp ../.env.example .env          # then fill in GEMINI_API_KEY
+python scripts/migrate_benchmark_columns.py
+uvicorn main:app --reload --port 8000
+```
+
+`.env` must live in `backend/`, and `uvicorn` must be started from there — settings are
+read relative to the working directory.
+
+```bash
+# Frontend
+cd frontend
+npm install
+npm run dev                      # http://localhost:3000
+```
+
+Tesseract must be installed and on `PATH` for the classical pipeline. PaddleOCR
+downloads its PP-OCRv5 mobile models on first use (about 10s, then cached).
+
+### Optional components
+
+The icon-retrieval proposer is off by default. It is built and calibrated, but on this
+dataset it accepted one icon across 41 candidate crops, changed component F1 by 0.000,
+and added roughly 5s per diagram. See "What did not work" below.
+
+```bash
+pip install diagrams
+# copy <site-packages>/resources/{aws,azure,gcp} into backend/data/icons/
+python backend/scripts/build_icon_bank.py
+ICON_BANK=1 uvicorn main:app        # to enable it
+HYBRID_VERSION=v1 uvicorn main:app  # run the earlier SAM+CLIP+TrOCR pipeline
+```
+
+## API
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /api/analyze` | Upload an image; runs all three pipelines in parallel |
+| `POST /api/benchmark` | Score a session against a ground-truth file |
+| `GET /api/dashboard` | Aggregate benchmark statistics |
+| `GET /api/sessions` | Recent uploads |
+| `POST /api/chat` | Ask questions about an extracted architecture |
+
+## Repository layout
 
 ```
-ArchitectureSchema
-├── components[]          # nodes in the diagram
-│   ├── id, name, type    # type: service | database | gateway | queue | ...
-│   ├── technology         # e.g. "NGINX", "PostgreSQL 15"
-│   └── metadata
-│       ├── role
-│       ├── bottleneck_risk    # low | medium | high
-│       ├── scalability        # horizontal | vertical | both
-│       ├── security_surface   # low | medium | high
-│       ├── responsibilities[]
-│       └── suggestions[]
-└── connections[]         # edges between components
-    ├── source, target    # component ids
-    ├── label             # e.g. "REST", "gRPC", "SQL"
-    ├── direction         # unidirectional | bidirectional
-    ├── protocol
-    └── data_type         # JSON | binary | stream
+backend/
+  services/
+    classical_pipeline.py     Control arm — frozen, do not modify
+    hybrid_pipeline.py        Three-proposer fusion
+    hybrid_pipeline_v1.py     Earlier SAM+CLIP+TrOCR arm, kept for ablation
+    ocr_engine.py             PaddleOCR PP-OCRv5, Tesseract fallback
+    shape_detector.py         Contour geometry, compartment handling
+    connection_detector.py    LSD segments, arrowheads, line style
+    icon_bank.py              CLIP image-to-image icon retrieval
+    notation_classifier.py    Which notation is this?
+    notation_profiles.py      Per-notation rules, as data
+    metrics.py                Fuzzy matching and scoring
+    llm/gemini.py             Gemini 2.5 Flash with structured output
+  scripts/                    Icon bank builder, database migration
+evaluation/ground_truth/      Annotated diagrams (JSON + source image)
+frontend/                     Next.js interface
 ```
 
-### Session Model
+## What did not work
 
-Each diagram upload creates a **session** (stored in PostgreSQL). Redis caches results for identical image hashes. Sessions can be retrieved via `/api/session/{id}`.
+Two foundation-model components were implemented, measured and then rejected. Both are
+kept in the repository behind flags so the comparison can be reproduced.
 
-### Benchmarking
+**Segment Anything (SAM).** Its automatic mask generator is class-agnostic. On synthetic
+diagrams it over-segments decorative gradients and icon sub-parts while failing to
+distinguish semantic units, so it needed an extensive filter stack and still produced
+about 6 components in roughly 137 seconds. Replaced by contour analysis, which answers
+the actual question — "is this a drawn box?" — in milliseconds.
 
-The `/api/benchmark` endpoint runs the same diagram through multiple LLM providers (`gemini`, `claude`, `openai`) and prompt variants:
+**CLIP for icon identification.** CLIP embeddings of flat vector icons occupy a narrow
+cone, so an absolute cosine threshold cannot separate them. Across a 1456-icon bank,
+random pairs of *different* icons score a median of 0.790, and the median icon's nearest
+*other* icon scores 0.953. At a 0.82 threshold, 29.3% of unrelated pairs pass. In
+practice this labelled 19 of 20 crops on one AWS diagram as the same service. Acceptance
+was rewritten to be relative (margin over ranks 2–10, plus a z-score), which removed
+every false match but left almost no true ones.
 
-| Variant | Description |
-|---------|-------------|
-| `zero_shot` | No examples, direct extraction prompt |
-| `few_shot` | Includes example JSON in the prompt |
-| `chain_of_thought` | Asks the LLM to reason step-by-step before extracting |
+CLIP is still used, but for what it is actually good at: image-to-image retrieval
+against a known vocabulary, rather than matching text prompts to abstract glyphs.
 
----
+## Licensing note
 
-## LLM Provider Support
-
-| Provider | Model | Status |
-|----------|-------|--------|
-| Google Gemini | `gemini-1.5-flash` / `gemini-pro-vision` | ✅ Default |
-| Anthropic Claude | `claude-3-opus` | ✅ Optional (benchmarking) |
-| OpenAI | `gpt-4-vision-preview` | ✅ Optional (benchmarking) |
-
-Set `LLM_PROVIDER` in `.env` to switch the primary provider.
-
----
-
-## Development Notes
-
-- **Hot-reload**: Both frontend (`next dev`) and backend (`uvicorn --reload`) support hot-reload out of the box. The Docker volumes in `docker-compose.yml` mount source directories to enable this in containers too.
-- **Database migrations**: Use [Alembic](https://alembic.sqlalchemy.org/) for schema migrations. The `scripts/` folder contains seeding helpers.
-- **Uploads**: Files are stored in `backend/uploads/` and served statically at `/uploads/<filename>`.
-- **CORS**: The backend allows requests from `http://localhost:3000` by default. Change `FRONTEND_URL` in `.env` for other origins.
-- **Linting**: Run `npm run lint` in the frontend directory for ESLint checks.
+The icon bank is derived from vendor icon sets redistributed by the MIT-licensed
+`diagrams` package. The glyphs themselves remain AWS, Microsoft and Google trademarks.
+Only the derived embeddings are committed to this repository; the raw images are
+excluded and can be regenerated with the script above.
 
 ---
 
-## MSc Project Context
-
-This project is developed as part of an MSc dissertation at the **University of Leeds**. It explores the use of Vision-Language Models for automated software architecture understanding, with a focus on structured extraction, multi-LLM comparison, and educational tooling for system design interview preparation.
-
----
-
-*Last updated: April 2026*
+Yash Rajabhau Ingle — MSc Advanced Computer Science (AI), University of Leeds, 2026.
