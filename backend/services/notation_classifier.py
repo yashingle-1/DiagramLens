@@ -31,9 +31,20 @@ STRONG, WEAK = 0.9, 0.4
 # matches is strong evidence, and it rarely matches more than that.
 ICON_HIT_STRONG = 0.10
 
-# C4 tags the element kind in brackets under the name.
-_C4_TAG = re.compile(r"\[\s*(container|component|system|person|database|external)\b",
-                     re.IGNORECASE)
+# C4 tags the element kind in brackets under the name. Deployment diagrams add
+# their own node kinds, which the container/component list does not cover.
+_C4_TAG = re.compile(
+    r"\[\s*(container|component|system|person|database|external|"
+    r"deployment\s+node|infrastructure\s+node|software\s+system)\b",
+    re.IGNORECASE,
+)
+
+# Same vocabulary without the brackets, for when OCR loses them. These phrases
+# are C4-specific terminology and do not appear in cloud vendor diagrams.
+_C4_TERMS = re.compile(
+    r"\b(deployment\s+node|infrastructure\s+node|software\s+system|"
+    r"container\s*:|component\s*:)", re.IGNORECASE
+)
 # UML marks stereotypes in guillemets. OCR seldom returns real ones — PP-OCRv5
 # emits CJK 《》 — so accept every variant, else UML is never recognised and
 # its rule profile never applies.
@@ -82,7 +93,13 @@ def classify_notation(
             return "uml", STRONG
 
         # 3. C4 bracket tags are equally distinctive.
-        if _C4_TAG.search(ocr_text):
+        #
+        # Checked BEFORE any vendor-keyword fallback on purpose. A C4
+        # deployment diagram of an AWS system is still a C4 diagram — the
+        # vendor names are its content, not its notation. Ordering it after
+        # the keyword fallback classified this whole family as "aws" and
+        # applied the wrong extraction rules.
+        if _C4_TAG.search(ocr_text) or _C4_TERMS.search(ocr_text):
             return "c4", STRONG
 
         # 4. Weaker lexical hints.

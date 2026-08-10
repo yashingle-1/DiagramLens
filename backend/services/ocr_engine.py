@@ -135,8 +135,11 @@ def _prepare(img_rgb: np.ndarray) -> tuple[np.ndarray, float]:
 
 def _clean(text: str) -> str:
     text = re.sub(r"\s+", " ", (text or "")).strip()
-    # Strip wrapping punctuation but keep interior dots/dashes (Node.js, S3-logs)
-    return text.strip("|/\\[](){}<>\"'`,;:")
+    # Strip wrapping punctuation, but keep interior dots/dashes (Node.js,
+    # S3-logs) AND square brackets. Brackets are notation, not noise: C4 tags
+    # every element as "[Container: Java]" or "[Deployment Node]", and
+    # stripping them made every C4 diagram misclassify as its cloud vendor.
+    return text.strip("|/\\(){}\"'`,;:")
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────

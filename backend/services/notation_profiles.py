@@ -64,7 +64,13 @@ _UML_COMPARTMENTS = {
     "provided interfaces", "required interfaces", "realizations",
     "responsibilities", "tagged values",
 }
-_C4_COMPARTMENTS = {"description", "technology"}
+# C4 prints the element kind as its own line under the name. Left in, it
+# becomes the component name ("Amazon RDS Deployment Node").
+_C4_COMPARTMENTS = {
+    "description", "technology", "deployment node", "infrastructure node",
+    "software system", "container", "component", "person", "database",
+    "external system",
+}
 
 
 class Profile:

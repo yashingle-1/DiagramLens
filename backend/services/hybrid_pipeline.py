@@ -51,6 +51,7 @@ from services.common import (
     is_noise,
     looks_like_container,
 )
+from services.metrics import fuzzy_match
 from services.connection_detector import (
     detect_connections, detect_connector_segments, segment_midspan_to_box_distance,
 )
@@ -243,16 +244,18 @@ def _build_proposals(
         box = shapes[shape_idx].box
         near = [i for i, cbox in enumerate(cluster_boxes)
                 if i not in claimed and _near_icon(box, cbox)]
+        marker = None
         if near:
             claimed.update(near)
-            name = " ".join(cluster_names[i] for i in near).strip()
+            name, marker = clean_name(
+                " ".join(cluster_names[i] for i in near).strip(), profile)
         else:
             name = hit.name          # glyph with no readable label
         proposals.append(_Proposal(
             box=box, name=name[:MAX_NAME_CHARS] or hit.name, type_=hit.type,
             proposer="icon+text" if near else "icon",
             confidence=round(hit.score, 3), icon_match=hit.name,
-            icon_score=round(hit.score, 3),
+            icon_score=round(hit.score, 3), stereotype=marker,
         ))
 
     # Shape + label-below: the icon-centric pattern without an icon bank. The
@@ -269,14 +272,18 @@ def _build_proposals(
         if not near:
             continue
         claimed.update(near)
-        name = " ".join(cluster_names[i] for i in near).strip()
+        # Same profile rules as the compartment path — without this, bracket
+        # tags survived here and produced names like "Amazon RDS
+        # [Deployment Node]".
+        name, marker = clean_name(
+            " ".join(cluster_names[i] for i in near).strip(), profile)
         if not name or is_noise(name):
             continue
         proposals.append(_Proposal(
             box=_union(shape.box, *[cluster_boxes[i] for i in near]),
             name=name[:MAX_NAME_CHARS],
             type_=_SHAPE_TYPE.get(shape.kind, "service"),
-            proposer="shape+text", shape_kind=shape.kind,
+            proposer="shape+text", shape_kind=shape.kind, stereotype=marker,
         ))
 
     # Text alone — the floor. Any label not claimed above is still a component.
@@ -503,7 +510,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
     # Stage 6 — containers kept as components with children linked via parent_id.
     # The old pipeline discarded these; VPC / subnet / AZ / C4 boundaries are
     # architectural knowledge and are what a knowledge graph needs.
-    _attach_containers(components, boxes, containers, words)
+    _attach_containers(components, boxes, containers, words, profile)
 
     # Stage 7 — connections. Own detector, not the classical arm's, so the
     # three-way comparison measures three methods rather than two.
@@ -531,7 +538,8 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
 def _attach_containers(components: list[ComponentSchema],
                        boxes: list[tuple[int, int, int, int]],
                        containers: list[Shape],
-                       words: list[ocr_engine.OcrWord]) -> None:
+                       words: list[ocr_engine.OcrWord],
+                       profile) -> None:
     """Append group boundaries as components and set parent_id on their children.
     Smallest container wins, so a subnet inside a VPC is the direct parent."""
     if not containers:
@@ -540,22 +548,42 @@ def _attach_containers(components: list[ComponentSchema],
     for n, container in enumerate(sorted(containers, key=lambda s: s.area)):
         # Boundary labels sit at the top-left of the region
         x, y, w, h = container.box
-        header = ocr_engine.text_for_box(words, (x, y, w, max(24, int(h * 0.18))))
+        # Boundary labels sit in a corner strip, but which corner depends on
+        # the notation: AWS puts VPC/subnet names top-left, C4 deployment
+        # diagrams put the node name bottom-left. Looking only at the top
+        # left every C4 deployment node unnamed.
+        strip = max(24, int(h * 0.18))
+        header = (ocr_engine.text_for_box(words, (x, y, w, strip))
+                  or ocr_engine.text_for_box(words, (x, y + h - strip, w, strip)))
         # An unnamed region is not evidence of a boundary. The old fallback
         # name ("Boundary 1") itself contained the word "boundary", so the
         # looks_like_container guard passed and every unlabelled rectangle was
         # emitted as a container.
         if not header or is_noise(header):
             continue
-        name = header
-        cid = f"h{start_idx + n + 1}"
-        components.append(ComponentSchema(
-            id=cid, name=name[:MAX_NAME_CHARS], type="other", is_container=True,
-            position=ComponentPosition(x=float(x + w / 2), y=float(y + h / 2)),
-            proposer="shape",
-        ))
+        name, _ = clean_name(header, profile)
+        if not name or is_noise(name):
+            continue
+        name = name[:MAX_NAME_CHARS]
+
+        # If a component already carries this name, the region is that
+        # component's own boundary, not a separate node. A C4 deployment node
+        # or an AWS VPC IS a component that contains others; emitting a second
+        # entry for it double-counts and costs precision.
+        existing = next(
+            (c for c in components[:start_idx] if fuzzy_match(c.name, name)), None)
+        if existing is not None:
+            existing.is_container = True
+            cid = existing.id
+        else:
+            cid = f"h{start_idx + n + 1}"
+            components.append(ComponentSchema(
+                id=cid, name=name, type="other", is_container=True,
+                position=ComponentPosition(x=float(x + w / 2), y=float(y + h / 2)),
+                proposer="shape",
+            ))
         for child, box in zip(components[:start_idx], boxes):
-            if child.parent_id is None and contains(container.box, box):
+            if child.id != cid and child.parent_id is None and contains(container.box, box):
                 child.parent_id = cid
 
 
