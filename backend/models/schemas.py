@@ -159,6 +159,12 @@ class ChatRequest(BaseModel):
     session_id:     str
     message:        str
     interview_mode: bool = False
+    # Component the user has selected on the canvas. Without it, "what does
+    # this component do?" has no referent and the model can only ask which one.
+    component_id:   Optional[str] = None
+    # Which pipeline's extraction to discuss. Chat previously always used the
+    # Gemini result even when the canvas was showing classical or hybrid.
+    pipeline:       Optional[str] = None
 
     @field_validator("message")
     @classmethod
@@ -185,6 +191,10 @@ class DualAnalyzeResponse(BaseModel):
     hybrid:     Optional[ArchitectureSchema] = None   # SAM+CLIP+TrOCR pipeline
     gemini:     ArchitectureSchema
     image_url:  str
+    # Uploads are stored under a UUID, so image_url carries no clue about which
+    # diagram this is. The benchmark panel needs the name the user uploaded to
+    # pick the matching ground truth automatically.
+    original_filename: Optional[str] = None
 
 # Legacy single-pipeline response (kept for chat.py compatibility)
 class AnalyzeResponse(BaseModel):
@@ -217,6 +227,8 @@ class SessionListItem(BaseModel):
 class SessionResponse(BaseModel):
     session_id: str
     classical:  Optional[ArchitectureSchema] = None
+    hybrid:     Optional[ArchitectureSchema] = None
     gemini:     Optional[ArchitectureSchema] = None
     image_url:  str
     created_at: str
+    original_filename: Optional[str] = None

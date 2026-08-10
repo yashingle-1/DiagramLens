@@ -40,6 +40,7 @@ class LLMProvider(ABC):
         architecture_context: dict,
         conversation_history: list,
         interview_mode: bool = False,
+        focus_component: dict | None = None,
     ) -> str:
         """
         Takes user message + full architecture as context,

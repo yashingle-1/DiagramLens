@@ -119,6 +119,9 @@ async def get_session(
         "gemini":     gemini,
         "image_url":  session.image_url,
         "created_at": session.created_at.isoformat() if session.created_at else "",
+        # Uploads are stored under a UUID; the benchmark panel matches ground
+        # truth on the name the user actually uploaded.
+        "original_filename": session.original_filename,
     }
 
 

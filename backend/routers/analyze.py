@@ -54,4 +54,5 @@ async def analyze_diagram(
         hybrid=result["hybrid"],
         gemini=result["gemini"],
         image_url=image_url,
+        original_filename=file.filename or None,
     )

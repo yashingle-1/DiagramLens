@@ -22,7 +22,7 @@ class ClaudeProvider(LLMProvider):
         # Structure mirrors GeminiProvider.analyze_image exactly
         raise NotImplementedError("Claude provider coming in Phase 8 benchmarking module")
 
-    async def chat(self, message: str, architecture_context: dict, conversation_history: list, interview_mode: bool = False) -> str:
+    async def chat(self, message: str, architecture_context: dict, conversation_history: list, interview_mode: bool = False, focus_component: dict | None = None) -> str:
         raise NotImplementedError("Claude provider coming in Phase 8 benchmarking module")
 
     async def explain_component(self, component: dict, full_architecture: dict) -> dict:

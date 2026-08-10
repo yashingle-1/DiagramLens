@@ -181,16 +181,28 @@ class GeminiProvider(LLMProvider):
         architecture_context: dict,
         conversation_history: list,
         interview_mode: bool = False,
+        focus_component: dict | None = None,
     ) -> str:
 
         system = CHAT_INTERVIEW_PROMPT if interview_mode else CHAT_SYSTEM_PROMPT
+
+        # A selected component resolves deictic questions — "what does this do?"
+        # has no referent otherwise, and the model can only ask which one.
+        focus_block = ""
+        if focus_component:
+            focus_block = f"""
+SELECTED COMPONENT — the user has this one selected on the canvas. Unless they
+name a different component, "this", "it" and "this component" all refer to it.
+Answer about this component specifically; do not ask which one they mean.
+{json.dumps(focus_component, indent=2)}
+"""
 
         full_prompt = f"""
 {system}
 
 ARCHITECTURE CONTEXT:
 {json.dumps(architecture_context, indent=2)}
-
+{focus_block}
 CONVERSATION HISTORY:
 {self._format_history(conversation_history)}
 

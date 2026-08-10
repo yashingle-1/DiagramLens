@@ -19,13 +19,17 @@ async def chat(
 ):
     print(f"DEBUG chat: session_id={request.session_id}, message={request.message[:50]}")
 
-    # Load architecture from PostgreSQL — prefer Gemini result for chat context
+    # Load the architecture the user is actually looking at. Gemini is the
+    # default because it produces the richest descriptions, but when the canvas
+    # is showing another pipeline the chat must discuss that one's components,
+    # or it will reference names the user cannot see.
+    wanted = request.pipeline or "gemini"
     arch_result = await db.execute(
         select(Architecture)
         .where(Architecture.session_id == request.session_id)
-        .where(Architecture.pipeline == "gemini")
+        .where(Architecture.pipeline == wanted)
     )
-    architecture = arch_result.scalar_one_or_none()
+    architecture = arch_result.scalars().first()
 
     # Fall back to any architecture if no Gemini result saved yet
     if not architecture:
@@ -47,6 +51,16 @@ async def chat(
     # Load conversation history from Redis
     history = await cache_service.get_chat_history(request.session_id)
 
+    # Resolve the selected component so "this component" has a referent.
+    # Matched by id, then by name, because ids differ between pipelines.
+    focus = None
+    if request.component_id:
+        for component in architecture.raw_json.get("components", []):
+            if (component.get("id") == request.component_id
+                    or component.get("name") == request.component_id):
+                focus = component
+                break
+
     # Call Gemini
     provider = get_llm_provider()
     try:
@@ -55,6 +69,7 @@ async def chat(
             architecture_context=architecture.raw_json,
             conversation_history=history,
             interview_mode=request.interview_mode,
+            focus_component=focus,
         )
     except Exception as e:
         traceback.print_exc()
