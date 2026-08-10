@@ -1,0 +1,26 @@
+{
+  "diagram_id": "c4_internet_banking_signin_dynamic",
+  "source_image": "c4_internet_banking_signin_dynamic.png",
+  "source_url": "https://c4model.com/diagrams/dynamic",
+  "image_url": "https://static.structurizr.com/workspace/36141/diagrams/SignIn.png",
+  "license": "c4model.com content is CC BY 4.0 (Simon Brown); Big Bank plc example workspace 36141",
+  "diagram_standard": "c4",
+  "complexity": "low",
+  "arch_type": "layered",
+  "components": [
+    {"name": "Internet Banking System", "type": "other", "c4_level": "context"},
+    {"name": "Single-Page Application", "type": "client", "c4_level": "container"},
+    {"name": "API Application", "type": "service", "c4_level": "container"},
+    {"name": "Sign In Controller", "type": "service", "c4_level": "component"},
+    {"name": "Security Component", "type": "service", "c4_level": "component"},
+    {"name": "Database", "type": "database", "c4_level": "container"}
+  ],
+  "connections": [
+    {"source": "Single-Page Application", "target": "Sign In Controller", "label": "Submits credentials to [JSON/HTTPS]", "line_style": "dashed"},
+    {"source": "Sign In Controller", "target": "Security Component", "label": "Validates credentials using", "line_style": "dashed"},
+    {"source": "Security Component", "target": "Database", "label": "select * from users where username = ? [SQL/TCP]", "line_style": "dashed"},
+    {"source": "Database", "target": "Security Component", "label": "Returns user data to [SQL/TCP]", "line_style": "dashed"},
+    {"source": "Security Component", "target": "Sign In Controller", "label": "Returns true if the hashed password matches", "line_style": "dashed"},
+    {"source": "Sign In Controller", "target": "Single-Page Application", "label": "Sends back an authentication token to [JSON/HTTPS]", "line_style": "dashed"}
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "diagram_id": "uml_deployment_android_app",
+  "source_image": "uml_deployment_android_app.png",
+  "source_url": "https://www.uml-diagrams.org/android-application-uml-deployment-diagram-example.html",
+  "image_url": "https://www.uml-diagrams.org/examples/deployment-example-android.png",
+  "license": "uml-diagrams.org, used for academic evaluation; image not redistributed",
+  "diagram_standard": "uml",
+  "complexity": "medium",
+  "arch_type": "other",
+  "components": [
+    {"name": "myApplication.apk", "type": "storage", "stereotype": "android application"},
+    {"name": "classes.dex", "type": "storage", "stereotype": "compiled classes"},
+    {"name": "resources.arsc", "type": "storage", "stereotype": "compiled resources"},
+    {"name": "res", "type": "storage", "stereotype": "uncompiled resources"},
+    {"name": "AndroidManifest.xml", "type": "storage", "stereotype": "deployment spec"},
+    {"name": "mobile device", "type": "client", "stereotype": "mobile device"},
+    {"name": "Android", "type": "service", "stereotype": "executionEnvironment"},
+    {"name": "external storage", "type": "storage", "stereotype": "external storage"}
+  ],
+  "connections": [
+    {"source": "myApplication.apk", "target": "Android", "label": "deploy", "relationship": "dependency", "line_style": "dashed"},
+    {"source": "AndroidManifest.xml", "target": "Android", "label": "", "relationship": "association", "line_style": "solid"},
+    {"source": "mobile device", "target": "Android", "label": "", "relationship": "composition", "line_style": "solid"},
+    {"source": "mobile device", "target": "external storage", "label": "0..*", "relationship": "association", "line_style": "solid"}
+  ]
+}

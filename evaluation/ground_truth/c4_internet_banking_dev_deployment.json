@@ -1,0 +1,31 @@
+{
+  "diagram_id": "c4_internet_banking_dev_deployment",
+  "source_image": "c4_internet_banking_dev_deployment.png",
+  "source_url": "https://c4model.com/diagrams/deployment",
+  "image_url": "https://static.structurizr.com/workspace/36141/diagrams/DevelopmentDeployment.png",
+  "license": "c4model.com content is CC BY 4.0 (Simon Brown); Big Bank plc example workspace 36141",
+  "diagram_standard": "c4",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "Developer Laptop", "type": "other", "c4_level": "deployment_node"},
+    {"name": "Web Browser", "type": "client", "c4_level": "deployment_node"},
+    {"name": "Single-Page Application", "type": "client", "c4_level": "container"},
+    {"name": "Docker Container - Web Server", "type": "other", "c4_level": "deployment_node"},
+    {"name": "Apache Tomcat", "type": "service", "c4_level": "deployment_node"},
+    {"name": "Web Application", "type": "service", "c4_level": "container"},
+    {"name": "API Application", "type": "service", "c4_level": "container"},
+    {"name": "Docker Container - Database Server", "type": "other", "c4_level": "deployment_node"},
+    {"name": "Database Server", "type": "database", "c4_level": "deployment_node"},
+    {"name": "Database", "type": "database", "c4_level": "container"},
+    {"name": "Big Bank plc", "type": "other", "c4_level": "deployment_node"},
+    {"name": "bigbank-dev001", "type": "other", "c4_level": "deployment_node"},
+    {"name": "Mainframe Banking System", "type": "service", "c4_level": "context"}
+  ],
+  "connections": [
+    {"source": "Web Application", "target": "Single-Page Application", "label": "Delivers to the customer's web browser", "line_style": "dashed"},
+    {"source": "Single-Page Application", "target": "API Application", "label": "Makes API calls to [JSON/HTTPS]", "line_style": "dashed"},
+    {"source": "API Application", "target": "Database", "label": "Reads from and writes to [SQL/TCP]", "line_style": "dashed"},
+    {"source": "API Application", "target": "Mainframe Banking System", "label": "Makes API calls to [XML/HTTPS]", "line_style": "dashed"}
+  ]
+}
