@@ -1,218 +1,443 @@
 # DiagramLens
 
-A framework for extracting structured, machine-readable representations of software
-architecture diagrams, and for comparing three different ways of doing it.
+### From software architecture diagrams to structured, queryable system graphs.
 
-MSc Advanced Computer Science (AI) project — University of Leeds.
+**DiagramLens** is a framework for extracting structured software architecture information from diagram images.
+
+Upload an architecture diagram and DiagramLens identifies **components and connections**, converts them into a common JSON schema, visualises the resulting architecture graph, and allows the outputs of three different extraction approaches to be compared.
+
+**MSc Advanced Computer Science (Artificial Intelligence) University of Leeds, 2026**
+
+**Dissertation:** *A Framework for Software Architecture Diagram Understanding and Structured Knowledge Extraction*
 
 ---
 
-## What it does
+## Overview
 
-You give it an image of a software architecture diagram. It returns JSON describing
-the components and the connections between them:
+Architecture diagrams contain valuable information about the structure of a software system, but that information is usually locked inside an image.
+
+DiagramLens converts that visual representation into structured data that can be:
+
+* visualised as a graph
+* benchmarked against ground truth
+* queried using natural language
+* reused by other software systems
+
+The project compares three approaches using the **same output schema and evaluation process**:
+
+| Pipeline      | Approach                   | Runs on    | Component F1 |
+| ------------- | -------------------------- | ---------- | -----------: |
+| **Classical** | OCR + Computer Vision      | Local      |        0.558 |
+| **Hybrid**    | OCR + ML + Computer Vision | Local      |        0.713 |
+| **Gemini**    | Vision-Language Model      | Google API |    **0.911** |
+
+### Benchmark
+
+**37 diagrams · 6 notation families · 458 annotated components**
+
+AWS · Azure · GCP · C4 · UML · Informal
+
+---
+
+## How it works
+An uploaded diagram is processed by all three pipelines independently.
+
+Each pipeline produces the same `ArchitectureSchema`, making the results directly comparable.
+
+The extracted architecture can then be:
+
+1. **Visualised** as an interactive graph
+2. **Benchmarked** against annotated ground truth
+3. **Queried** through the architecture chat interface
+
+---
+
+## The three pipelines
+
+### Classical
+
+A deterministic computer-vision baseline using:
+
+* Tesseract OCR
+* text clustering
+* Canny edge detection
+* connector endpoint matching
+
+**Local · No network · 2.5 s median**
+
+---
+
+### Hybrid
+
+A local ML/CV pipeline combining:
+
+* PaddleOCR
+* shape detection
+* spatial text clustering
+* notation-specific rules
+* connector skeleton tracing
+
+It adapts its extraction rules to AWS, Azure, GCP, C4, UML and informal diagrams.
+
+**Local · No network · 5.9 s median**
+
+---
+
+### Gemini
+
+A Vision-Language Model pipeline using **Gemini 2.5 Flash** with schema-constrained output.
+
+The model receives the complete diagram and extracts components and relationships directly into the common schema.
+
+The application supports zero-shot, few-shot and chain-of-thought prompt strategies.
+
+**Google API · 9.3 s median**
+
+---
+
+## Structured output
+
+All pipelines produce the same architecture representation:
 
 ```json
 {
   "pipeline": "hybrid",
   "diagram_standard": "uml",
   "components": [
-    {"id": "h1", "name": "License Services Java", "type": "service",
-     "stereotype": "component", "description": "license_service.jar"}
+    {
+      "id": "h1",
+      "name": "License Services Java",
+      "type": "service",
+      "stereotype": "component"
+    }
   ],
   "connections": [
-    {"source": "h1", "target": "h2", "source_name": "License Services Java",
-     "target_name": "HASP Java Native Interface Proxy",
-     "directed": true, "line_style": "solid", "arrowhead_target": "open_arrow"}
+    {
+      "source": "License Services Java",
+      "target": "HASP Java Native Interface Proxy",
+      "directed": true,
+      "label": null
+    }
   ]
 }
 ```
 
-The same image is processed by three independent pipelines, each representing a
-different paradigm, and all three emit the same schema so their outputs are directly
-comparable.
-
-## The research question
-
-Vision-Language Models can produce this JSON directly, so why build anything else?
-
-Because a VLM is not always the right tool. It can hallucinate components that are not
-in the image, it requires sending the diagram to a third-party API, it costs money per
-call, and its output is hard to explain or reproduce. Whether those trade-offs matter
-depends on the situation.
-
-This project measures the alternatives under one benchmark rather than assuming an
-answer.
-
-## The three pipelines
-
-| Pipeline | Approach | Runs where |
-|---|---|---|
-| **Classical** | OpenCV contour and edge analysis, Hough line detection, Tesseract OCR. No machine learning of any kind. | Local, ~1.5s |
-| **Hybrid** | Specialised discriminative models — PaddleOCR PP-OCRv5 for text, CLIP image embeddings for icon retrieval — combined with deterministic geometry. No generative model. | Local, ~8s |
-| **Gemini** | Gemini 2.5 Flash with structured output, prompted to extract the diagram directly. | Google API |
-
-The classical pipeline is the experimental control and is deliberately frozen. The
-hybrid pipeline has its own connection detector rather than sharing the classical one,
-so the three-way comparison measures three genuinely different methods.
-
-### How the hybrid pipeline works
-
-Three proposers run over the same image and are merged into one component list:
-
-- **Icon retrieval** — CLIP image embeddings matched against a bank of official
-  AWS / Azure / GCP icons. Carries cloud diagrams, where the label sits outside the glyph.
-- **Shape detection** — contour geometry. Carries C4, UML and informal diagrams, where
-  the label sits inside a drawn box.
-- **Text clustering** — PaddleOCR word boxes grouped spatially. This is the universal
-  floor: every component in every notation carries a label, so this always fires. The
-  other two only improve precision and typing.
-
-A notation classifier runs first and selects a rule profile, because notations decorate
-components differently. A UML box has compartments (`«stereotype» Name`, then
-`artifacts`, then a file list) that a naive reader turns into four components. C4 boxes
-carry a bracket tag and a description line. Those rules live in
-`backend/services/notation_profiles.py` as data, not code — adding a notation means
-adding a dictionary entry.
-
-## Current results
-
-Measured on 13 manually annotated ground-truth diagrams. Component names are compared
-with normalised fuzzy matching (acronym expansion, vendor-prefix removal, token-set
-similarity) at a 0.75 threshold.
-
-| Pipeline | Component F1 | Precision | Recall | Time |
-|---|---|---|---|---|
-| Classical | 0.486 | 0.377 | 0.752 | 1.6s |
-| Hybrid | **0.597** | 0.542 | 0.707 | 7.8s |
-| Gemini | not yet measured | | | |
-
-Component F1 by notation (hybrid):
-
-| Notation | n | F1 |
-|---|---|---|
-| UML | 3 | 0.783 |
-| C4 | 5 | 0.591 |
-| Informal | 1 | 0.761 |
-| AWS | 4 | 0.424 |
-
-**Caveats, stated plainly:**
-
-- The Gemini pipeline has not been benchmarked since the prompt and schema were
-  rewritten. The three-way comparison is currently incomplete.
-- n = 13, and the per-notation subsets are n = 1 to 5. These are indicative, not
-  conclusive.
-- Connection extraction scores poorly (F1 0.029 hybrid, 0.067 classical). Line detection
-  is not the bottleneck — endpoints snap correctly and roughly the right number of links
-  are found. The loss is in scoring: when component precision is 0.54, more than half of
-  all connection endpoints resolve to a component absent from the ground truth, which
-  discards the whole connection. Connection accuracy is capped by component precision.
-- Reported F1 uses normalised name matching. The same extractions scored with plain
-  character similarity give 0.308 (hybrid) and 0.280 (classical). Both figures are
-  stored per benchmark run so the effect of normalisation is visible rather than hidden.
-
-## Setup
-
-Requires Python 3.11, Node 20, PostgreSQL and Redis.
-
-```bash
-# Backend
-cd backend
-python -m venv venv
-venv\Scripts\activate            # Windows;  source venv/bin/activate on Unix
-pip install -r requirements.txt
-cp ../.env.example .env          # then fill in GEMINI_API_KEY
-python scripts/migrate_benchmark_columns.py
-uvicorn main:app --reload --port 8000
-```
-
-`.env` must live in `backend/`, and `uvicorn` must be started from there — settings are
-read relative to the working directory.
-
-```bash
-# Frontend
-cd frontend
-npm install
-npm run dev                      # http://localhost:3000
-```
-
-Tesseract must be installed and on `PATH` for the classical pipeline. PaddleOCR
-downloads its PP-OCRv5 mobile models on first use (about 10s, then cached).
-
-### Optional components
-
-The icon-retrieval proposer is off by default. It is built and calibrated, but on this
-dataset it accepted one icon across 41 candidate crops, changed component F1 by 0.000,
-and added roughly 5s per diagram. See "What did not work" below.
-
-```bash
-pip install diagrams
-# copy <site-packages>/resources/{aws,azure,gcp} into backend/data/icons/
-python backend/scripts/build_icon_bank.py
-ICON_BANK=1 uvicorn main:app        # to enable it
-HYBRID_VERSION=v1 uvicorn main:app  # run the earlier SAM+CLIP+TrOCR pipeline
-```
-
-## API
-
-| Endpoint | Purpose |
-|---|---|
-| `POST /api/analyze` | Upload an image; runs all three pipelines in parallel |
-| `POST /api/benchmark` | Score a session against a ground-truth file |
-| `GET /api/dashboard` | Aggregate benchmark statistics |
-| `GET /api/sessions` | Recent uploads |
-| `POST /api/chat` | Ask questions about an extracted architecture |
-
-## Repository layout
-
-```
-backend/
-  services/
-    classical_pipeline.py     Control arm — frozen, do not modify
-    hybrid_pipeline.py        Three-proposer fusion
-    hybrid_pipeline_v1.py     Earlier SAM+CLIP+TrOCR arm, kept for ablation
-    ocr_engine.py             PaddleOCR PP-OCRv5, Tesseract fallback
-    shape_detector.py         Contour geometry, compartment handling
-    connection_detector.py    LSD segments, arrowheads, line style
-    icon_bank.py              CLIP image-to-image icon retrieval
-    notation_classifier.py    Which notation is this?
-    notation_profiles.py      Per-notation rules, as data
-    metrics.py                Fuzzy matching and scoring
-    llm/gemini.py             Gemini 2.5 Flash with structured output
-  scripts/                    Icon bank builder, database migration
-evaluation/ground_truth/      Annotated diagrams (JSON + source image)
-frontend/                     Next.js interface
-```
-
-## What did not work
-
-Two foundation-model components were implemented, measured and then rejected. Both are
-kept in the repository behind flags so the comparison can be reproduced.
-
-**Segment Anything (SAM).** Its automatic mask generator is class-agnostic. On synthetic
-diagrams it over-segments decorative gradients and icon sub-parts while failing to
-distinguish semantic units, so it needed an extensive filter stack and still produced
-about 6 components in roughly 137 seconds. Replaced by contour analysis, which answers
-the actual question — "is this a drawn box?" — in milliseconds.
-
-**CLIP for icon identification.** CLIP embeddings of flat vector icons occupy a narrow
-cone, so an absolute cosine threshold cannot separate them. Across a 1456-icon bank,
-random pairs of *different* icons score a median of 0.790, and the median icon's nearest
-*other* icon scores 0.953. At a 0.82 threshold, 29.3% of unrelated pairs pass. In
-practice this labelled 19 of 20 crops on one AWS diagram as the same service. Acceptance
-was rewritten to be relative (margin over ranks 2–10, plus a z-score), which removed
-every false match but left almost no true ones.
-
-CLIP is still used, but for what it is actually good at: image-to-image retrieval
-against a known vocabulary, rather than matching text prompts to abstract glyphs.
-
-## Licensing note
-
-The icon bank is derived from vendor icon sets redistributed by the MIT-licensed
-`diagrams` package. The glyphs themselves remain AWS, Microsoft and Google trademarks.
-Only the derived embeddings are committed to this repository; the raw images are
-excluded and can be regenerated with the script above.
+This common schema allows outputs from different extraction approaches to be compared and consumed by the rest of the application.
 
 ---
 
-Yash Rajabhau Ingle — MSc Advanced Computer Science (AI), University of Leeds, 2026.
+# Results
+
+## Component extraction
+
+| Pipeline   |        F1 | Precision |    Recall |
+| ---------- | --------: | --------: | --------: |
+| Classical  |     0.558 |     0.476 |     0.817 |
+| Hybrid     |     0.713 |     0.659 |     0.812 |
+| **Gemini** | **0.911** | **0.950** | **0.897** |
+
+Gemini extracted 444 components compared with 458 ground-truth components.
+
+The classical pipeline has higher recall but substantially more over-extraction, while the hybrid pipeline improves precision through notation-aware processing.
+
+---
+
+## Results by notation
+
+| Notation | Classical | Hybrid |    Gemini |
+| -------- | --------: | -----: | --------: |
+| AWS      |     0.581 |  0.592 | **0.872** |
+| Azure    |     0.680 |  0.691 | **0.960** |
+| GCP      |     0.543 |  0.562 | **0.923** |
+| C4       |     0.434 |  0.768 | **0.909** |
+| UML      |     0.654 |  0.773 | **0.873** |
+| Informal |     0.612 |  0.882 | **0.938** |
+
+---
+
+## Connection extraction
+
+| Pipeline   | Directed F1 | Undirected F1 |
+| ---------- | ----------: | ------------: |
+| Classical  |       0.058 |         0.095 |
+| Hybrid     |       0.052 |         0.115 |
+| **Gemini** |   **0.652** |     **0.695** |
+
+Connection extraction is considerably more difficult for the local pipelines because connector endpoints must be associated with correctly detected components.
+
+---
+
+## Speed
+
+| Pipeline  | Median | Network |
+| --------- | -----: | ------- |
+| Classical |  2.5 s | No      |
+| Hybrid    |  5.9 s | No      |
+| Gemini    |  9.3 s | Yes     |
+
+All measurements were performed on CPU.
+
+---
+
+# Application
+
+The DiagramLens application provides an interactive interface for exploring the extracted architectures.
+
+## Interactive graph
+
+The extracted architecture is rendered as an interactive graph using React Flow and Dagre.
+
+![DiagramLens architecture graph](evaluation/figures/Screenshot(89).png)
+
+## Benchmark dashboard
+
+Compare component and connection metrics for the different pipelines.
+
+![DiagramLens benchmark dashboard](evaluation/figures/Screenshot(90).png)
+
+## Architecture chat
+
+Select a component and ask questions about its relationships, or ask questions about the complete architecture.
+
+![DiagramLens architecture chat](evaluation/figures/Screenshot(91).png)
+
+---
+
+# Benchmark
+
+The benchmark contains **37 manually annotated architecture diagrams**.
+
+| Notation  | Diagrams | Components |
+| --------- | -------: | ---------: |
+| AWS       |        7 |        107 |
+| Azure     |        5 |         70 |
+| GCP       |        5 |         71 |
+| C4        |       11 |         81 |
+| UML       |        4 |         41 |
+| Informal  |        5 |         88 |
+| **Total** |   **37** |    **458** |
+
+Each annotation includes the source image, ground-truth structure, source URL and licence information.
+
+The benchmark can be reproduced without running the web application or database.
+
+---
+
+# Reproducing the benchmark
+
+Run the complete offline benchmark:
+
+```bash
+python backend/scripts/run_offline_benchmark.py
+```
+
+Generate the figures:
+
+```bash
+python evaluation/figures/make_results_figures.py
+```
+
+Run stability analysis:
+
+```bash
+python backend/scripts/result_stability.py
+```
+
+Validate the ground truth:
+
+```bash
+python backend/scripts/validate_ground_truth.py
+```
+
+To run only the local pipelines:
+
+```bash
+python backend/scripts/run_offline_benchmark.py --arms classical hybrid
+```
+
+Benchmark results are written to:
+
+```text
+evaluation/results/offline_benchmark.json
+```
+
+---
+
+# Setup
+
+## Requirements
+
+* Python 3.11
+* Node.js 20
+* PostgreSQL
+* Redis
+* Tesseract OCR
+* CPU-compatible PyTorch
+
+A Gemini API key is required for the Gemini pipeline.
+
+---
+
+## Backend
+
+```bash
+cd backend
+
+python -m venv venv
+```
+
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+### macOS / Linux
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create the environment file:
+
+```bash
+cp ../.env.example .env
+```
+
+Add your Gemini API key:
+
+```text
+GEMINI_API_KEY=your_key_here
+```
+
+Run the database migration:
+
+```bash
+python scripts/migrate_benchmark_columns.py
+```
+
+Start the backend:
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+> `.env` should be located inside `backend/`, and the backend should be started from that directory.
+
+### Additional dependencies
+
+Tesseract must be installed and available on `PATH`.
+
+PaddleOCR downloads its PP-OCRv5 mobile weights on first use.
+
+Install only one OpenCV distribution. The project requires the contrib build:
+
+```bash
+pip install opencv-contrib-python
+```
+
+For CPU-only PyTorch:
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+---
+
+## Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# API
+
+| Endpoint              | Description                                      |
+| --------------------- | ------------------------------------------------ |
+| `POST /api/analyze`   | Upload an image and run the extraction pipelines |
+| `POST /api/benchmark` | Benchmark an extraction against ground truth     |
+| `GET /api/dashboard`  | Retrieve aggregate benchmark statistics          |
+| `GET /api/sessions`   | Retrieve recent sessions                         |
+| `POST /api/chat`      | Ask questions about an extracted architecture    |
+
+---
+
+# Repository structure
+
+```text
+DiagramLens/
+├── backend/
+│   ├── services/          # Extraction pipelines and supporting modules
+│   ├── routers/            # API endpoints
+│   └── scripts/            # Benchmark and utility scripts
+│
+├── frontend/               # Next.js application
+│
+├── evaluation/
+│   ├── ground_truth/       # Annotated diagrams
+│   ├── figures/            # Result figures
+│   └── results/            # Benchmark results
+│
+├── docs/                   # Project documentation
+│
+├── .env.example
+└── README.md
+```
+
+---
+
+# Contributions
+
+The main contributions of DiagramLens are:
+
+* A common structured schema for architecture-diagram extraction.
+* Three independent extraction paradigms: Classical, Hybrid and VLM.
+* A hand-annotated benchmark of 37 diagrams across six notation families.
+* Evaluation of component and connection extraction.
+* An interactive application for visualising and querying extracted architectures.
+* A reproducible offline benchmark and evaluation pipeline.
+
+---
+
+# Licensing
+
+The project code is provided under the licence included in this repository.
+
+The benchmark diagrams remain subject to their **original source licences**. Source URLs and licence information are recorded with the corresponding annotations.
+
+The icon bank is derived from vendor icon sets distributed through the MIT-licensed `diagrams` package. AWS, Microsoft and Google Cloud icons remain the property/trademarks of their respective owners.
+
+Raw vendor icon images are not committed to the repository; derived CLIP embeddings can be regenerated locally.
+
+Users are responsible for complying with the licences and terms applicable to source diagrams and vendor assets.
+
+---
+
+# Author
+
+**Yash Rajabhau Ingle**
+
+MSc Advanced Computer Science (AI)
+University of Leeds · 2026
+
+**Dissertation:**
+*A Framework for Software Architecture Diagram Understanding and Structured Knowledge Extraction*
+
+**Repository:**
+https://github.com/yashingle-1/DiagramLens
