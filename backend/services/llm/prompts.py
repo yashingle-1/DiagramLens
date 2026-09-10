@@ -4,7 +4,7 @@
 # "Amazon", the extraction is semantically right but scores as a miss. These
 # rules pin the output to what is actually visible.
 NAMING_RULES = """
-NAMING RULES — strict:
+NAMING RULES: strict:
 - "name" MUST be the exact text visible in the diagram, character for character.
 - Do NOT expand abbreviations. If the diagram says "ALB", output "ALB".
 - Do NOT add vendor prefixes that are not printed on the diagram.
@@ -17,7 +17,7 @@ NAMING RULES — strict:
 """
 
 # ── Extraction Prompts v2 (current) ───────────────────────
-# Extraction only. No metadata, no responsibilities, no suggestions — those
+# Extraction only. No metadata, no responsibilities, no suggestions those
 # are analysis, not extraction, and cost ~60 output tokens per component. On a
 # 20-component diagram that pushed output past the token ceiling, and the
 # truncation-salvage path in gemini.py silently dropped whole components,
@@ -44,7 +44,7 @@ Extract the structure of this software architecture diagram.
     "few_shot": f"""
 Extract the structure of this software architecture diagram.
 
-Example — for a diagram showing an NGINX load balancer feeding a Node.js web
+Example: for a diagram showing an NGINX load balancer feeding a Node.js web
 server which reads from a PostgreSQL database, the correct extraction is:
 
   components:
@@ -68,24 +68,24 @@ Now extract the provided diagram the same way.
 Extract the structure of this software architecture diagram. Work through
 these steps internally, then return the result.
 
-STEP 1 — Read every label. Scan the whole image, including small text below
+STEP 1: Read every label. Scan the whole image, including small text below
 icons and text inside boxes. List the exact printed text of each one.
 
-STEP 2 — Decide which labels are components and which are group boundaries
+STEP 2: Decide which labels are components and which are group boundaries
 (VPC, subnet, availability zone, system boundary) or decoration.
 
-STEP 3 — Classify each component by its shape and label:
+STEP 3: Classify each component by its shape and label:
   cylinder -> database | rounded box labelled cache/redis -> cache
   parallelogram or labelled queue/topic -> queue | hexagon -> load_balancer
   diamond or shield -> gateway | cloud shape -> cdn or storage
   browser/mobile/person icon -> client | monitor/graph icon -> monitoring
   envelope/bell icon -> notification | plain box with a service name -> service
 
-STEP 4 — Trace every line. For each, record which two components it joins,
+STEP 4: Trace every line. For each, record which two components it joins,
 whether it carries an arrowhead (and at which end), and any text printed on it.
 A line with no arrowhead is directed=false.
 
-STEP 5 — Return components and connections.
+STEP 5: Return components and connections.
 {NAMING_RULES}
 """
 }
@@ -289,7 +289,7 @@ You have been given the full extracted structure of the diagram as JSON.
 
 RULES:
 - Always refer to specific named components from the architecture context
-- Keep responses concise and structured — use bullet points not paragraphs
+- Keep responses concise and structured use bullet points not paragraphs
 - Lead with the most important insight first
 - For simple questions give short sharp answers (3-5 lines max)
 - For complex questions use this structure:
@@ -362,7 +362,7 @@ Return ONLY a valid JSON object with exactly this structure:
     "specific responsibility based on the data it handles"
   ],
   "bottleneck_risk": "low|medium|high",
-  "bottleneck_explanation": "specific reason based on this component's position in the architecture — e.g. single point of failure, all traffic flows through it",
+  "bottleneck_explanation": "specific reason based on this component's position in the architecture e.g. single point of failure, all traffic flows through it",
   "scalability": "horizontal|vertical|both",
   "scalability_explanation": "how this specific component can scale given its role",
   "security": "low|medium|high",

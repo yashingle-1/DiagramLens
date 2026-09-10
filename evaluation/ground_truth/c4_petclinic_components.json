@@ -1,0 +1,43 @@
+{
+  "diagram_id": "c4_petclinic_components",
+  "source_image": "c4_petclinic_components.png",
+  "source_url": "https://c4model.com/#examples",
+  "image_url": "https://c4model.com/images/spring-petclinic-components.png",
+  "license": "c4model.com content is CC BY 4.0 (Simon Brown); Spring PetClinic example",
+  "diagram_standard": "c4",
+  "complexity": "medium",
+  "arch_type": "layered",
+  "components": [
+    {"name": "Clinic Employee", "type": "client", "c4_level": "context", "description": "An employee of the clinic"},
+    {"name": "VetController", "type": "service", "c4_level": "component"},
+    {"name": "VisitController", "type": "service", "c4_level": "component"},
+    {"name": "PetController", "type": "service", "c4_level": "component"},
+    {"name": "OwnerController", "type": "service", "c4_level": "component"},
+    {"name": "CrashController", "type": "service", "c4_level": "component", "description": "Controller used to showcase what happens when an exception is thrown"},
+    {"name": "ClinicService", "type": "service", "c4_level": "component", "description": "Mostly used as a facade so all controllers have a single point of entry"},
+    {"name": "VetRepository", "type": "service", "c4_level": "component"},
+    {"name": "VisitRepository", "type": "service", "c4_level": "component"},
+    {"name": "PetRepository", "type": "service", "c4_level": "component"},
+    {"name": "OwnerRepository", "type": "service", "c4_level": "component"},
+    {"name": "Database", "type": "database", "c4_level": "container", "description": "Stores information regarding the veterinarians, the clients, and their pets"}
+  ],
+  "connections": [
+    {"source": "Clinic Employee", "target": "VetController", "label": "Uses [HTTP]"},
+    {"source": "Clinic Employee", "target": "VisitController", "label": "Uses [HTTP]"},
+    {"source": "Clinic Employee", "target": "PetController", "label": "Uses [HTTP]"},
+    {"source": "Clinic Employee", "target": "OwnerController", "label": "Uses [HTTP]"},
+    {"source": "Clinic Employee", "target": "CrashController", "label": "Uses [HTTP]"},
+    {"source": "VetController", "target": "ClinicService"},
+    {"source": "VisitController", "target": "ClinicService"},
+    {"source": "PetController", "target": "ClinicService"},
+    {"source": "OwnerController", "target": "ClinicService"},
+    {"source": "ClinicService", "target": "VetRepository"},
+    {"source": "ClinicService", "target": "VisitRepository"},
+    {"source": "ClinicService", "target": "PetRepository"},
+    {"source": "ClinicService", "target": "OwnerRepository"},
+    {"source": "VetRepository", "target": "Database", "label": "Reads from and writes to [JDBC]"},
+    {"source": "VisitRepository", "target": "Database", "label": "Reads from and writes to [JDBC]"},
+    {"source": "PetRepository", "target": "Database", "label": "Reads from and writes to [JDBC]"},
+    {"source": "OwnerRepository", "target": "Database", "label": "Reads from and writes to [JDBC]"}
+  ]
+}

@@ -1,14 +1,3 @@
-"""
-Validates every ground-truth annotation file.
-
-The benchmark is only as trustworthy as these files. A connection naming a
-component that does not exist, or a complexity band that disagrees with the
-component count, silently distorts every score computed from it.
-
-    python backend/scripts/validate_ground_truth.py
-    python backend/scripts/validate_ground_truth.py --fix   # repair derivable fields
-"""
-
 from __future__ import annotations
 
 import json
@@ -28,7 +17,7 @@ TYPES = {"service", "database", "gateway", "queue", "cache", "cdn",
 
 
 def complexity_for(n: int) -> str:
-    """Bands defined in the project specification."""
+
     if n < 8:
         return "low"
     return "medium" if n <= 14 else "high"

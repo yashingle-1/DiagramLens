@@ -12,7 +12,7 @@ Layout expected:
         gcp/    ...
         mapping.json          # optional: filename stem -> {name, type}
 
-Icon sources (free, official, redistributable for academic use — record the
+Icon sources (free, official, redistributable for academic use record the
 licence in the dissertation):
     AWS    https://aws.amazon.com/architecture/icons/
     Azure  https://learn.microsoft.com/en-us/azure/architecture/icons/

@@ -1,5 +1,5 @@
 """
-Gemini provider — uses the google-genai SDK (google.generativeai is EOL).
+Gemini provider uses the google-genai SDK (google.generativeai is EOL).
 
 Robustness notes (these caused real "zero components" bugs):
 - response.text raises when the model returns no text part (e.g. finish_reason
@@ -55,15 +55,7 @@ class GeminiProvider(LLMProvider):
 
     def __init__(self):
         self.client = genai.Client(api_key=settings.gemini_api_key)
-        # Counts how often the fallback text parser had to rescue the output.
-        # With response_schema set this should stay at 0 — report it as
-        # evidence that structured output removed the truncation losses.
         self.salvage_count = 0
-
-        # response_schema makes the API guarantee parseable JSON, so the
-        # markdown-fence and truncated-JSON recovery paths below are a
-        # fallback, not the normal route. Budget is modest because v2 prompts
-        # extract only, and thinking tokens count against the same ceiling.
         self.extraction_config = types.GenerateContentConfig(
             temperature=0.1,
             max_output_tokens=settings.gemini_max_output_tokens,
@@ -74,17 +66,12 @@ class GeminiProvider(LLMProvider):
             ),
         )
 
-        # Explain/enrichment calls return a different shape, so they get a
-        # plain JSON config without the extraction schema attached.
         self.explain_config = types.GenerateContentConfig(
             temperature=0.2,
             max_output_tokens=settings.gemini_max_output_tokens,
             response_mime_type="application/json",
         )
 
-        # v1 ablation: unconstrained output and the old large ceiling. Without
-        # this the v1 prompts would still be forced into the v2 schema and the
-        # comparison would measure nothing.
         self.legacy_config = types.GenerateContentConfig(
             temperature=0.1,
             max_output_tokens=32768,
@@ -163,7 +150,7 @@ class GeminiProvider(LLMProvider):
                     prompt_variant=prompt_variant,
                 )
 
-            # Unparseable output — log and retry (model output is stochastic)
+            # Unparseable output log and retry (model output is stochastic)
             last_error = (
                 f"unparseable output (finish_reason={finish_reason}, "
                 f"text_len={len(raw_text)}): {raw_text[:200]!r}"
@@ -186,12 +173,12 @@ class GeminiProvider(LLMProvider):
 
         system = CHAT_INTERVIEW_PROMPT if interview_mode else CHAT_SYSTEM_PROMPT
 
-        # A selected component resolves deictic questions — "what does this do?"
+        # A selected component resolves deictic questions "what does this do?"
         # has no referent otherwise, and the model can only ask which one.
         focus_block = ""
         if focus_component:
             focus_block = f"""
-SELECTED COMPONENT — the user has this one selected on the canvas. Unless they
+SELECTED COMPONENT the user has this one selected on the canvas. Unless they
 name a different component, "this", "it" and "this component" all refer to it.
 Answer about this component specifically; do not ask which one they mean.
 {json.dumps(focus_component, indent=2)}
@@ -288,7 +275,7 @@ COMPONENT TO ANALYZE:
                 # lost here. Counted so the rate is reportable, not invisible.
                 self.salvage_count += 1
                 print(f"[gemini] salvaged truncated JSON output "
-                      f"(salvage #{self.salvage_count} — components may be missing)")
+                      f"(salvage #{self.salvage_count} components may be missing)")
                 return salvaged
 
         return None
@@ -297,7 +284,7 @@ COMPONENT TO ANALYZE:
     def _salvage_truncated_json(fragment: str) -> Optional[dict]:
         """Repairs JSON cut off mid-stream: trims back to the last complete
         object/array boundary, then closes any still-open brackets.
-        Best-effort — returns None if nothing parseable can be recovered."""
+        Best-effort returns None if nothing parseable can be recovered."""
         # Single forward pass: record bracket nesting at every "}" / "]" that
         # sits outside a string. Each such index is a candidate cut point.
         stack: list[str] = []

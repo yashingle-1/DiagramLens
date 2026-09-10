@@ -1,5 +1,5 @@
 """
-Hallucination filter — post-processes Gemini output by cross-validating
+Hallucination filter post-processes Gemini output by cross-validating
 component names against raw OCR text from the full image.
 
 This is a novel dissertation contribution. Cite as:
@@ -42,7 +42,7 @@ def run_hallucination_filter(
         full_ocr_text = pytesseract.image_to_string(image).lower()
     except Exception as exc:
         print(f"[hallucination_filter] OCR failed: {exc}")
-        # Can't validate — mark all as unknown (treat as validated to avoid false positives)
+        # Can't validate mark all as unknown (treat as validated to avoid false positives)
         names = [c.name for c in gemini_output.components]
         return {
             "validated": names,
@@ -63,7 +63,7 @@ def run_hallucination_filter(
         significant = [w for w in name_words if len(w) > _MIN_WORD_LEN]
 
         if not significant:
-            # Name is all short words — can't reliably test, treat as validated
+            # Name is all short words can't reliably test, treat as validated
             validated.append(component.name)
             continue
 

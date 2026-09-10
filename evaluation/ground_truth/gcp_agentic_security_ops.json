@@ -1,0 +1,35 @@
+{
+  "diagram_id": "gcp_agentic_security_ops",
+  "source_image": "gcp_agentic_security_ops.png",
+  "source_url": "https://docs.cloud.google.com/architecture/agentic-ai-orchestrate-security-ops-workflow-cloud-run-deployment",
+  "image_url": "https://docs.cloud.google.com/static/architecture/images/agentic-ai-orchestrate-security-ops-workflow-cloud-run-deployment.svg",
+  "license": "Google Cloud Architecture Center",
+  "diagram_standard": "gcp",
+  "complexity": "medium",
+  "arch_type": "microservices",
+  "components": [
+    {"name": "Security analyst", "type": "client"},
+    {"name": "Identity-Aware Proxy", "type": "gateway"},
+    {"name": "Cloud Armor", "type": "gateway"},
+    {"name": "Application Load Balancer", "type": "load_balancer"},
+    {"name": "Model Armor", "type": "gateway"},
+    {"name": "Agents (Cloud Run)", "type": "service"},
+    {"name": "AI models", "type": "service"},
+    {"name": "Google SecOps MCP server", "type": "service"},
+    {"name": "Google Threat Intelligence MCP server", "type": "service"},
+    {"name": "Third-party MCP server", "type": "service"}
+  ],
+  "connections": [
+    {"source": "Security analyst", "target": "Application Load Balancer", "label": "User request"},
+    {"source": "Application Load Balancer", "target": "Security analyst", "label": "Response"},
+    {"source": "Cloud Armor", "target": "Application Load Balancer", "label": "Web application firewall (WAF)"},
+    {"source": "Identity-Aware Proxy", "target": "Application Load Balancer", "label": "User authentication"},
+    {"source": "Application Load Balancer", "target": "Agents (Cloud Run)", "label": "Request"},
+    {"source": "Agents (Cloud Run)", "target": "Application Load Balancer", "label": "Response"},
+    {"source": "Agents (Cloud Run)", "target": "AI models"},
+    {"source": "Agents (Cloud Run)", "target": "Google SecOps MCP server"},
+    {"source": "Agents (Cloud Run)", "target": "Google Threat Intelligence MCP server"},
+    {"source": "Agents (Cloud Run)", "target": "Third-party MCP server"},
+    {"source": "Model Armor", "target": "Agents (Cloud Run)", "label": "Sanitize prompts, tool outputs, and responses"}
+  ]
+}

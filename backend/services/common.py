@@ -1,14 +1,3 @@
-"""
-Helpers shared by the classical and hybrid arms.
-
-These are pure label/type heuristics with no detection logic in them, so both
-arms can use them without the comparison becoming circular. The connection
-DETECTOR is deliberately not shared — see services/connection_detector.py.
-
-Definitions live here rather than in classical_pipeline.py so that the hybrid
-arm never imports from the frozen control arm.
-"""
-
 from __future__ import annotations
 
 import re

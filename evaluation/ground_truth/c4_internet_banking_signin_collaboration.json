@@ -1,0 +1,24 @@
+{
+  "diagram_id": "c4_internet_banking_signin_collaboration",
+  "source_image": "c4_internet_banking_signin_collaboration.png",
+  "source_url": "https://c4model.com/#examples",
+  "image_url": "https://c4model.com/images/examples/Dynamic-Collaboration.png",
+  "license": "c4model.com content is CC BY 4.0 (Simon Brown); Big Bank plc example workspace",
+  "diagram_standard": "c4",
+  "complexity": "low",
+  "arch_type": "layered",
+  "components": [
+    {"name": "UI", "type": "client", "c4_level": "container", "description": "Single-page app that provides Internet banking functionality to customers via their web browser"},
+    {"name": "Sign In API", "type": "service", "c4_level": "component", "description": "API endpoint for customer sign in"},
+    {"name": "Security Component", "type": "service", "c4_level": "component", "description": "Provides functionality related to signing in, changing passwords, etc."},
+    {"name": "Database", "type": "database", "c4_level": "container", "description": "User account information, access logs, etc."}
+  ],
+  "connections": [
+    {"source": "UI", "target": "Sign In API", "label": "1: Submits credentials to [JSON/HTTP]"},
+    {"source": "Sign In API", "target": "Security Component", "label": "2: Validates credentials using"},
+    {"source": "Security Component", "target": "Database", "label": "3: select * from users where username = ? [MySQL protocol]"},
+    {"source": "Database", "target": "Security Component", "label": "4: Returns user data to [MySQL protocol]"},
+    {"source": "Security Component", "target": "Sign In API", "label": "5: Issues a session token if authentication succeeds"},
+    {"source": "Sign In API", "target": "UI", "label": "6: Sends back a session token to [JSON/HTTP]"}
+  ]
+}

@@ -1,5 +1,5 @@
 """
-Text engine for the hybrid arm — PaddleOCR PP-OCRv5, Tesseract as fallback.
+Text engine for the hybrid arm PaddleOCR PP-OCRv5, Tesseract as fallback.
 
 Replaces the Tesseract-per-region + TrOCR chain in hybrid_pipeline.py. That
 chain had three problems this fixes:
@@ -7,7 +7,7 @@ chain had three problems this fixes:
   1. TrOCR base-printed is a SINGLE-LINE generative recogniser. Fed multi-line
      diagram crops it invented words, which is why the old code needed a
      full-page-OCR validation guard to filter its own output.
-  2. Tesseract was run once per region — N passes over the same image, each on
+  2. Tesseract was run once per region N passes over the same image, each on
      a small low-resolution crop, which is exactly where Tesseract is weakest.
   3. Region crops had to be expanded by guesswork (LABEL_EXPAND_DOWN/SIDE)
      because labels sit outside the shape in icon-centric diagrams.
@@ -16,7 +16,7 @@ One full-page detection+recognition pass returns every word with its own box,
 so text can be assigned to regions geometrically instead of re-OCR'd per crop.
 
 Model loads lazily and is cached at module level.
-Never raises — returns [] if no engine is available.
+Never raises returns [] if no engine is available.
 """
 
 from __future__ import annotations
@@ -312,7 +312,7 @@ def nearest_label(words: list[OcrWord], box: tuple[int, int, int, int],
             continue
         if word.y >= y + h:                 # below
             dist = word.y - (y + h)
-        elif word.bottom <= y:              # above — penalised, less conventional
+        elif word.bottom <= y:              # above  penalised, less conventional
             dist = (y - word.bottom) * 1.5
         else:
             continue                        # overlapping: handled by text_for_box

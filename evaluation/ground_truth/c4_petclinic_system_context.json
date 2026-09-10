@@ -1,0 +1,17 @@
+{
+  "diagram_id": "c4_petclinic_system_context",
+  "source_image": "c4_petclinic_system_context.png",
+  "source_url": "https://c4model.com/#examples",
+  "image_url": "https://c4model.com/images/spring-petclinic-system-context.png",
+  "license": "c4model.com content is CC BY 4.0 (Simon Brown); Spring PetClinic example",
+  "diagram_standard": "c4",
+  "complexity": "low",
+  "arch_type": "other",
+  "components": [
+    {"name": "Clinic Employee", "type": "client", "c4_level": "context", "description": "An employee of the clinic"},
+    {"name": "Spring PetClinic", "type": "service", "c4_level": "context", "description": "Allows employees to view and manage information regarding the veterinarians, the clients, and their pets"}
+  ],
+  "connections": [
+    {"source": "Clinic Employee", "target": "Spring PetClinic", "label": "Uses"}
+  ]
+}

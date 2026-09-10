@@ -1,0 +1,156 @@
+{
+  "seed": 20260830,
+  "n_folds": 5,
+  "n_bootstrap": 10000,
+  "fold_sizes": [
+    8,
+    8,
+    7,
+    7,
+    7
+  ],
+  "metrics": {
+    "component_f1": {
+      "classical": {
+        "mean": 0.5576,
+        "fold_means": [
+          0.4799,
+          0.5809,
+          0.6473,
+          0.5297,
+          0.5581
+        ],
+        "fold_min": 0.4799,
+        "fold_max": 0.6473,
+        "fold_spread": 0.1675,
+        "ci95_low": 0.4923,
+        "ci95_high": 0.6195
+      },
+      "hybrid": {
+        "mean": 0.7126,
+        "fold_means": [
+          0.6334,
+          0.7966,
+          0.797,
+          0.6307,
+          0.7048
+        ],
+        "fold_min": 0.6307,
+        "fold_max": 0.797,
+        "fold_spread": 0.1663,
+        "ci95_low": 0.6466,
+        "ci95_high": 0.7709
+      },
+      "gemini": {
+        "mean": 0.911,
+        "fold_means": [
+          0.9497,
+          0.8841,
+          0.8693,
+          0.8562,
+          0.9938
+        ],
+        "fold_min": 0.8562,
+        "fold_max": 0.9938,
+        "fold_spread": 0.1376,
+        "ci95_low": 0.8631,
+        "ci95_high": 0.9527
+      }
+    },
+    "connection_undirected_f1": {
+      "classical": {
+        "mean": 0.0949,
+        "fold_means": [
+          0.1218,
+          0.1552,
+          0.0224,
+          0.0797,
+          0.0831
+        ],
+        "fold_min": 0.0224,
+        "fold_max": 0.1552,
+        "fold_spread": 0.1328,
+        "ci95_low": 0.0607,
+        "ci95_high": 0.1344
+      },
+      "hybrid": {
+        "mean": 0.1151,
+        "fold_means": [
+          0.0658,
+          0.1023,
+          0.1947,
+          0.0749,
+          0.147
+        ],
+        "fold_min": 0.0658,
+        "fold_max": 0.1947,
+        "fold_spread": 0.1289,
+        "ci95_low": 0.0566,
+        "ci95_high": 0.1898
+      },
+      "gemini": {
+        "mean": 0.695,
+        "fold_means": [
+          0.7893,
+          0.7552,
+          0.6612,
+          0.5972,
+          0.6501
+        ],
+        "fold_min": 0.5972,
+        "fold_max": 0.7893,
+        "fold_spread": 0.1921,
+        "ci95_low": 0.6118,
+        "ci95_high": 0.7776
+      }
+    },
+    "connection_f1": {
+      "classical": {
+        "mean": 0.0577,
+        "fold_means": [
+          0.0601,
+          0.0764,
+          0.005,
+          0.0797,
+          0.0645
+        ],
+        "fold_min": 0.005,
+        "fold_max": 0.0797,
+        "fold_spread": 0.0747,
+        "ci95_low": 0.0326,
+        "ci95_high": 0.0872
+      },
+      "hybrid": {
+        "mean": 0.0516,
+        "fold_means": [
+          0.0192,
+          0.0728,
+          0.0518,
+          0.0383,
+          0.0776
+        ],
+        "fold_min": 0.0192,
+        "fold_max": 0.0776,
+        "fold_spread": 0.0584,
+        "ci95_low": 0.0236,
+        "ci95_high": 0.084
+      },
+      "gemini": {
+        "mean": 0.6522,
+        "fold_means": [
+          0.7383,
+          0.6882,
+          0.6491,
+          0.562,
+          0.6059
+        ],
+        "fold_min": 0.562,
+        "fold_max": 0.7383,
+        "fold_spread": 0.1764,
+        "ci95_low": 0.5739,
+        "ci95_high": 0.7316
+      }
+    }
+  },
+  "ordering_holds_in_folds": "5/5"
+}

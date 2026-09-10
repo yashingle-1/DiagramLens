@@ -1,19 +1,3 @@
-"""
-Stage 0 — decide which notation the diagram uses, from the IMAGE.
-
-Replaces the keyword guess in classical_pipeline._infer_diagram_standard(),
-which inferred the standard from names that had already been extracted. That
-is circular: the notation should steer extraction, so it cannot be a product
-of it. The keyword version survives here only as a fallback.
-
-The result drives three things:
-  1. proposer weights in hybrid_pipeline (icon bank vs shape vs text)
-  2. which relationship lookup table connection_detector uses
-  3. ArchitectureSchema.diagram_standard
-
-Every signal is cheap and computed from data the pipeline already has.
-"""
-
 from __future__ import annotations
 
 import re
@@ -27,7 +11,7 @@ from services.notation_profiles import GUILLEMET_CLOSE, GUILLEMET_OPEN
 # Confidence assigned when a signal fires outright vs when we fall back
 STRONG, WEAK = 0.9, 0.4
 # Fraction of regions matching vendor icons that settles the notation.
-# Low because icon_bank now favours precision heavily — a handful of confident
+# Low because icon_bank now favours precision heavily a handful of confident
 # matches is strong evidence, and it rarely matches more than that.
 ICON_HIT_STRONG = 0.10
 
@@ -45,8 +29,8 @@ _C4_TERMS = re.compile(
     r"\b(deployment\s+node|infrastructure\s+node|software\s+system|"
     r"container\s*:|component\s*:)", re.IGNORECASE
 )
-# UML marks stereotypes in guillemets. OCR seldom returns real ones — PP-OCRv5
-# emits CJK 《》 — so accept every variant, else UML is never recognised and
+# UML marks stereotypes in guillemets. OCR seldom returns real ones PP-OCRv5
+# emits CJK 《》 so accept every variant, else UML is never recognised and
 # its rule profile never applies.
 _UML_STEREOTYPE = re.compile(
     rf"(?:[{GUILLEMET_OPEN}]|<<)\s*\w[\w .\-/]*\s*(?:[{GUILLEMET_CLOSE}]|>>)"
@@ -83,19 +67,19 @@ def classify_notation(
     """Returns (notation, confidence).
     notation is one of: aws | azure | gcp | c4 | uml | informal."""
     try:
-        # 1. Vendor icons are the strongest signal available — an icon match is
+        # 1. Vendor icons are the strongest signal available an icon match is
         #    an exact identity, not a resemblance.
         if icon_hit_rate >= ICON_HIT_STRONG and icon_provider:
             return icon_provider, STRONG
 
-        # 2. UML stereotypes are unambiguous; no other notation uses guillemets.
+        # 2. UML stereotypes are unambiguous no other notation uses guillemets.
         if _UML_STEREOTYPE.search(ocr_text):
             return "uml", STRONG
 
         # 3. C4 bracket tags are equally distinctive.
         #
         # Checked BEFORE any vendor-keyword fallback on purpose. A C4
-        # deployment diagram of an AWS system is still a C4 diagram — the
+        # deployment diagram of an AWS system is still a C4 diagram the
         # vendor names are its content, not its notation. Ordering it after
         # the keyword fallback classified this whole family as "aws" and
         # applied the wrong extraction rules.
@@ -112,7 +96,7 @@ def classify_notation(
             return "informal", WEAK
 
         # 6. Fallback: keyword guess. Uses the raw OCR text as well as any
-        #    extracted names — an AWS diagram whose icons went unmatched still
+        #    extracted names an AWS diagram whose icons went unmatched still
         #    prints "CloudFront", "RDS", "S3" somewhere on the page.
         guess = infer_diagram_standard(list(component_names or []) + [ocr_text])
         return guess, WEAK

@@ -1,0 +1,33 @@
+{
+  "diagram_id": "azure_foundry_basic_chat",
+  "source_image": "azure_foundry_basic_chat.png",
+  "source_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/basic-microsoft-foundry-chat",
+  "image_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/_images/openai-end-to-end-basic.svg",
+  "license": "Microsoft Learn / Azure Architecture Center",
+  "diagram_standard": "azure",
+  "complexity": "medium",
+  "arch_type": "other",
+  "components": [
+    {"name": "User", "type": "client"},
+    {"name": "App Service built-in authentication (Easy Auth)", "type": "gateway"},
+    {"name": "App Service", "type": "service"},
+    {"name": "Managed identity", "type": "other"},
+    {"name": "Microsoft Foundry resource", "type": "service"},
+    {"name": "Foundry Agent Service", "type": "service"},
+    {"name": "Managed identities", "type": "other"},
+    {"name": "Azure OpenAI model", "type": "service"},
+    {"name": "Azure AI Search", "type": "database"},
+    {"name": "Application Insights", "type": "other"},
+    {"name": "Azure Monitor", "type": "other"}
+  ],
+  "connections": [
+    {"source": "User", "target": "App Service built-in authentication (Easy Auth)", "label": "1: https://domainname.azurewebsites.net"},
+    {"source": "App Service built-in authentication (Easy Auth)", "target": "App Service"},
+    {"source": "App Service", "target": "Foundry Agent Service", "label": "3"},
+    {"source": "Microsoft Foundry resource", "target": "Foundry Agent Service"},
+    {"source": "Foundry Agent Service", "target": "Azure OpenAI model", "label": "5"},
+    {"source": "Foundry Agent Service", "target": "Azure AI Search", "label": "4"},
+    {"source": "App Service", "target": "Application Insights", "label": "6"},
+    {"source": "App Service", "target": "Azure Monitor", "label": "6"}
+  ]
+}

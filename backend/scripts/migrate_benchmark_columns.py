@@ -2,7 +2,7 @@
 Adds the Part A benchmark columns to an existing database.
 
 SQLAlchemy's create_all() only creates missing TABLES, never missing columns,
-so an existing benchmarks table needs this. Idempotent — safe to re-run.
+so an existing benchmarks table needs this. Idempotent safe to re-run.
 
     python backend/scripts/migrate_benchmark_columns.py
 """

@@ -16,7 +16,7 @@ Adding a notation means adding a dict entry here, not a new code path.
 Rules are DECLARATIVE, not learned. Training a classifier for this would need a
 labelled corpus that does not exist at this scale (13 annotated diagrams), and
 would be trained on the same diagrams used for evaluation. A rule also states
-its own reason — "rejected: matched a UML compartment keyword" — which serves
+its own reason "rejected: matched a UML compartment keyword" which serves
 the explainability criterion the project is evaluated on.
 
 Notation-specific rules apply ONLY when the classifier is confident. A
@@ -33,7 +33,7 @@ import re
 # (guillemet stereotypes, C4 bracket tags, an icon-bank consensus).
 PROFILE_MIN_CONFIDENCE = 0.7
 
-# «application», <<interface>> — a UML stereotype, never part of the name.
+# «application», <<interface>> a UML stereotype, never part of the name.
 # OCR rarely returns true guillemets: PP-OCRv5 reads them as CJK double angle
 # brackets (《》), and other engines emit 〈〉, ‹›, or a doubled ASCII <<>>.
 # Missing these meant the stereotype stayed glued to the name AND the notation
@@ -41,7 +41,7 @@ PROFILE_MIN_CONFIDENCE = 0.7
 GUILLEMET_OPEN  = "«《〈‹"
 GUILLEMET_CLOSE = "»》〉›"
 # Two alternatives, because the content class differs. Between real guillemets
-# a stray ASCII '>' must be tolerated — OCR produced "《Provided component>》" —
+# a stray ASCII '>' must be tolerated OCR produced "《Provided component>》"
 # but inside <<...>> that character is the delimiter itself.
 _STEREOTYPE = re.compile(
     rf"[{GUILLEMET_OPEN}]\s*([^{GUILLEMET_OPEN}{GUILLEMET_CLOSE}]+?)\s*[{GUILLEMET_CLOSE}]"

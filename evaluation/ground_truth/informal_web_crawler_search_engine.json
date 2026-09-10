@@ -1,0 +1,38 @@
+{
+  "diagram_id": "informal_web_crawler_search_engine",
+  "source_image": "informal_web_crawler_search_engine.png",
+  "source_url": "https://github.com/donnemartin/system-design-primer",
+  "image_url": "https://github.com/donnemartin/system-design-primer/blob/master/images/bWxPtQA.png?raw=true",
+  "license": "system-design-primer repository (donnemartin), Creative Commons Attribution 4.0",
+  "diagram_standard": "informal",
+  "complexity": "medium",
+  "arch_type": "microservices",
+  "components": [
+    {"name": "Client", "type": "client"},
+    {"name": "DNS", "type": "gateway"},
+    {"name": "Load Balancer", "type": "load_balancer"},
+    {"name": "Web Server", "type": "service"},
+    {"name": "Query API", "type": "gateway"},
+    {"name": "Reverse Index Service", "type": "service"},
+    {"name": "Document Service", "type": "service"},
+    {"name": "Queue (reverse index)", "type": "queue"},
+    {"name": "Queue (document)", "type": "queue"},
+    {"name": "Crawler Service", "type": "service"},
+    {"name": "Memory Cache", "type": "cache"},
+    {"name": "NoSQL", "type": "database"}
+  ],
+  "connections": [
+    {"source": "Client", "target": "DNS", "label": "user search data flow", "line_style": "dashed"},
+    {"source": "Client", "target": "Load Balancer", "line_style": "dashed"},
+    {"source": "Load Balancer", "target": "Web Server", "line_style": "dashed"},
+    {"source": "Web Server", "target": "Query API", "line_style": "dashed"},
+    {"source": "Query API", "target": "Reverse Index Service", "line_style": "dashed"},
+    {"source": "Query API", "target": "Document Service", "line_style": "dashed"},
+    {"source": "Query API", "target": "Memory Cache", "line_style": "dashed"},
+    {"source": "Crawler Service", "target": "Queue (reverse index)", "label": "crawler data flow"},
+    {"source": "Crawler Service", "target": "Queue (document)", "label": "crawler data flow"},
+    {"source": "Crawler Service", "target": "NoSQL", "label": "crawler data flow"},
+    {"source": "Queue (reverse index)", "target": "Reverse Index Service"},
+    {"source": "Queue (document)", "target": "Document Service"}
+  ]
+}

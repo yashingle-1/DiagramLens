@@ -28,6 +28,7 @@
     {"source": "Sign In API", "target": "Security Component", "label": "validates credentials using"},
     {"source": "Accounts Summary API", "target": "Security Component", "label": "validates authentication token using"},
     {"source": "Accounts Summary API", "target": "Core Banking System Adapter", "label": "requests list of bank accounts from"},
+    {"source": "Security Component", "target": "Email Component", "label": "sends emails using"},
     {"source": "Email Component", "target": "Amazon Web Services Simple Email Service", "label": "sends e-mail using"},
     {"source": "Statement Component", "target": "Statement Store", "label": "reads from and writes to"},
     {"source": "Security Component", "target": "Database", "label": "reads from and writes to"},

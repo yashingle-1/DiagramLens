@@ -1,30 +1,3 @@
-"""
-Connection detection for the HYBRID arm — LSD line segments, arrowhead
-decoration, and line style.
-
-Deliberately NOT shared with classical_pipeline._detect_connections. The two
-arms previously called the same function, which meant their connection scores
-were identical by construction and the three-way comparison was really a
-two-way one on connections.
-
-Why LSD instead of the classical arm's HoughLinesP:
-  - Hough votes for infinitely long lines and then reconstructs segments, so it
-    needs threshold/minLineLength/maxLineGap tuning per image and floods
-    edge-dense regions with false positives. Published comparisons put it near
-    30% recall against LSD's ~66%.
-  - LSD is parameter-free, returns sub-pixel endpoints and per-segment width.
-  - Missing connections, not inventing them, is this project's binding
-    constraint, so recall is what matters.
-
-Direction is MEASURED, never assumed. classical_pipeline deduplicated to
-undirected pairs and then stamped directed=True; here an endpoint only becomes
-a target if an arrowhead was actually found there.
-
-Scope note: arrowhead PRESENCE (which drives `directed`) is the Tier A signal.
-Fine-grained UML head classification (triangle vs diamond, filled vs hollow)
-is best-effort and is reported qualitatively — see relationship_table.py.
-"""
-
 from __future__ import annotations
 
 import math
@@ -53,6 +26,31 @@ HEAD_SAMPLE_PX     = 6.0    # measure widening within this × stroke of the tip
 ARROW_MIN_STROKE   = 1.5
 DASH_DUTY_SOLID    = 0.88   # ink duty cycle at/above this = solid
 DASH_DUTY_MIN      = 0.25   # below this the "line" is probably not a line
+
+# ── Skeleton tracing (replaces straight-segment detection) ────────────────────
+DASH_BRIDGE_RATIO  = 2.2    # closing kernel = this × stroke ...
+DASH_BRIDGE_DIAG   = 0.012  # ... or this × image diagonal, whichever is longer.
+                            # Swept over {0.004, 0.012, 0.02} x snap radius on
+                            # the full 37-diagram set. Larger values win on
+                            # sparse C4/UML diagrams and lose on dense cloud
+                            # ones, where they weld neighbouring connectors
+                            # into one blob; 0.012 is the joint optimum.
+TRACE_TURN_MAX_DEG = 72.0   # at a junction, continue only through a branch whose
+                            # heading deviates less than this a crossing line is
+                            # ~90deg away a routed elbow is 90deg but reached as
+                            # a degree-2 bend, not a junction
+TRACE_LOOKAHEAD    = 6      # pixels of branch followed before judging its heading
+TRACE_MAX_STEPS    = 20000
+SNAP_PATH_MIN_PX   = 12.0   # path-end snap radius, floor ...
+SNAP_PATH_DIAG     = 0.05   # ... and this × image diagonal. Swept over
+                            # {0.02, 0.035, 0.05}: connectors stop at the ICON
+                            # while a component's box is often just its caption,
+                            # so the gap to close is a layout distance, not a
+                            # stroke-scaled one.
+HEAD_OPEN_RATIO    = 1.7    # opening kernel = this × stroke; erases shafts, keeps heads
+HEAD_MIN_AREA_R    = 1.1    # head blob area between (this × stroke)^2 ...
+HEAD_MAX_AREA_R    = 12.0   # ... and (this × stroke)^2
+HEAD_SNAP_RATIO    = 5.0    # head blob within this × stroke of a path end = that end's
 
 
 @dataclass
@@ -103,21 +101,6 @@ def _connector_mask(ink: np.ndarray,
                     container_boxes: list[tuple[int, int, int, int]],
                     text_boxes: list[tuple[int, int, int, int]],
                     stroke: float = 2.0) -> np.ndarray:
-    """Ink reduced to connectors only.
-
-    Components are erased WHOLE, border included — internal iconography and box
-    outlines are both long straight strokes that otherwise dominate the segment
-    list (on a test AWS diagram they produced most of 79 segments for ~13 real
-    connectors). Connectors approach from outside, so nothing is lost:
-    endpoint snapping re-associates them by proximity.
-
-    Containers get only their BORDER erased. Filling them would blank
-    everything nested inside — an Auto Scaling Group boundary would delete the
-    very components and connectors it contains.
-
-    Text padding is small and absolutely capped: a generous margin around a
-    dense label cluster swallows the short connectors running between them.
-    """
     out = ink.copy()
     _erase_filled(out, text_boxes, TEXT_PAD, cap=TEXT_PAD_MAX_PX)
     _erase_filled(out, component_boxes)
@@ -431,6 +414,281 @@ def point_to_segment_distance(px: float, py: float,
     return math.dist((px, py), (x1 + t * dx, y1 + t * dy))
 
 
+# ── Skeleton path tracing ─────────────────────────────────────────────────────
+# Straight-segment detection (LSD/Hough) cannot represent the connectors these
+# diagrams actually use. AWS, C4 and UML connectors are orthogonally routed
+# polylines: an L-shaped link is two collinear-incompatible segments, so one leg
+# ends at a component and the other ends in whitespace at the elbow, and the
+# link is lost. Measured on the hybrid arm: 138 merged segments for ~10 real
+# connectors, of which 40 snapped both ends to the SAME component (box outlines
+# and icon internals) and only 6 spanned a component pair.
+#
+# Tracing the skeleton instead follows a connector wherever it goes — elbows,
+# curves, dashes bridged beforehand — and yields exactly two endpoints per
+# connector, which is what endpoint snapping wants.
+
+_NEIGHBOURS = ((-1, -1), (0, -1), (1, -1), (-1, 0),
+               (1, 0), (-1, 1), (0, 1), (1, 1))
+
+
+def _bridge_dashes(mask: np.ndarray, stroke: float, diag: float) -> np.ndarray:
+    """Close dash gaps so a dashed dependency traces as one path.
+
+    Closing is ORIENTED, not isotropic: four one-pixel-wide linear kernels at
+    0/45/90/135 degrees, OR-ed together. A round kernel big enough to span a
+    dash gap is also big enough to weld neighbouring parallel connectors into
+    one blob; a linear kernel reaches along the line and nowhere else.
+
+    Length is tied to the image diagonal because dash gaps scale with the
+    rendering resolution, not with the stroke: on a 5000px C4 export the gaps
+    are ~20px while the stroke is ~3px, so a stroke-scaled kernel bridged
+    nothing and every dashed link fragmented into sub-minimum-length pieces.
+    """
+    L = int(max(5, round(max(DASH_BRIDGE_RATIO * stroke, DASH_BRIDGE_DIAG * diag))))
+    L += 1 - (L % 2)
+    eye = np.eye(L, dtype=np.uint8)
+    kernels = (np.ones((1, L), np.uint8), np.ones((L, 1), np.uint8),
+               eye, np.fliplr(eye).copy())
+    out = np.zeros_like(mask)
+    for k in kernels:
+        out = cv2.bitwise_or(out, cv2.morphologyEx(mask, cv2.MORPH_CLOSE, k))
+    return out
+
+
+def _skeletonise(mask: np.ndarray) -> np.ndarray | None:
+    """One-pixel-wide centreline. Returns None if the build lacks ximgproc, in
+    which case the caller falls back to the segment detector."""
+    try:
+        return cv2.ximgproc.thinning(mask, thinningType=cv2.ximgproc.THINNING_ZHANGSUEN)
+    except Exception as exc:
+        print(f"[connection_detector] thinning unavailable ({exc}); using segments")
+        return None
+
+
+def _pixel_graph(skel: np.ndarray) -> dict[tuple[int, int], list[tuple[int, int]]]:
+    ys, xs = np.nonzero(skel)
+    pts = set(zip(xs.tolist(), ys.tolist()))
+    return {p: [q for q in ((p[0] + dx, p[1] + dy) for dx, dy in _NEIGHBOURS) if q in pts]
+            for p in pts}
+
+
+def _heading(a: tuple[int, int], b: tuple[int, int]) -> tuple[float, float]:
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    n = math.hypot(dx, dy) or 1.0
+    return dx / n, dy / n
+
+
+def _branch_heading(nbrs, cur, first, steps: int) -> tuple[float, float]:
+    """Heading of a branch, judged `steps` pixels in rather than from the first
+    pixel — 8-connected neighbours only resolve 45 degrees, which is not enough
+    to tell a crossing line from a continuing one."""
+    prev, node = cur, first
+    for _ in range(steps):
+        onward = [q for q in nbrs.get(node, ()) if q != prev]
+        if len(onward) != 1:
+            break
+        prev, node = node, onward[0]
+    return _heading(cur, node)
+
+
+def _trace_paths(nbrs, min_len: float) -> list[list[tuple[int, int]]]:
+    """Every skeleton path running between two free ends.
+
+    Junctions are crossings far more often than they are real forks — connectors
+    routinely cross each other and clip component borders — so a walk continues
+    through the branch that best preserves its heading, and gives up if nothing
+    continues straight enough. That keeps a crossed connector whole instead of
+    cutting it into four stubs at the intersection.
+    """
+    ends = [p for p, n in nbrs.items() if len(n) == 1]
+    paths: list[list[tuple[int, int]]] = []
+    seen: set[tuple[tuple[int, int], tuple[int, int]]] = set()
+
+    for start in ends:
+        prev, cur = start, nbrs[start][0]
+        path = [start, cur]
+        steps = 0
+        while steps < TRACE_MAX_STEPS:
+            steps += 1
+            onward = [q for q in nbrs.get(cur, ()) if q != prev]
+            if not onward:
+                break
+            if len(onward) == 1:
+                nxt = onward[0]
+            else:
+                back = path[-min(len(path), TRACE_LOOKAHEAD)]
+                hx, hy = _heading(back, cur)
+                best, best_dot = None, math.cos(math.radians(TRACE_TURN_MAX_DEG))
+                for q in onward:
+                    qx, qy = _branch_heading(nbrs, cur, q, TRACE_LOOKAHEAD)
+                    dot = hx * qx + hy * qy
+                    if dot > best_dot:
+                        best, best_dot = q, dot
+                if best is None:
+                    break
+                nxt = best
+            if nxt in path[-3:]:
+                break
+            path.append(nxt)
+            prev, cur = cur, nxt
+
+        if len(path) < 3:
+            continue
+        key = (min(path[0], path[-1]), max(path[0], path[-1]))
+        if key in seen:          # same path walked from its other end
+            continue
+        # Path length as travelled, not end-to-end: an L-shaped connector is
+        # long even when its endpoints are close in Euclidean terms.
+        travelled = sum(math.dist(path[i], path[i + 1]) for i in range(len(path) - 1))
+        if travelled < min_len:
+            continue
+        seen.add(key)
+        paths.append(path)
+    return paths
+
+
+# ── Arrowheads as objects (replaces stroke-width sampling) ────────────────────
+def _head_blobs(connectors: np.ndarray, stroke: float) -> list[tuple[float, float, tuple]]:
+    k = int(max(3, round(HEAD_OPEN_RATIO * stroke)))
+    k += 1 - (k % 2)
+    opened = cv2.morphologyEx(connectors, cv2.MORPH_OPEN,
+                              cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+    n, _lab, stats, cents = cv2.connectedComponentsWithStats(opened, 8)
+
+    lo, hi = (HEAD_MIN_AREA_R * stroke) ** 2, (HEAD_MAX_AREA_R * stroke) ** 2
+    out = []
+    for i in range(1, n):
+        area = float(stats[i, cv2.CC_STAT_AREA])
+        if not (lo <= area <= hi):
+            continue
+        x, y, w, h = (int(stats[i, cv2.CC_STAT_LEFT]), int(stats[i, cv2.CC_STAT_TOP]),
+                      int(stats[i, cv2.CC_STAT_WIDTH]), int(stats[i, cv2.CC_STAT_HEIGHT]))
+        # A head is compact. A long thin survivor is a thick border, not a head.
+        if max(w, h) > 4.0 * max(1, min(w, h)):
+            continue
+        out.append((float(cents[i][0]), float(cents[i][1]), (x, y, w, h)))
+    return out
+
+
+def _head_at(point: tuple[int, int], blobs, radius: float,
+             connectors: np.ndarray) -> str:
+    """Decoration at a path end, or "none"."""
+    best, best_d = None, radius
+    for (cx, cy, box) in blobs:
+        d = math.dist(point, (cx, cy))
+        if d < best_d:
+            best, best_d = (cx, cy, box), d
+    if best is None:
+        return "none"
+    return _head_shape_box(connectors, best[2])
+
+
+def _head_shape_box(mask: np.ndarray, box: tuple[int, int, int, int]) -> str:
+    x, y, w, h = box
+    pad = 2
+    win = mask[max(0, y - pad):y + h + pad, max(0, x - pad):x + w + pad]
+    if win.size == 0:
+        return "open_arrow"
+    contours, _ = cv2.findContours(win, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return "open_arrow"
+    contour = max(contours, key=cv2.contourArea)
+    area = cv2.contourArea(contour)
+    hull = cv2.convexHull(contour)
+    hull_area = cv2.contourArea(hull)
+    if hull_area <= 0 or area <= 0:
+        return "open_arrow"
+
+    fill = area / hull_area
+    peri = cv2.arcLength(hull, True)
+    verts = len(cv2.approxPolyDP(hull, 0.05 * peri, True)) if peri > 0 else 3
+    if fill >= 0.72:
+        return "filled_diamond" if verts == 4 else "filled_arrow"
+    return "hollow_diamond" if verts == 4 else "hollow_triangle"
+
+
+def _path_style(ink: np.ndarray, path: list[tuple[int, int]]) -> str:
+    """Solid vs dashed, measured along the traced path on the ORIGINAL ink.
+
+    Sampling the pre-bridging ink is the point: the closing that makes a dashed
+    line traceable would otherwise erase the very gaps being measured.
+    """
+    if len(path) < 8:
+        return "unknown"
+    h, w = ink.shape[:2]
+    step = max(1, len(path) // 400)
+    pts = path[::step]
+    hits = 0
+    for (px, py) in pts:
+        x0, y0 = max(0, px - 1), max(0, py - 1)
+        patch = ink[y0:min(h, py + 2), x0:min(w, px + 2)]
+        if patch.size and patch.max() > 0:
+            hits += 1
+    duty = hits / len(pts)
+    if duty >= DASH_DUTY_SOLID:
+        return "solid"
+    if duty >= DASH_DUTY_MIN:
+        return "dashed"
+    return "unknown"
+
+
+def _connections_from_paths(
+    ink: np.ndarray,
+    connectors: np.ndarray,
+    bridged: np.ndarray,
+    component_boxes: list[tuple[int, int, int, int]],
+    stroke: float,
+    diag: float,
+    notation: str,
+) -> list[DetectedConnection] | None:
+    skel = _skeletonise(bridged)
+    if skel is None:
+        return None
+
+    paths = _trace_paths(_pixel_graph(skel), MIN_SEG_FRACTION * diag)
+    if not paths:
+        return []
+
+    radius = max(SNAP_PATH_MIN_PX, SNAP_PATH_DIAG * diag)
+    blobs = _head_blobs(connectors, stroke)
+    head_radius = HEAD_SNAP_RATIO * stroke
+
+    best: dict[tuple[int, int], DetectedConnection] = {}
+    for path in paths:
+        a, b = path[0], path[-1]
+        s = _snap(a[0], a[1], component_boxes, radius)
+        t = _snap(b[0], b[1], component_boxes, radius)
+        if s is None or t is None or s == t:
+            continue
+
+        head_s = _head_at(a, blobs, head_radius, connectors)
+        head_t = _head_at(b, blobs, head_radius, connectors)
+        style = _path_style(ink, path)
+        length = sum(math.dist(path[i], path[i + 1]) for i in range(len(path) - 1))
+
+        if head_t != "none" and head_s == "none":
+            src, tgt, head = s, t, head_t
+        elif head_s != "none" and head_t == "none":
+            src, tgt, head = t, s, head_s
+        else:
+            src, tgt, head = s, t, "none"
+
+        conn = DetectedConnection(
+            source_idx=src,
+            target_idx=tgt,
+            directed=head != "none",
+            line_style=style,
+            arrowhead_source=head_s if src == s else head_t,
+            arrowhead_target=head,
+            relationship=relationship_for(notation, head, style),
+            length=length,
+        )
+        key = (min(src, tgt), max(src, tgt))
+        if key not in best or length > best[key].length:
+            best[key] = conn
+    return list(best.values())
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 def detect_connections(
     img_rgb: np.ndarray,
@@ -440,8 +698,8 @@ def detect_connections(
     notation: str = "informal",
     container_boxes: list[tuple[int, int, int, int]] | None = None,
 ) -> list[DetectedConnection]:
-    """Detect connections between components. Never raises — returns whatever
-    was found."""
+    """Detect connections between components. Never raises returns whatever
+ was found."""
     if len(component_boxes) < 2:
         return []
 
@@ -453,8 +711,16 @@ def detect_connections(
 
         h, w = ink.shape[:2]
         diag = math.hypot(h, w)
-        dt = _widthmap(connectors, stroke)
 
+        # Primary path: bridge dashes, skeletonise, trace. Falls back to the
+        # straight-segment detector only if the OpenCV build has no thinning.
+        bridged = _bridge_dashes(connectors, stroke, diag)
+        traced = _connections_from_paths(ink, connectors, bridged, component_boxes,
+                                         stroke, diag, notation)
+        if traced is not None:
+            return traced
+
+        dt = _widthmap(connectors, stroke)
         segs = _merge_collinear(_detect_segments(connectors, MIN_SEG_FRACTION * diag))
         if not segs:
             return []

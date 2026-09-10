@@ -4,25 +4,26 @@
   "source_url": "https://c4model.com/#examples",
   "diagram_standard": "c4",
   "complexity": "medium",
-  "arch_type": "other",
+  "arch_type": "layered",
   "components": [
-    {"name": "Personal Banking Customer", "type": "client"},
-    {"name": "Web Application", "type": "service"},
-    {"name": "Single-Page Application", "type": "client"},
-    {"name": "Mobile App", "type": "client"},
-    {"name": "API Application", "type": "gateway"},
-    {"name": "Database", "type": "database"},
-    {"name": "Mainframe Banking System", "type": "service"},
-    {"name": "Email System", "type": "service"}
+    {"name": "Personal Banking Customer", "type": "client", "c4_level": "context"},
+    {"name": "Static Content", "type": "storage", "c4_level": "container", "description": "HTML, CSS, JavaScript, etc."},
+    {"name": "UI", "type": "client", "c4_level": "container", "description": "Single-page app that provides Internet banking functionality to customers via their web browser"},
+    {"name": "Backend", "type": "service", "c4_level": "container", "description": "Provides Internet banking functionality via a JSON/HTTP API"},
+    {"name": "Statement Store", "type": "storage", "c4_level": "container", "description": "Bank account statements rendered as PDF files"},
+    {"name": "Database", "type": "database", "c4_level": "container", "description": "User account information, access logs, etc."},
+    {"name": "Amazon Web Services Simple Email Service", "type": "service", "c4_level": "context"},
+    {"name": "Core Banking System", "type": "service", "c4_level": "context"}
   ],
   "connections": [
-    {"source": "Personal Banking Customer", "target": "Web Application"},
-    {"source": "Personal Banking Customer", "target": "Mobile App"},
-    {"source": "Web Application", "target": "Single-Page Application"},
-    {"source": "Single-Page Application", "target": "API Application"},
-    {"source": "Mobile App", "target": "API Application"},
-    {"source": "API Application", "target": "Database"},
-    {"source": "API Application", "target": "Mainframe Banking System"},
-    {"source": "API Application", "target": "Email System"}
+    {"source": "Personal Banking Customer", "target": "Static Content", "label": "Loads the UI from"},
+    {"source": "Personal Banking Customer", "target": "UI", "label": "Views account balances and makes payments using"},
+    {"source": "Static Content", "target": "UI", "label": "Delivers"},
+    {"source": "UI", "target": "Backend", "label": "Makes API requests to [JSON/HTTP]"},
+    {"source": "Backend", "target": "Amazon Web Services Simple Email Service", "label": "Sends e-mails to customers using [AWS SES API/HTTP]"},
+    {"source": "Amazon Web Services Simple Email Service", "target": "Personal Banking Customer", "label": "Sends e-mails to"},
+    {"source": "Backend", "target": "Core Banking System", "label": "Makes API requests to [XML/HTTPS]"},
+    {"source": "Backend", "target": "Statement Store", "label": "Reads from and writes to [AWS S3 API/HTTP]"},
+    {"source": "Backend", "target": "Database", "label": "Reads from and writes to [MySQL protocol]"}
   ]
 }

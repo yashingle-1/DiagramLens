@@ -1,31 +1,4 @@
-﻿"""
-HYBRID ARM v1 — FROZEN ABLATION BASELINE. Reached via HYBRID_VERSION=v1.
-
-Kept verbatim (only the entry-point name changed) so the SAM + CLIP-prompting +
-TrOCR approach can be re-run on identical diagrams under identical metrics.
-Removing it outright would have discarded the evidence for a reportable
-negative result: SAM's class-agnostic segmentation over-segments decorative
-gradients and icon sub-parts on synthetic diagrams, needing the filter wall
-below and still yielding ~6 components in ~137s. See hybrid_pipeline.py for v2.
-
-This file is the one place the hybrid arm still imports from classical_pipeline
-— that coupling is part of what v1 WAS, so reproducing it is the point.
-
-Specialized ML Hybrid pipeline — NO LLM, NO GENERATIVE AI, NO EXTERNAL API CALLS.
-
-Three specialized models chained, each doing exactly one job:
-  1. SAM  (Meta)      — automatic mask generation → candidate component regions
-  2. CLIP (OpenAI)    — zero-shot classification of each region's component type
-  3. TrOCR (Microsoft)— text extraction from each region (pytesseract fallback)
-
-Connection inference reuses the classical HoughLinesP detector on the original
-image with SAM-derived bounding boxes.
-
-All models run locally. Zero API cost. Models are loaded lazily on first call
-and cached at module level (rule 9 in CLAUDE.md).
-Never raises on partial results — returns what was found, even if incomplete.
-"""
-
+﻿
 import asyncio
 import io
 import os
@@ -48,7 +21,7 @@ from services.classical_pipeline import (
 )
 
 # ── Tuning constants ──────────────────────────────────────────────────────────
-SAM_LONG_SIDE        = 1024    # downscale before SAM — CPU speed vs detail tradeoff
+SAM_LONG_SIDE        = 1024    # downscale before SAM CPU speed vs detail tradeoff
 SAM_POINTS_PER_SIDE  = 16      # default 32 is ~4x slower on CPU
 MIN_REGION_FRACTION  = 0.0005  # regions smaller than this fraction of image = noise
 MAX_REGION_FRACTION  = 0.30    # regions larger than this = container/background
@@ -97,7 +70,7 @@ def _load_models() -> dict:
         if _models:
             return _models
 
-        import torch  # noqa: F401 — fail early with a clear message if missing
+        import torch  # noqa: F401 fail early with a clear message if missing
         from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
         from transformers import (
             CLIPModel,
@@ -180,7 +153,7 @@ def _segment_regions(img_rgb: np.ndarray) -> list[tuple[int, int, int, int]]:
         if duplicate:
             continue
         # A region wrapping 2+ already-kept components is a group container
-        # (VPC boundary, availability zone, subnet) — not a component itself.
+        # (VPC boundary, availability zone, subnet) not a component itself.
         if contains_count >= 2:
             continue
         boxes.append(cand)
@@ -219,7 +192,7 @@ def _classify_regions(img_rgb: np.ndarray,
         comp_type, prob = CLIP_PROMPTS[idx][1], float(row[idx])
         # Only trust the "text annotation" (skip) verdict when CLIP is
         # confident. A weak win for it on a real component crop would
-        # silently drop the component — fall back to the runner-up type.
+        # silently drop the component fall back to the runner-up type.
         if comp_type == "" and prob < TEXT_SKIP_MIN_PROB:
             order = row.argsort(descending=True)
             runner_up = int(order[1])
@@ -230,12 +203,12 @@ def _classify_regions(img_rgb: np.ndarray,
 
 # ── Stage 3: text extraction (tesseract on expanded crop + TrOCR fallback) ───
 LABEL_EXPAND_DOWN  = 0.6   # diagram labels usually sit below the icon/shape
-LABEL_EXPAND_SIDE  = 0.45  # generous — truncating a label's last letters is worse
+LABEL_EXPAND_SIDE  = 0.45  # generous truncating a label's last letters is worse
 TROCR_VALIDATE_RATIO = 0.8  # TrOCR word must fuzzy-match a full-page OCR word
 
 
 def _page_ocr_words(img_rgb: np.ndarray) -> set[str]:
-    """Full-image OCR word set — used to reject TrOCR hallucinations."""
+    """Full-image OCR word set used to reject TrOCR hallucinations."""
     try:
         import pytesseract
         return set(pytesseract.image_to_string(Image.fromarray(img_rgb)).lower().split())
@@ -298,7 +271,7 @@ def _read_region_text(img_rgb: np.ndarray, box: tuple[int, int, int, int],
     if crop.size == 0:
         return ""
 
-    # Upscale small crops — tesseract accuracy drops sharply below ~30px text
+    # Upscale small crops tesseract accuracy drops sharply below ~30px text
     if crop.shape[0] < OCR_UPSCALE_MIN_H:
         crop = cv2.resize(crop, None, fx=OCR_UPSCALE_FACTOR, fy=OCR_UPSCALE_FACTOR,
                           interpolation=cv2.INTER_CUBIC)
@@ -369,7 +342,7 @@ def _dedupe_components(
                 None, comp.name.lower(), components[j].name.lower()
             ).ratio() >= DEDUPE_NAME_RATIO
             if same_name and iou(box, boxes[j]) >= DEDUPE_BOX_IOU:
-                # Duplicate — keep whichever has higher CLIP confidence
+                # Duplicate keep whichever has higher CLIP confidence
                 if (comp.confidence or 0) > (components[j].confidence or 0):
                     components[j] = comp.model_copy(update={"id": components[j].id})
                     boxes[j] = box
@@ -422,7 +395,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
         kept_boxes.append(box)
 
     # Dedupe: near-identical names on overlapping boxes = SAM segmented the
-    # same shape twice. Distant boxes with the same name are kept — replicated
+    # same shape twice. Distant boxes with the same name are kept replicated
     # components (multi-AZ web servers) are genuine.
     components, kept_boxes = _dedupe_components(components, kept_boxes)
 
@@ -445,7 +418,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 async def run_hybrid_pipeline_v1(image_bytes: bytes, session_id: str) -> ArchitectureSchema:
-    """Full SAM + CLIP + TrOCR extraction. Never raises — returns partial results."""
+    """Full SAM + CLIP + TrOCR extraction. Never raises returns partial results."""
     start = time.time()
     try:
         return await asyncio.to_thread(_extract, image_bytes, session_id, start)

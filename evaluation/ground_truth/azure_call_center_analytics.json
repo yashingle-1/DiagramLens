@@ -1,0 +1,37 @@
+{
+  "diagram_id": "azure_call_center_analytics",
+  "source_image": "azure_call_center_analytics.png",
+  "source_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/openai/architecture/call-center-analytics",
+  "image_url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/openai/architecture/_images/call-center-analytics.svg",
+  "license": "Microsoft Learn / Azure Architecture Center",
+  "diagram_standard": "azure",
+  "complexity": "medium",
+  "arch_type": "event_driven",
+  "components": [
+    {"name": "Caller", "type": "client"},
+    {"name": "Call center agent", "type": "client"},
+    {"name": "Telephony server", "type": "service"},
+    {"name": "Blob Storage (audio files)", "type": "storage"},
+    {"name": "Azure speech to text", "type": "service", "description": "Extraction"},
+    {"name": "Blob Storage (transcripts)", "type": "storage"},
+    {"name": "Language", "type": "service", "description": "Enrichment"},
+    {"name": "Azure OpenAI", "type": "service"},
+    {"name": "Blob Storage (insights)", "type": "storage"},
+    {"name": "Insights in Power BI", "type": "other"},
+    {"name": "Web app", "type": "client"},
+    {"name": "CRM", "type": "service", "description": "Detailed call history, summaries, and reasons for calling"}
+  ],
+  "connections": [
+    {"source": "Caller", "target": "Telephony server", "label": "Person-to-person conversation"},
+    {"source": "Call center agent", "target": "Telephony server", "label": "Person-to-person conversation"},
+    {"source": "Telephony server", "target": "Blob Storage (audio files)", "label": "File upload"},
+    {"source": "Blob Storage (audio files)", "target": "Azure speech to text", "label": "Audio files"},
+    {"source": "Azure speech to text", "target": "Blob Storage (transcripts)"},
+    {"source": "Blob Storage (transcripts)", "target": "Language"},
+    {"source": "Language", "target": "Azure OpenAI"},
+    {"source": "Azure OpenAI", "target": "Blob Storage (insights)"},
+    {"source": "Blob Storage (insights)", "target": "Insights in Power BI"},
+    {"source": "Blob Storage (insights)", "target": "Web app"},
+    {"source": "Blob Storage (insights)", "target": "CRM"}
+  ]
+}

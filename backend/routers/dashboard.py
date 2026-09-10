@@ -1,5 +1,5 @@
 """
-Dashboard router — aggregates all benchmark results for the dissertation charts.
+Dashboard router: aggregates all benchmark results for the dissertation charts.
 
 GET /api/dashboard
 Returns:
@@ -77,7 +77,7 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
         if b.response_time_ms is not None:
             pipeline_speed[pipeline].append(b.response_time_ms)
 
-        # Hallucination rows (gemini only — that's where hallucinations happen)
+        # Hallucination rows (gemini only that's where hallucinations happen)
         if pipeline == "gemini" and b.diagram_id:
             hallucinated = b.hallucinated_components or []
             total_extracted = (b.extracted_json or {})

@@ -1,0 +1,36 @@
+{
+  "diagram_id": "gcp_edge_to_mesh_multiregion",
+  "source_image": "gcp_edge_to_mesh_multiregion.png",
+  "source_url": "https://docs.cloud.google.com/architecture/build-apps-using-gateway-and-cloud-service-mesh",
+  "image_url": "https://docs.cloud.google.com/static/architecture/images/build-apps-using-gateway-and-cloud-service-ad.svg",
+  "license": "Google Cloud Architecture Center",
+  "diagram_standard": "gcp",
+  "complexity": "medium",
+  "arch_type": "microservices",
+  "components": [
+    {"name": "Managed TLS certificate", "type": "other"},
+    {"name": "External Application Load Balancer w/ Anycast VIP", "type": "load_balancer"},
+    {"name": "Cloud Armor", "type": "gateway"},
+    {"name": "Service Mesh", "type": "other"},
+    {"name": "Service Discovery", "type": "other"},
+    {"name": "Mesh ingress gateway pods (Region 1)", "type": "gateway"},
+    {"name": "Frontend service pods (Region 1)", "type": "service"},
+    {"name": "Backend service pods (Region 1)", "type": "service"},
+    {"name": "Mesh ingress gateway pods (Region 2)", "type": "gateway"},
+    {"name": "Frontend service pods (Region 2)", "type": "service"},
+    {"name": "Backend service pods (Region 2)", "type": "service"}
+  ],
+  "connections": [
+    {"source": "Managed TLS certificate", "target": "External Application Load Balancer w/ Anycast VIP"},
+    {"source": "External Application Load Balancer w/ Anycast VIP", "target": "Mesh ingress gateway pods (Region 1)"},
+    {"source": "External Application Load Balancer w/ Anycast VIP", "target": "Mesh ingress gateway pods (Region 2)"},
+    {"source": "Cloud Armor", "target": "Mesh ingress gateway pods (Region 1)"},
+    {"source": "Cloud Armor", "target": "Mesh ingress gateway pods (Region 2)"},
+    {"source": "Mesh ingress gateway pods (Region 1)", "target": "Frontend service pods (Region 1)"},
+    {"source": "Frontend service pods (Region 1)", "target": "Backend service pods (Region 1)"},
+    {"source": "Mesh ingress gateway pods (Region 2)", "target": "Frontend service pods (Region 2)"},
+    {"source": "Frontend service pods (Region 2)", "target": "Backend service pods (Region 2)"},
+    {"source": "Service Discovery", "target": "Frontend service pods (Region 1)"},
+    {"source": "Service Discovery", "target": "Frontend service pods (Region 2)"}
+  ]
+}

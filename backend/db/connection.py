@@ -8,7 +8,7 @@ if _url.startswith("postgresql://"):
     _url = _url.replace("postgresql://", "postgresql+asyncpg://", 1)
 DATABASE_URL = _url
 
-# Create the async engine — this is the core connection to PostgreSQL
+# Create the async engine this is the core connection to PostgreSQL
 # pool_pre_ping checks if connection is alive before using it
 engine = create_async_engine(
     DATABASE_URL,
@@ -18,7 +18,7 @@ engine = create_async_engine(
     max_overflow=20,       # allow 20 extra connections under heavy load
 )
 
-# Session factory — creates new database sessions
+# Session factory creates new database sessions
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
@@ -26,7 +26,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-# Base class — all database models inherit from this
+# Base class all database models inherit from this
 class Base(DeclarativeBase):
     pass
 

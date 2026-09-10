@@ -6,18 +6,20 @@
   "complexity": "low",
   "arch_type": "serverless",
   "components": [
-    {"name": "Browser", "type": "client"},
-    {"name": "Amazon S3", "type": "storage"},
+    {"name": "Client", "type": "client"},
     {"name": "Amazon Cognito", "type": "service"},
-    {"name": "API Gateway", "type": "gateway"},
+    {"name": "Amazon CloudFront", "type": "cdn"},
+    {"name": "Amazon Simple Storage Service (Amazon S3)", "type": "storage"},
+    {"name": "Amazon API Gateway", "type": "gateway"},
     {"name": "AWS Lambda", "type": "service"},
     {"name": "Amazon DynamoDB", "type": "database"}
   ],
   "connections": [
-    {"source": "Browser", "target": "Amazon S3"},
-    {"source": "Browser", "target": "Amazon Cognito"},
-    {"source": "Browser", "target": "API Gateway"},
-    {"source": "API Gateway", "target": "AWS Lambda"},
+    {"source": "Client", "target": "Amazon Cognito"},
+    {"source": "Client", "target": "Amazon CloudFront"},
+    {"source": "Amazon CloudFront", "target": "Amazon Simple Storage Service (Amazon S3)"},
+    {"source": "Amazon CloudFront", "target": "Amazon API Gateway"},
+    {"source": "Amazon API Gateway", "target": "AWS Lambda"},
     {"source": "AWS Lambda", "target": "Amazon DynamoDB"}
   ]
 }

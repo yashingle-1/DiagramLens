@@ -1,0 +1,37 @@
+{
+  "diagram_id": "azure_m365_tenant_devops",
+  "source_image": "azure_m365_tenant_devops.png",
+  "source_url": "https://learn.microsoft.com/en-us/azure/architecture/example-scenario/devops/manage-microsoft-365-tenant-configuration-microsoft365dsc-azure-devops",
+  "image_url": "https://learn.microsoft.com/en-us/azure/architecture/example-scenario/devops/media/manage-microsoft-365-tenant-configuration-microsoft365dsc-azure-devops.svg",
+  "license": "Microsoft Learn / Azure Architecture Center",
+  "diagram_standard": "azure",
+  "complexity": "medium",
+  "arch_type": "other",
+  "components": [
+    {"name": "Admin 1", "type": "client"},
+    {"name": "Config file", "type": "storage"},
+    {"name": "Fork admin 1", "type": "storage"},
+    {"name": "Azure Pipelines", "type": "service"},
+    {"name": "Main repository", "type": "storage"},
+    {"name": "Admins", "type": "client"},
+    {"name": "Multi-stage pipeline", "type": "service"},
+    {"name": "Key Vault", "type": "storage"},
+    {"name": "Microsoft365DSC", "type": "service", "description": "Deploy changes from MOF files via PowerShell task"},
+    {"name": "Microsoft 365 staging", "type": "service"},
+    {"name": "Microsoft 365 production", "type": "service"}
+  ],
+  "connections": [
+    {"source": "Admin 1", "target": "Config file", "label": "Add/modify/delete"},
+    {"source": "Config file", "target": "Fork admin 1", "label": "Commit & sync"},
+    {"source": "Fork admin 1", "target": "Main repository", "label": "Create pull request"},
+    {"source": "Main repository", "target": "Fork admin 1", "label": "Check pull request"},
+    {"source": "Admins", "target": "Main repository", "label": "Review code & merge PR"},
+    {"source": "Main repository", "target": "Multi-stage pipeline"},
+    {"source": "Multi-stage pipeline", "target": "Key Vault", "label": "Get credentials for compiling Managed Object Format (MOF) files"},
+    {"source": "Multi-stage pipeline", "target": "Microsoft365DSC"},
+    {"source": "Microsoft365DSC", "target": "Microsoft 365 staging", "label": "Deploy"},
+    {"source": "Admins", "target": "Microsoft 365 staging", "label": "Validate changes"},
+    {"source": "Admins", "target": "Microsoft 365 production", "label": "Approve change for deployment"},
+    {"source": "Microsoft365DSC", "target": "Microsoft 365 production", "label": "Deploy"}
+  ]
+}

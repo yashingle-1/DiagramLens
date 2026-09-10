@@ -19,10 +19,6 @@ async def chat(
 ):
     print(f"DEBUG chat: session_id={request.session_id}, message={request.message[:50]}")
 
-    # Load the architecture the user is actually looking at. Gemini is the
-    # default because it produces the richest descriptions, but when the canvas
-    # is showing another pipeline the chat must discuss that one's components,
-    # or it will reference names the user cannot see.
     wanted = request.pipeline or "gemini"
     arch_result = await db.execute(
         select(Architecture)

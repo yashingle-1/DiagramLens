@@ -3,7 +3,7 @@ Scores every pipeline against every annotated diagram, without the API or DB.
 
 Runs the pipelines directly so the benchmark is reproducible from a clean
 checkout and does not depend on the state of a running server. Results are
-written as JSON, which the figure scripts then read — so the numbers in the
+written as JSON, which the figure scripts then read so the numbers in the
 dissertation and the numbers in the charts cannot drift apart.
 
     python backend/scripts/run_offline_benchmark.py

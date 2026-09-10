@@ -1,9 +1,9 @@
-# Environment — NEVER commit
+# Environment NEVER commit
 .env
 .env.local
 .env.production
 *.env
-.env.example
+#.env.example
 # Python
 __pycache__/
 *.py[cod]
@@ -12,14 +12,14 @@ __pycache__/
 venv/
 backend/venv/
 
-# SAM checkpoint — 375MB, too large for git
+# SAM checkpoint 375MB, too large for git
 backend/models/sam/*.pth
 
-# Raw vendor icon packs (AWS/Azure/GCP) — 1456 files, 16.5MB, and the glyphs
+# Raw vendor icon packs (AWS/Azure/GCP) 1456 files, 16.5MB, and the glyphs
 # are vendor trademarks. Regenerate with:
-#   pip install diagrams
-#   copy <site-packages>/resources/{aws,azure,gcp} -> backend/data/icons/
-#   python backend/scripts/build_icon_bank.py
+# pip install diagrams
+# copy <site-packages>/resources/{aws,azure,gcp} -> backend/data/icons/
+# python backend/scripts/build_icon_bank.py
 # The derived embedding bank IS committed, so the pipeline runs without them.
 backend/data/icons/aws/
 backend/data/icons/azure/
@@ -30,7 +30,7 @@ backend/.cache/
 *.bin
 *.safetensors
 
-# Uploads — user images
+# Uploads user images
 backend/uploads/*
 !backend/uploads/.gitkeep
 
@@ -47,9 +47,10 @@ backend/test_image.png
 backend/test_image1.png
 backend/test_image3.png
 
-# Dissertation docs — large Office files
+# Dissertation docs large Office files
 *.docx
 *.pdf
+*.md
 
 # Docker
 .docker/
@@ -73,17 +74,3 @@ AI_SUPPORT_RADAR.md
 HANDOFF.md
 SUPERVISOR_BRIEF.md
 .claude/
-
-#Other
-SUPERVISOR_BRIEF.md
-Yash26-LiteratureReview.docx
-Yash26-LiteratureReview.pdf
-Yash26-SP.docx
-Yash26-SP.pdf
-AI_SUPPORT_RADAR.md
-SoC-Report-Template.docx
-SoC-Report-Template.pdf
-SP-doc-template.docx
-docs/ASSESSOR_BRIEFING.md
-fill_report.py
-Marking Guidance for COMP5200M.pdf

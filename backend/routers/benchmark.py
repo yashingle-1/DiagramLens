@@ -1,7 +1,7 @@
 """
-Benchmark router — scores all three pipelines against a ground truth JSON file.
+Benchmark router scores all three pipelines against a ground truth JSON file.
 
-Uses fuzzy matching (SequenceMatcher >= 0.75) — never exact string matching.
+Uses fuzzy matching (SequenceMatcher >= 0.75) never exact string matching.
 Stores one Benchmark row per pipeline: classical, hybrid, gemini.
 """
 

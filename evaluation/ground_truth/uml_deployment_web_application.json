@@ -22,7 +22,7 @@
     {"name": "Inventory", "type": "database"}
   ],
   "connections": [
-    {"source": "book_club_app.war", "target": "web.xml", "label": "deployment spec"},
+    {"source": "web.xml", "target": "book_club_app.war", "label": "deployment spec"},
     {"source": "book_club_app.war", "target": "user_services.jar"},
     {"source": "book_club_app.war", "target": "web-tools-lib.jar"},
     {"source": "book_club_app.war", "target": "OnlineOrders", "label": "manifest"},

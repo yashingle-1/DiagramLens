@@ -15,11 +15,13 @@
     {"name": "App Server", "type": "service"},
     {"name": "Amazon RDS", "type": "database"},
     {"name": "RDS Read Replica", "type": "database"},
-    {"name": "ElastiCache", "type": "cache"}
+    {"name": "ElastiCache", "type": "cache"},
+    {"name": "Amazon S3", "type": "storage", "description": "Static storage and backups"}
   ],
   "connections": [
     {"source": "Route 53", "target": "CloudFront"},
     {"source": "CloudFront", "target": "Application Load Balancer"},
+    {"source": "CloudFront", "target": "Amazon S3"},
     {"source": "Application Load Balancer", "target": "Web Server"},
     {"source": "Web Server", "target": "Internal Load Balancer"},
     {"source": "Internal Load Balancer", "target": "App Server"},

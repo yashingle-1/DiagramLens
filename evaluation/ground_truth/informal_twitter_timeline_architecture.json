@@ -1,0 +1,35 @@
+{
+  "diagram_id": "informal_twitter_timeline_architecture",
+  "source_image": "informal_twitter_timeline_architecture.png",
+  "source_url": "https://github.com/donnemartin/system-design-primer",
+  "image_url": "https://github.com/donnemartin/system-design-primer/blob/master/images/TcUo2fw.png?raw=true",
+  "license": "system-design-primer repository (donnemartin); diagram illustrates Twitter's real-time delivery architecture as presented at QCon by Twitter engineers, Creative Commons Attribution 4.0",
+  "diagram_standard": "informal",
+  "complexity": "medium",
+  "arch_type": "event_driven",
+  "components": [
+    {"name": "Client", "type": "client", "description": "Tweet compose UI"},
+    {"name": "Write API", "type": "gateway"},
+    {"name": "Ingester", "type": "service"},
+    {"name": "Earlybird", "type": "database", "description": "Search Index tier"},
+    {"name": "Fanout", "type": "service"},
+    {"name": "Redis", "type": "cache", "description": "Timeline Cache tier"},
+    {"name": "Blender", "type": "service"},
+    {"name": "Timeline Service", "type": "service"},
+    {"name": "HTTP Push", "type": "service", "description": "Push Compute tier"},
+    {"name": "Mobile Push", "type": "service", "description": "Push Compute tier"},
+    {"name": "Hadoop", "type": "service", "description": "Batch Compute tier"}
+  ],
+  "connections": [
+    {"source": "Client", "target": "Write API"},
+    {"source": "Write API", "target": "Ingester"},
+    {"source": "Write API", "target": "Fanout"},
+    {"source": "Write API", "target": "HTTP Push"},
+    {"source": "Write API", "target": "Hadoop", "line_style": "dashed"},
+    {"source": "Ingester", "target": "Earlybird"},
+    {"source": "Fanout", "target": "Redis"},
+    {"source": "Earlybird", "target": "Blender"},
+    {"source": "Redis", "target": "Timeline Service"},
+    {"source": "HTTP Push", "target": "Mobile Push"}
+  ]
+}

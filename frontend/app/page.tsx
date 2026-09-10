@@ -90,7 +90,7 @@ export default function HomePage() {
           </h1>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
             Upload an architecture diagram. Three pipelines extract it in parallel:
-            a pure OpenCV + Tesseract baseline, a SAM + CLIP + TrOCR hybrid, and Gemini 2.5 Flash,
+            a pure OpenCV + Tesseract baseline, Hybrid, and Gemini 2.5 Flash,
             then we score all three against ground truth.
           </p>
         </div>

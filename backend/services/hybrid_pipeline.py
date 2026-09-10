@@ -260,8 +260,8 @@ def _build_proposals(
 
     # Shape + label-below: the icon-centric pattern without an icon bank. The
     # glyph is a detected shape and its label sits underneath. Without this the
-    # component's box is only its text, so connectors — which attach to the
-    # glyph — never come within snapping distance and the link is lost.
+    # component's box is only its text, so connectors which attach to the
+    # glyph never come within snapping distance and the link is lost.
     used_shapes = {id(s) for s in shapes if any(
         contains(s.box, cluster_boxes[i], 0.7) for i in claimed)}
     for shape in shapes:
@@ -272,7 +272,7 @@ def _build_proposals(
         if not near:
             continue
         claimed.update(near)
-        # Same profile rules as the compartment path — without this, bracket
+        # Same profile rules as the compartment path without this, bracket
         # tags survived here and produced names like "Amazon RDS
         # [Deployment Node]".
         name, marker = clean_name(
@@ -286,7 +286,7 @@ def _build_proposals(
             proposer="shape+text", shape_kind=shape.kind, stereotype=marker,
         ))
 
-    # Text alone — the floor. Any label not claimed above is still a component.
+    # Text alone the floor. Any label not claimed above is still a component.
     for i, cluster in enumerate(clusters):
         if i in claimed:
             continue
@@ -348,7 +348,7 @@ def _edge_label_indices(cluster_boxes, cluster_names, shapes, segments, profile)
 
         # UML puts an interface name on the connector, marked with a
         # stereotype. A stereotyped label OUTSIDE every box is therefore a
-        # link label, whatever its distance from the line — the lollipop
+        # link label, whatever its distance from the line the lollipop
         # glyph breaks the segment and pushes the label clear of it.
         if profile.stereotyped_text_outside_is_edge_label and split_stereotype(
                 cluster_names[i])[1]:
@@ -435,28 +435,28 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
     pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     img_rgb = np.array(pil)
 
-    # Stage 1 — one full-page OCR pass. Text is needed by every later stage.
+    # Stage 1 one full-page OCR pass. Text is needed by every later stage.
     words = ocr_engine.read_page(img_rgb)
 
-    # Stage 2 — notation FIRST, so the rule profile is available to the
+    # Stage 2 notation FIRST, so the rule profile is available to the
     # geometry stage. Stereotypes and bracket tags come from the OCR text, so
     # this needs no shapes; the icon-bank signal is folded in afterwards.
     ocr_text = " ".join(w.text for w in words)
     notation, notation_conf = classify_notation(img_rgb, ocr_text)
     profile = profile_for(notation, notation_conf)
 
-    # Stage 3 — geometry, split into components and group boundaries.
+    # Stage 3 geometry, split into components and group boundaries.
     # Dashed boundaries are found separately: contour analysis on a dashed
     # outline returns one contour per dash, never a rectangle.
     shapes = detect_shapes(img_rgb)
     if profile.merge_compartments:
-        # Only for compartmented notations — see Profile.merge_compartments.
+        # Only for compartmented notations see Profile.merge_compartments.
         shapes = merge_compartments(shapes)
     shape_components, containers = split_containers(shapes)
     containers += [b for b in detect_dashed_boundaries(img_rgb)
                    if not any(_iou(b.box, c.box) >= 0.55 for c in containers)]
 
-    # Stage 4 — icon retrieval over the non-container shapes. A confident
+    # Stage 4 icon retrieval over the non-container shapes. A confident
     # vendor-icon consensus overrides the text-only notation guess.
     icon_matches: dict[int, icon_bank.IconMatch] = {}
     if icon_bank.available() and shape_components:
@@ -471,7 +471,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
                 img_rgb, ocr_text, icon_bank.hit_rate(results), provider
             )
 
-    # Stage 5 — connector segments from shapes alone. Needed BEFORE components
+    # Stage 5 connector segments from shapes alone. Needed BEFORE components
     # exist so that text lying on a link can be recognised as that link's
     # label rather than proposed as a component.
     container_boxes = [c.box for c in containers]
@@ -480,7 +480,7 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
         [w.box for w in words],
     )
 
-    # Stage 6 — fuse proposers into one component list, under the notation's
+    # Stage 6 fuse proposers into one component list, under the notation's
     # rule profile (see notation_profiles.py).
     proposals = _build_proposals(
         img_rgb, words, shape_components, icon_matches,
@@ -507,16 +507,23 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
         ))
         boxes.append(p.box)
 
-    # Stage 6 — containers kept as components with children linked via parent_id.
+    # Stage 6 containers kept as components with children linked via parent_id.
     # The old pipeline discarded these; VPC / subnet / AZ / C4 boundaries are
     # architectural knowledge and are what a knowledge graph needs.
     _attach_containers(components, boxes, containers, words, profile)
 
-    # Stage 7 — connections. Own detector, not the classical arm's, so the
-    # three-way comparison measures three methods rather than two.
+    # Stage 7 connections, snapped to each component's VISUAL EXTENT.
+    #
+    # A proposal's box is usually its label: in vendor diagrams the name sits
+    # under the icon, so the box is the caption, not the thing. Connectors are
+    # drawn to the ICON. Snapping to caption boxes left endpoints stranded 10-50px
+    # from any component (measured: 0 cross-component links on aws_cicd_pipeline)
+    # while the icon glyphs, never erased, were traced as if they were connectors.
+    # Unioning each component with the shape it labels fixes both at once.
     text_boxes = [w.box for w in words]
+    extents = _visual_extents(boxes, [s.box for s in shape_components])
     detected = detect_connections(
-        img_rgb, boxes, [c.id for c in components[:len(boxes)]], text_boxes, notation,
+        img_rgb, extents, [c.id for c in components[:len(boxes)]], text_boxes, notation,
         container_boxes=container_boxes,
     )
     connections = _to_connection_schemas(detected, components)
@@ -533,6 +540,40 @@ def _extract(image_bytes: bytes, session_id: str, start: float) -> ArchitectureS
         response_time_ms=int((time.time() - start) * 1000),
         notation_confidence=notation_conf,
     )
+
+
+EXTENT_GAP_RATIO   = 1.20   # caption within this × its own height of a shape
+EXTENT_MAX_GROWTH  = 8.0    # never grow a component past this × its own area
+
+
+def _visual_extents(boxes: list[tuple[int, int, int, int]],
+                    shape_boxes: list[tuple[int, int, int, int]],
+                    ) -> list[tuple[int, int, int, int]]:
+    """Each component's drawn extent: its own box unioned with the shape it labels.
+
+    A caption belongs to a shape when it sits directly under, over or inside it —
+    horizontally overlapping and vertically close. The growth cap stops a stray
+    caption from swallowing a whole panel it happens to sit near.
+    """
+    out: list[tuple[int, int, int, int]] = []
+    for box in boxes:
+        x, y, w, h = box
+        area = max(1, w * h)
+        ext = box
+        for (sx, sy, sw, sh) in shape_boxes:
+            overlap = min(x + w, sx + sw) - max(x, sx)
+            if overlap < 0.5 * min(w, sw):
+                continue
+            gap = max(sy - (y + h), y - (sy + sh))       # negative when overlapping
+            if gap > EXTENT_GAP_RATIO * h:
+                continue
+            nx, ny = min(ext[0], sx), min(ext[1], sy)
+            nw = max(ext[0] + ext[2], sx + sw) - nx
+            nh = max(ext[1] + ext[3], sy + sh) - ny
+            if nw * nh <= EXTENT_MAX_GROWTH * area:
+                ext = (nx, ny, nw, nh)
+        out.append(ext)
+    return out
 
 
 def _attach_containers(components: list[ComponentSchema],
@@ -607,7 +648,7 @@ def _to_connection_schemas(detected, components: list[ComponentSchema]) -> list[
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 async def run_hybrid_pipeline(image_bytes: bytes, session_id: str) -> ArchitectureSchema:
-    """Full hybrid extraction. Never raises — returns partial results on error."""
+    """Full hybrid extraction. Never raises returns partial results on error."""
     start = time.time()
 
     if os.environ.get("HYBRID_VERSION", "v2").lower() == "v1":

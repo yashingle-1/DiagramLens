@@ -50,7 +50,7 @@ class ComponentSchema(BaseModel):
     name: str
     type: str = "other"   # gateway|service|database|cache|queue|cdn|load_balancer|client|storage|other
     confidence: Optional[float] = None   # None for classical; 0.0-1.0 for Gemini
-    # Optional richer fields — classical omits, Gemini may supply
+    # Optional richer fields classical omits, Gemini may supply
     technology: Optional[str]               = None
     position:   Optional[ComponentPosition] = None
     metadata:   Optional[ComponentMetadata] = None
@@ -86,7 +86,7 @@ class ConnectionSchema(BaseModel):
     source_name: Optional[str] = None
     target_name: Optional[str] = None
     # Measured connection geometry (hybrid arm). arrowhead_* is "none" when no
-    # decoration was found — direction is never assumed from its absence.
+    # decoration was found direction is never assumed from its absence.
     line_style:       Optional[str] = None   # solid | dashed | unknown
     arrowhead_source: Optional[str] = None
     arrowhead_target: Optional[str] = None
@@ -110,14 +110,14 @@ class ArchitectureSchema(BaseModel):
     response_time_ms: int
     # Legacy field kept for frontend compatibility
     confidence_score: Optional[float] = None
-    # Hallucination filter results (gemini pipeline only) — OCR cross-validation
+    # Hallucination filter results (gemini pipeline only) OCR cross-validation
     hallucinated_components: Optional[List[str]] = None
     hallucination_rate:      Optional[float]     = None
     # How sure the notation classifier was, so a low-confidence routing
     # decision is visible rather than silently trusted.
     notation_confidence: Optional[float] = None
     # Set when the pipeline failed and returned an empty result. An empty
-    # component list is honest data (recall 0) — a fake "Unknown" placeholder
+    # component list is honest data (recall 0) a fake "Unknown" placeholder
     # would pollute precision scores in the benchmark.
     extraction_error: Optional[str] = None
 
@@ -129,7 +129,7 @@ Connection = ConnectionSchema
 # ── Gemini structured-output schema ───────────────────────
 # Passed as response_schema so the API guarantees parseable JSON. This removes
 # the markdown-fence stripping and truncated-JSON salvage paths, which were
-# lossy — salvage trims to the last complete object and silently drops
+# lossy salvage trims to the last complete object and silently drops
 # components, showing up as a recall failure.
 # No Optional fields: the SDK maps Optional to a nullable union that Gemini
 # handles inconsistently. Defaults stand in for absent values instead.

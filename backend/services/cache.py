@@ -84,5 +84,5 @@ class CacheService:
         await self.client.aclose()
 
 
-# Singleton instance — imported everywhere
+# Singleton instance imported everywhere
 cache_service = CacheService()

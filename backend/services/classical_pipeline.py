@@ -1,14 +1,5 @@
 """
-Classical CV pipeline — NO AI, NO LLM, NO EXTERNAL API CALLS.
-Pure OpenCV + Tesseract only.
-
-================================================================================
-STRATEGY: TEXT-FIRST (not shape-first).
-================================================================================
-Architecture diagrams are *designed to be read*: every meaningful component
-carries a text label. Box borders are decorative and unreliable (AWS icons have
-the label BELOW the icon, C4/UML put it INSIDE a box, hand-drawn boxes are
-broken). So instead of "find a box then OCR inside it", we:
+Classical CV pipeline 
 
 1. Pre-process: grayscale, auto-invert dark-mode diagrams, upscale to Tesseract's
    sweet spot (~2000px long side) so small labels become legible.
@@ -24,7 +15,7 @@ broken). So instead of "find a box then OCR inside it", we:
    nearest component centroid (adaptive radius). Dedup undirected pairs.
 
 Returns the SAME ArchitectureSchema as the Gemini pipeline.
-Never raises — returns whatever was found, even if partial.
+Never raises returns whatever was found, even if partial.
 Always logs response_time_ms.
 """
 
@@ -223,7 +214,7 @@ def _ocr_words(ocr_img: np.ndarray, scale: float) -> list[_Word]:
             data = pytesseract.image_to_data(
                 ocr_img, output_type=pytesseract.Output.DICT, config=cfg
             )
-        except Exception as exc:  # tesseract missing / failed — bail gracefully
+        except Exception as exc: 
             print(f"[classical_pipeline] OCR failed ({cfg}): {exc}")
             continue
 
@@ -349,12 +340,22 @@ def _is_noise(name: str) -> bool:
 
 # ── Connection detection ──────────────────────────────────────────────────────
 def _nearest_component(point: tuple[float, float],
-                       centroids: list[tuple[float, float]],
+                       boxes: list[tuple[int, int, int, int]],
                        radius: float) -> int | None:
+    """Nearest component by distance to its EDGE, not its centroid.
+
+    A line endpoint touching the left edge of a wide box is 2px from that
+    component and possibly 200px from its centre, so centroid distance hands
+    the endpoint to whichever component happens to be small and nearby. Same
+    correction the hybrid arm's _dist_to_box makes; the detection method
+    (Canny + HoughLinesP) is untouched, so the arms stay distinct.
+    """
     px, py = point
     best_idx, best_dist = None, radius
-    for i, (cx, cy) in enumerate(centroids):
-        d = ((px - cx) ** 2 + (py - cy) ** 2) ** 0.5
+    for i, (x, y, w, h) in enumerate(boxes):
+        dx = max(x - px, 0.0, px - (x + w))
+        dy = max(y - py, 0.0, py - (y + h))
+        d = (dx * dx + dy * dy) ** 0.5
         if d <= best_dist:
             best_dist = d
             best_idx = i
@@ -396,8 +397,8 @@ def _detect_connections(
     conns: list[ConnectionSchema] = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
-        s = _nearest_component((x1, y1), centroids, radius)
-        t = _nearest_component((x2, y2), centroids, radius)
+        s = _nearest_component((x1, y1), boxes, radius)
+        t = _nearest_component((x2, y2), boxes, radius)
         if s is None or t is None or s == t:
             continue
         pair = (min(s, t), max(s, t))
@@ -409,14 +410,14 @@ def _detect_connections(
             source=component_ids[s],
             target=component_ids[t],
             label="",
-            directed=False,   # pairs are deduped undirected above — direction was never measured
+            directed=False,   # pairs are deduped undirected above direction was never measured
         ))
     return conns
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 async def run_classical_pipeline(image_bytes: bytes, session_id: str) -> ArchitectureSchema:
-    """Full classical CV extraction. Never raises — returns partial results on error."""
+    """Full classical CV extraction. Never raises returns partial results on error."""
     start = time.time()
 
     def _elapsed() -> int:

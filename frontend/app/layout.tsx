@@ -43,8 +43,8 @@ import Providers from "./providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "DiagramLens — Classical CV vs Hybrid ML vs Gemini",
-  description: "Benchmark three paradigms — rule-based CV, a SAM+CLIP+TrOCR hybrid, and Gemini 2.5 Flash — on architecture diagram extraction",
+  title: "DiagramLens : Classical CV vs Hybrid ML vs Gemini",
+  description: "Benchmark three paradigms: Classic CV, hybrid, and Gemini 2.5 Flash on architecture diagram extraction",
 }
 
 export default function RootLayout({

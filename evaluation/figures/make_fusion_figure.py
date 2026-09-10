@@ -1,115 +1,140 @@
 """
-Figure 3 — the hybrid arm's three-proposer fusion.
+Figure — the hybrid arm's three-proposer fusion.
 
-This is the project's main technical contribution and warrants its own figure
-rather than a single box in the architecture diagram. It shows why the arm
-generalises across notations: three proposers with different competences, only
-one of which fires on every diagram.
+Shows why the arm generalises across notations: three proposers with different
+competences, only one of which fires on every diagram. The per-proposer
+implementation detail is in Section 4.2.4, not repeated here.
 
     python evaluation/figures/make_fusion_figure.py
 """
 
-from figure_style import (ACCENT, ARM, BAND, BAND_EDGE, INK, MUTED, arrow,
-                          band, box, canvas, note, save, title)
+from pathlib import Path
 
-P1 = ("#e3f0fb", "#2f6ea8")   # icon bank
-P2 = ("#fdeee0", "#c2701f")   # shape
-P3 = ("#e8f4e4", "#3f7a34")   # text — the universal floor
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
-fig, ax = canvas(13.5, 9.4)
-title(ax, "Hybrid Arm — Notation-Adaptive Proposal Fusion",
-      "Three proposers of differing competence; only the text proposer fires on "
-      "every notation", y=96.8)
+OUT = Path(__file__).resolve().parent
+INK, MUTED = "#111111", "#555555"
+BAND, BAND_EDGE = "#f2f2f2", "#cfcfcf"
 
-# ── Input ─────────────────────────────────────────────────────────────────────
-box(ax, 34, 87.5, 32, 4.6, "Diagram image", "raw pixels", lw=1.4)
+fig, ax = plt.subplots(figsize=(11.0, 11.0))
+ax.set_xlim(0, 100)
+ax.set_ylim(0, 100)
+ax.axis("off")
 
-# ── Stage 0 — shared perception ───────────────────────────────────────────────
-band(ax, 72.4, 12.8, "SHARED PERCEPTION")
-box(ax, 6, 73.2, 27, 6.4, "ocr_engine.read_page()",
-    "PaddleOCR PP-OCRv5, one full-page\npass → word boxes + confidence",
-    title_size=8.4, sub_size=6.8, mono=True)
-box(ax, 36.5, 73.2, 27, 6.4, "notation_classifier",
-    "stereotypes, C4 tags, stroke variance\n→ notation + confidence",
-    title_size=8.4, sub_size=6.8, mono=True)
-box(ax, 67, 73.2, 26, 6.4, "shape_detector",
-    "contours, compartment merging,\ndashed boundary pass",
-    title_size=8.4, sub_size=6.8, mono=True)
 
-arrow(ax, 50, 87.5, 50, 79.9)
+def band(y, h, label):
+    ax.add_patch(FancyBboxPatch((3, y), 94, h,
+        boxstyle="round,pad=0.3,rounding_size=0.6",
+        facecolor=BAND, edgecolor=BAND_EDGE, linewidth=1.0, zorder=1))
+    ax.text(5.4, y + h - 1.3, label, va="top", ha="left", fontsize=11,
+            color=MUTED, fontweight="bold", zorder=2)
 
-# Profile gate
-box(ax, 30, 66.2, 40, 4.4, "notation_profiles.profile_for()",
-    "rules applied only above confidence 0.7",
-    fc="#fdf0d5", ec=ACCENT, lw=1.5, title_size=8.6, sub_size=6.9, mono=True)
-arrow(ax, 50, 73.2, 50, 70.8)
 
-# ── Stage 1 — the three proposers ─────────────────────────────────────────────
-band(ax, 36.4, 27.6, "PROPOSERS")
+def rect(x, y, w, h, lw=1.4):
+    ax.add_patch(FancyBboxPatch((x, y), w, h,
+        boxstyle="round,pad=0.22,rounding_size=0.5",
+        facecolor="white", edgecolor=INK, linewidth=lw, zorder=3))
 
+
+def htext(x, y, s, size=10, weight="normal", style="normal", color=INK,
+          mono=False):
+    ax.text(x, y, s, ha="center", va="center", fontsize=size,
+            fontweight=weight, style=style, color=color, zorder=4,
+            family="monospace" if mono else None, linespacing=1.5)
+
+
+def arrow(x1, y1, x2, y2, lw=1.5, color=INK):
+    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>",
+        mutation_scale=16, linewidth=lw, color=color, zorder=6,
+        shrinkA=1, shrinkB=1))
+
+
+# ── Title ────────────────────────────────────────────────────────────────────
+htext(50, 97.5, "Hybrid Arm — Proposal Fusion", size=19, weight="bold")
+htext(50, 94.2,
+      "Three proposers of differing competence; only the text proposer fires "
+      "on every notation", size=10, style="italic", color=MUTED)
+
+# ── Input ───────────────────────────────────────────────────────────────────
+rect(37, 87.5, 26, 4.4)
+htext(50, 89.7, "Diagram image", size=12, weight="bold")
+
+# ── Shared perception ───────────────────────────────────────────────────────
+band(72.5, 12.0, "SHARED PERCEPTION")
+for x, t, s in [
+    (6,  "OCR", "PaddleOCR PP-OCRv5\nword boxes + confidence"),
+    (36, "notation classifier", "stereotypes, C4 tags,\nstroke variance"),
+    (66, "shape detector", "contours, compartment\nmerge, dashed boundary"),
+]:
+    rect(x, 73.5, 28, 8.6)
+    htext(x + 14, 79.8, t, size=11, weight="bold")
+    htext(x + 14, 76.2, s, size=9, color=MUTED)
+arrow(50, 87.5, 50, 82.1)
+
+# ── Profile gate ────────────────────────────────────────────────────────────
+rect(26, 65.6, 48, 5.0, lw=1.8)
+htext(50, 68.9, "notation rule profile", size=11, weight="bold")
+htext(50, 66.5, "rules applied only above classifier confidence 0.7",
+      size=9, color=MUTED)
+arrow(50, 73.5, 50, 70.6)
+
+# ── Three proposers ─────────────────────────────────────────────────────────
+band(41.0, 21.0, "PROPOSERS")
 props = [
-    (6.0, P1, "P1 · ICON BANK", "AWS · Azure · GCP",
-     ["CLIP image → image retrieval",
-      "1456 official vendor icons",
-      "accept on margin + z-score,",
-      "not absolute cosine",
-      "OFF by default (measured)"]),
-    (36.5, P2, "P2 · SHAPE", "C4 · UML · informal",
-     ["contour polygon classification",
-      "rect · cylinder · diamond · hexagon",
-      "compartments fused into one box",
-      "containers split from components",
-      "label read from inside the shape"]),
-    (67.0, P3, "P3 · TEXT", "every notation — the floor",
-     ["PaddleOCR word boxes",
-      "union-find spatial clustering",
-      "gaps adaptive to text height",
-      "always fires: every component",
-      "in every notation has a label"]),
+    (6,  "P1 · Icon retrieval", "cloud notations only",
+     "CLIP image-to-image match against\na vendor icon bank\n"
+     "(disabled by default, Section 5.7.2)"),
+    (36, "P2 · Shape", "diagrams with drawn boxes",
+     "contour polygon classified by\nvertex count and solidity;\n"
+     "compartments merged to one box"),
+    (66, "P3 · Text", "every notation — the floor",
+     "OCR words clustered by spatial\nproximity; always fires, because\n"
+     "every component is labelled"),
 ]
+for x, name, scope, body in props:
+    rect(x, 43.0, 28, 16.4, lw=1.6)
+    htext(x + 14, 56.6, name, size=11.5, weight="bold")
+    htext(x + 14, 53.9, scope, size=8.5, style="italic", color=MUTED)
+    htext(x + 14, 48.6, body, size=8.5, color=INK)
+    arrow(x + 14, 43.0, x + 14, 37.0, lw=1.4)
+arrow(50, 65.6, 20, 60.0, lw=1.1, color=MUTED)
+arrow(50, 65.6, 50, 60.0, lw=1.1, color=MUTED)
+arrow(50, 65.6, 80, 60.0, lw=1.1, color=MUTED)
 
-for x, (fc, ec), name, scope, lines in props:
-    w = 27 if x < 60 else 26
-    box(ax, x, 41.0, w, 18.6, "", fc=fc, ec=ec, lw=1.7)
-    ax.text(x + w / 2, 57.4, name, ha="center", fontsize=9.8,
-            fontweight="bold", color=ec, zorder=5)
-    ax.text(x + w / 2, 55.4, scope, ha="center", fontsize=7.2, color=MUTED,
-            style="italic", zorder=5)
-    for i, line in enumerate(lines):
-        ax.text(x + 1.6, 52.6 - i * 2.4, f"·  {line}", ha="left", fontsize=7.0,
-                color=INK, zorder=5)
-    arrow(ax, x + w / 2, 41.0, x + w / 2, 34.0, lw=1.3, color=ec)
+# ── Fusion ──────────────────────────────────────────────────────────────────
+band(18.5, 18.5, "FUSION")
+rect(6, 28.5, 88, 6.4)
+htext(50, 32.7, "Merge", size=11, weight="bold")
+htext(50, 29.9,
+      "text in a shape or below an icon becomes one component; orphan text is "
+      "kept;\na shape with no text or icon is discarded as decoration",
+      size=9, color=MUTED)
+rect(6, 20.0, 88, 6.4, lw=1.8)
+htext(50, 24.2, "Non-maximum suppression  (IoU 0.6)", size=11, weight="bold")
+htext(50, 21.4,
+      "richest evidence wins: icon+text > shape+text > icon > text;\n"
+      "the winning proposer is recorded per component", size=9, color=MUTED)
+arrow(50, 28.5, 50, 26.4)
 
-arrow(ax, 50, 66.2, 20, 60.0, lw=1.0, color=MUTED)
-arrow(ax, 50, 66.2, 50, 60.0, lw=1.0, color=MUTED)
-arrow(ax, 50, 66.2, 79, 60.0, lw=1.0, color=MUTED)
+# ── Output ──────────────────────────────────────────────────────────────────
+rect(22, 11.0, 56, 5.4)
+htext(50, 14.3, "components  ->  ArchitectureSchema", size=11, weight="bold",
+      mono=True)
+htext(50, 12.1, "name, type, parent_id, stereotype, icon_match, proposer",
+      size=8.5, color=MUTED)
+arrow(50, 20.0, 50, 16.4, lw=1.4)
 
-# ── Stage 2 — merge ───────────────────────────────────────────────────────────
-band(ax, 15.6, 19.6, "FUSION")
+htext(50, 6.0,
+      "P3 is the floor, not a fallback. P1 and P2 raise precision and typing "
+      "where the notation supports them,\nbut neither is required for the arm "
+      "to produce output.", size=9, style="italic", color=MUTED)
 
-box(ax, 6, 26.0, 87, 6.6, "Merge rules",
-    "text inside a shape → one component   ·   text below an icon → one component   ·   "
-    "orphan text → still a component\nshape with neither text nor icon → discarded as "
-    "decoration   ·   type priority: icon > label keyword > shape kind",
-    title_size=9.0, sub_size=7.0)
-
-box(ax, 6, 17.2, 87, 7.0, "Non-maximum suppression  ·  IoU ≥ 0.6",
-    "richest evidence wins:   icon+text  >  shape+text  >  icon  >  text\n"
-    "the winning proposer is recorded per component, so extraction provenance "
-    "is reportable",
-    fc="#fdf0d5", ec=ACCENT, lw=1.5, title_size=9.0, sub_size=7.0)
-
-arrow(ax, 50, 26.0, 50, 24.4)
-
-# ── Output ────────────────────────────────────────────────────────────────────
-box(ax, 22, 9.2, 56, 4.6, "components[]  →  ArchitectureSchema",
-    "name · type · parent_id · stereotype · icon_match · proposer",
-    lw=1.4, title_size=9.2, sub_size=7.0, mono=True)
-arrow(ax, 50, 17.2, 50, 14.0)
-
-note(ax,
-     "P3 is the floor rather than a fallback. P1 and P2 raise precision and "
-     "typing where the notation supports them,\nbut neither is required for the "
-     "arm to produce output.", y=4.4)
-
-save(fig, "fusion")
+ax.set_ylim(3, 100)
+plt.tight_layout(pad=0.5)
+for ext in ("png", "pdf"):
+    p = OUT / f"fusion.{ext}"
+    fig.savefig(p, dpi=300, bbox_inches="tight", facecolor="white")
+    print(f"wrote {p}")

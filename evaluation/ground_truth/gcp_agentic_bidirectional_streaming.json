@@ -1,0 +1,42 @@
+{
+  "diagram_id": "gcp_agentic_bidirectional_streaming",
+  "source_image": "gcp_agentic_bidirectional_streaming.png",
+  "source_url": "https://docs.cloud.google.com/architecture/agentic-ai-bidirectional-multimodal-streaming-technical-guidance",
+  "image_url": "https://docs.cloud.google.com/static/architecture/images/agentic-ai-bidirectional-multimodal-streaming-technical-guidance.svg",
+  "license": "Google Cloud Architecture Center",
+  "diagram_standard": "gcp",
+  "complexity": "medium",
+  "arch_type": "event_driven",
+  "components": [
+    {"name": "Users", "type": "client"},
+    {"name": "Frontend application", "type": "client"},
+    {"name": "Backend server", "type": "service"},
+    {"name": "Streaming buffer", "type": "queue", "description": "LiveRequestQueue"},
+    {"name": "Dispatcher agent", "type": "service", "description": "Coordinator agent, Cloud Run instance"},
+    {"name": "Gemini Live", "type": "service", "description": "Gemini Enterprise Agent Platform"},
+    {"name": "Gemini", "type": "service", "description": "Gemini Enterprise Agent Platform"},
+    {"name": "Architect agent", "type": "service", "description": "Agent-as-a-tool, Cloud Run instance"},
+    {"name": "Serverless VPC access connector", "type": "gateway"},
+    {"name": "Cached data", "type": "cache", "description": "Memorystore for Redis"},
+    {"name": "Knowledge database", "type": "database", "description": "Compute Engine VM"},
+    {"name": "Data", "type": "storage"}
+  ],
+  "connections": [
+    {"source": "Users", "target": "Frontend application", "label": "1: Technical inquiry"},
+    {"source": "Frontend application", "target": "Backend server", "label": "2: WebSocket connection"},
+    {"source": "Backend server", "target": "Streaming buffer", "label": "3: Segmented event Blob"},
+    {"source": "Streaming buffer", "target": "Dispatcher agent", "label": "4: Request"},
+    {"source": "Dispatcher agent", "target": "Gemini Live", "label": "4: Request"},
+    {"source": "Dispatcher agent", "target": "Architect agent", "label": "6c: Structured request"},
+    {"source": "Architect agent", "target": "Gemini", "label": "6f: Inference request and response"},
+    {"source": "Architect agent", "target": "Serverless VPC access connector", "label": "6d: Request"},
+    {"source": "Serverless VPC access connector", "target": "Cached data", "label": "6e: Fetch product information"},
+    {"source": "Cached data", "target": "Knowledge database"},
+    {"source": "Knowledge database", "target": "Data"},
+    {"source": "Architect agent", "target": "Dispatcher agent", "label": "6g: Product information"},
+    {"source": "Gemini Live", "target": "Dispatcher agent", "label": "6b/7a: Structured request; generates multimodal response"},
+    {"source": "Dispatcher agent", "target": "Streaming buffer", "label": "7c: Technical solution"},
+    {"source": "Backend server", "target": "Frontend application", "label": "WebSocket connection"},
+    {"source": "Frontend application", "target": "Users", "label": "8: Narrated solution"}
+  ]
+}
